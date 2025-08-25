@@ -7,7 +7,7 @@ function setStatus(doc, msg){
   if (el) el.textContent = msg;
 }
 
-async function loadLayout(win, doc, side){
+async function loadLightLayout(win, doc, side){
   try {
     return await (await win.fetch(`/layout/${side}`)).json();
   } catch (err) {
@@ -22,8 +22,8 @@ export async function boot(docArg = globalThis.document){
   const win = docArg.defaultView || globalThis;
 
   const [layoutLeft, layoutRight] = await Promise.all([
-    loadLayout(win, doc, "left"),
-    loadLayout(win, doc, "right")
+    loadLightLayout(win, doc, "left"),
+    loadLightLayout(win, doc, "right")
   ]);
 
   const canvL = doc.getElementById("left");
