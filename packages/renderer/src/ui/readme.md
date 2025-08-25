@@ -2,7 +2,7 @@
 
 Browser interface providing live preview and controls.
 
-- `index.html` – control layout and canvas elements.
+- `index.html` – control layout and canvas elements grouped into General, Strobe and Tint sections.
 - `connection.mjs` – WebSocket setup and message handling.
 - `ui-controls.mjs` – reads and updates DOM controls.
 - `renderer.mjs` – scene generation and drawing.

@@ -9,50 +9,60 @@
   label { display:flex; align-items:center; gap:8px; min-width: 220px; }
   input[type="range"] { width: 180px; }
   select { padding: 4px 6px; }
+  fieldset { border:1px solid #ccc; padding:10px 14px; margin-bottom:var(--gap); }
+  legend { padding:0 6px; font-weight:bold; }
+  .desc { font-size:12px; color:#555; }
   .barn { display:flex; gap: 32px; perspective: 900px; margin-top: 16px; }
   canvas { width: 512px; height: 128px; image-rendering: pixelated; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.25); background:#000; }
   #left { transform: rotateY(15deg) skewY(-2deg); }
   #right{ transform: rotateY(-15deg) skewY(2deg);  }
-  .panel { display:flex; gap:var(--gap); align-items:center; }
-  .spacer { flex:1; }
+  .panel { display:flex; flex-direction:column; gap:var(--gap); align-items:flex-start; }
   .kbd { padding:1px 6px; border:1px solid #ccc; border-radius:4px; background:#f7f7f7; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 </style>
 
   <h1>BarnLights Playbox</h1>
   <div id="status"></div>
 <div class="panel">
-  <div class="row">
-    <label>Effect
-      <select id="effect">
-        <option>gradient</option>
-        <option>solid</option>
-        <option>fire</option>
-      </select>
-    </label>
-    <label>Gradient phase <input id="gradPhase" type="range" min="0" max="1" step="0.001"><span id="gradPhase_v"></span></label>
-  </div>
+  <fieldset>
+    <legend>General</legend>
+    <div class="row">
+      <label>Effect
+        <select id="effect">
+          <option>gradient</option>
+          <option>solid</option>
+          <option>fire</option>
+        </select>
+      </label>
+      <label>Gradient phase <input id="gradPhase" type="range" min="0" max="1" step="0.001"><span id="gradPhase_v"></span></label>
+    </div>
 
-  <div class="row">
-    <label>Brightness <input id="brightness" type="range" min="0" max="1" step="0.01"><span id="brightness_v"></span></label>
-    <label>Gamma <input id="gamma" type="range" min="0.5" max="3" step="0.01"><span id="gamma_v"></span></label>
-    <label>Roll px <input id="rollPx" type="range" min="0" max="512" step="1"><span id="rollPx_v"></span></label>
-        <label>FPS cap <input id="fpsCap" type="range" min="1" max="60" step="1"><span id="fpsCap_v"></span></label>
-    <label>Mirror walls <input id="mirrorWalls" type="checkbox"></label>
-  </div>
+    <div class="row">
+      <label>Brightness <input id="brightness" type="range" min="0" max="1" step="0.01"><span id="brightness_v"></span></label>
+      <label>Gamma <input id="gamma" type="range" min="0.5" max="3" step="0.01"><span id="gamma_v"></span><small class="desc">brightness curve</small></label>
+      <label>Roll px <input id="rollPx" type="range" min="0" max="512" step="1"><span id="rollPx_v"></span><small class="desc">shift pattern</small></label>
+      <label>FPS cap <input id="fpsCap" type="range" min="1" max="60" step="1"><span id="fpsCap_v"></span></label>
+      <label>Mirror walls <input id="mirrorWalls" type="checkbox"></label>
+    </div>
+  </fieldset>
 
-  <div class="row">
-    <label>Strobe Hz <input id="strobeHz" type="range" min="0" max="20" step="0.1"><span id="strobeHz_v"></span></label>
-    <label>Duty <input id="strobeDuty" type="range" min="0" max="1" step="0.01"><span id="strobeDuty_v"></span></label>
-    <label>Low <input id="strobeLow" type="range" min="0" max="1" step="0.01"><span id="strobeLow_v"></span></label>
-  </div>
+  <fieldset>
+    <legend>Strobe</legend>
+    <div class="row">
+      <label>Strobe Hz <input id="strobeHz" type="range" min="0" max="20" step="0.1"><span id="strobeHz_v"></span></label>
+      <label>Duty <input id="strobeDuty" type="range" min="0" max="1" step="0.01"><span id="strobeDuty_v"></span><small class="desc">on-time %</small></label>
+      <label>Low <input id="strobeLow" type="range" min="0" max="1" step="0.01"><span id="strobeLow_v"></span><small class="desc">min brightness</small></label>
+    </div>
+  </fieldset>
 
-  <div class="row">
-    <label>Tint R <input id="tintR" type="range" min="0" max="1" step="0.01"><span id="tintR_v"></span></label>
-    <label>Tint G <input id="tintG" type="range" min="0" max="1" step="0.01"><span id="tintG_v"></span></label>
-    <label>Tint B <input id="tintB" type="range" min="0" max="1" step="0.01"><span id="tintB_v"></span></label>
-  </div>
+  <fieldset>
+    <legend>Tint</legend>
+    <div class="row">
+      <label>Tint R <input id="tintR" type="range" min="0" max="1" step="0.01"><span id="tintR_v"></span></label>
+      <label>Tint G <input id="tintG" type="range" min="0" max="1" step="0.01"><span id="tintG_v"></span></label>
+      <label>Tint B <input id="tintB" type="range" min="0" max="1" step="0.01"><span id="tintB_v"></span></label>
+    </div>
+  </fieldset>
 
-  <div class="spacer"></div>
   <div>Hotkeys: <span class="kbd">1/2/3</span> effects, <span class="kbd">B</span> blackout (brightness=0), <span class="kbd">Space</span> freeze UI preview.</div>
 </div>
 
