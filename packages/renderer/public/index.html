@@ -18,7 +18,8 @@
   .kbd { padding:1px 6px; border:1px solid #ccc; border-radius:4px; background:#f7f7f7; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 </style>
 
-<h1>BarnLights Playbox</h1>
+  <h1>BarnLights Playbox</h1>
+  <div id="status"></div>
 <div class="panel">
   <div class="row">
     <label>Effect
@@ -70,18 +71,42 @@
     sliceSection, clamp01
   } from "/effects.mjs";
 
+  // --- helpers ---
+  function setStatus(msg){
+    const el = document.getElementById("status");
+    if (el) el.textContent = msg;
+  }
+
   // --- state from server ---
-  const ws = new WebSocket(`ws://${location.host}`);
-  let P = null, sceneW=512, sceneH=128;
-  ws.onmessage = (ev)=> {
-    const m = JSON.parse(ev.data);
-    if (m.type==="init") { P = m.params; sceneW=m.scene.w; sceneH=m.scene.h; initUI(); }
-    if (m.type==="params") { P = m.params; applyUI(); }
-  };
+  let ws = null, P = null, sceneW=512, sceneH=128;
+  try {
+    ws = new WebSocket(`ws://${location.host}`);
+    ws.onerror = (ev)=>{ console.error("WebSocket error", ev); setStatus("WebSocket connection error"); };
+    ws.onclose = (ev)=>{ console.warn("WebSocket closed", ev); setStatus("WebSocket connection closed"); };
+    ws.onmessage = (ev)=> {
+      const m = JSON.parse(ev.data);
+      if (m.type==="init") { P = m.params; sceneW=m.scene.w; sceneH=m.scene.h; initUI(); }
+      if (m.type==="params") { P = m.params; applyUI(); }
+    };
+  } catch (err) {
+    console.error("Failed to create WebSocket", err);
+    setStatus("Failed to connect to server");
+  }
 
   // --- layout fetch ---
-  const layoutLeft  = await (await fetch("/layout/left")).json();
-  const layoutRight = await (await fetch("/layout/right")).json();
+  let layoutLeft = null, layoutRight = null;
+  try {
+    layoutLeft  = await (await fetch("/layout/left")).json();
+  } catch (err) {
+    console.error("Failed to load left layout", err);
+    setStatus("Failed to load left layout");
+  }
+  try {
+    layoutRight = await (await fetch("/layout/right")).json();
+  } catch (err) {
+    console.error("Failed to load right layout", err);
+    setStatus("Failed to load right layout");
+  }
 
   // --- UI wiring ---
   const controls = ["fpsCap","mirrorWalls","brightness","gamma","rollPx","strobeHz","strobeDuty","strobeLow","gradPhase"];
@@ -123,7 +148,8 @@
     });
 
     applyUI();
-    startPreview();
+    if (layoutLeft && layoutRight) startPreview();
+    else setStatus("Preview unavailable");
   }
   function applyUI(){
     if (!P) return;
@@ -140,7 +166,7 @@
       el.value = P.tint[i]; span.textContent = P.tint[i];
     });
   }
-  function send(obj){ if (ws.readyState===1) ws.send(JSON.stringify(obj)); }
+  function send(obj){ if (ws && ws.readyState===1) ws.send(JSON.stringify(obj)); }
 
   // --- preview render (client-side same math) ---
   const canvL = document.getElementById("left"),  ctxL = canvL.getContext("2d");
@@ -209,9 +235,9 @@
     renderScene(leftF,  "left",  t);
     if (P.mirrorWalls) rightF.set(leftF); else renderScene(rightF, "right", t);
     drawScene(ctxL, leftF);
-    drawSections(ctxL, leftF, layoutLeft);
+    if (layoutLeft)  drawSections(ctxL, leftF, layoutLeft);
     drawScene(ctxR, rightF);
-    drawSections(ctxR, rightF, layoutRight);
+    if (layoutRight) drawSections(ctxR, rightF, layoutRight);
     requestAnimationFrame(frame);
   }
   function startPreview(){ requestAnimationFrame(frame); }
