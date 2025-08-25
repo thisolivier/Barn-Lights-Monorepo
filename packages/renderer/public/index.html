@@ -1,0 +1,218 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>BarnLights Playbox</title>
+<style>
+  :root { --gap: 20px; }
+  body { font: 14px system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; color:#111; }
+  h1 { margin: 0 0 8px; font-size: 20px; }
+  .row { display:flex; gap: var(--gap); align-items:center; margin: 6px 0; flex-wrap: wrap; }
+  label { display:flex; align-items:center; gap:8px; min-width: 220px; }
+  input[type="range"] { width: 180px; }
+  select { padding: 4px 6px; }
+  .barn { display:flex; gap: 32px; perspective: 900px; margin-top: 16px; }
+  canvas { width: 512px; height: 128px; image-rendering: pixelated; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.25); background:#000; }
+  #left { transform: rotateY(15deg) skewY(-2deg); }
+  #right{ transform: rotateY(-15deg) skewY(2deg);  }
+  .panel { display:flex; gap:var(--gap); align-items:center; }
+  .spacer { flex:1; }
+  .kbd { padding:1px 6px; border:1px solid #ccc; border-radius:4px; background:#f7f7f7; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+</style>
+
+<h1>BarnLights Playbox</h1>
+<div class="panel">
+  <div class="row">
+    <label>Effect
+      <select id="effect">
+        <option>gradient</option>
+        <option>solid</option>
+        <option>fire</option>
+      </select>
+    </label>
+    <label>FPS cap <input id="fpsCap" type="range" min="1" max="60" step="1"><span id="fpsCap_v"></span></label>
+    <label>Mirror walls <input id="mirrorWalls" type="checkbox"></label>
+  </div>
+
+  <div class="row">
+    <label>Brightness <input id="brightness" type="range" min="0" max="1" step="0.01"><span id="brightness_v"></span></label>
+    <label>Gamma <input id="gamma" type="range" min="0.5" max="3" step="0.01"><span id="gamma_v"></span></label>
+    <label>Roll px <input id="rollPx" type="range" min="0" max="512" step="1"><span id="rollPx_v"></span></label>
+  </div>
+
+  <div class="row">
+    <label>Strobe Hz <input id="strobeHz" type="range" min="0" max="20" step="0.1"><span id="strobeHz_v"></span></label>
+    <label>Duty <input id="strobeDuty" type="range" min="0" max="1" step="0.01"><span id="strobeDuty_v"></span></label>
+    <label>Low <input id="strobeLow" type="range" min="0" max="1" step="0.01"><span id="strobeLow_v"></span></label>
+  </div>
+
+  <div class="row">
+    <label>Gradient phase <input id="gradPhase" type="range" min="0" max="1" step="0.001"><span id="gradPhase_v"></span></label>
+  </div>
+
+  <div class="row">
+    <label>Tint R <input id="tintR" type="range" min="0" max="1" step="0.01"><span id="tintR_v"></span></label>
+    <label>Tint G <input id="tintG" type="range" min="0" max="1" step="0.01"><span id="tintG_v"></span></label>
+    <label>Tint B <input id="tintB" type="range" min="0" max="1" step="0.01"><span id="tintB_v"></span></label>
+  </div>
+
+  <div class="spacer"></div>
+  <div>Hotkeys: <span class="kbd">1/2/3</span> effects, <span class="kbd">B</span> blackout (brightness=0), <span class="kbd">Space</span> freeze UI preview.</div>
+</div>
+
+<div class="barn">
+  <canvas id="left"  width="512" height="128"></canvas>
+  <canvas id="right" width="512" height="128"></canvas>
+</div>
+
+<script type="module">
+  import {
+    genGradient, genSolid, genFire,
+    applyBrightnessTint, applyGamma, applyStrobe, applyRollX,
+    sliceSection, clamp01
+  } from "/effects.mjs";
+
+  // --- state from server ---
+  const ws = new WebSocket(`ws://${location.host}`);
+  let P = null, sceneW=512, sceneH=128;
+  ws.onmessage = (ev)=> {
+    const m = JSON.parse(ev.data);
+    if (m.type==="init") { P = m.params; sceneW=m.scene.w; sceneH=m.scene.h; initUI(); }
+    if (m.type==="params") { P = m.params; applyUI(); }
+  };
+
+  // --- layout fetch ---
+  const layoutLeft  = await (await fetch("/layout/left")).json();
+  const layoutRight = await (await fetch("/layout/right")).json();
+
+  // --- UI wiring ---
+  const controls = ["fpsCap","mirrorWalls","brightness","gamma","rollPx","strobeHz","strobeDuty","strobeLow","gradPhase"];
+  function initUI(){
+    // effect select
+    const effect = document.getElementById("effect");
+    effect.value = P.effect;
+    effect.onchange = ()=> send({ effect: effect.value });
+
+    // ranges/checkboxes
+    for (const k of controls) {
+      const el = document.getElementById(k);
+      const span = document.getElementById(k+"_v");
+      if (!el) continue;
+      if (el.type==="checkbox") {
+        el.checked = !!P[k];
+        el.oninput = ()=> send({ [k]: el.checked });
+      } else {
+        el.value = P[k];
+        span.textContent = P[k];
+        el.oninput = ()=> { span.textContent = el.value; send({ [k]: parseFloat(el.value) }); };
+      }
+    }
+
+    // tint sliders
+    ["tintR","tintG","tintB"].forEach((id, i)=>{
+      const el = document.getElementById(id), span = document.getElementById(id+"_v");
+      el.value = P.tint[i]; span.textContent = P.tint[i];
+      el.oninput = ()=> { P.tint[i] = parseFloat(el.value); span.textContent = el.value; send({ tint: P.tint }); };
+    });
+
+    // hotkeys
+    window.addEventListener("keydown", (e)=>{
+      if (e.key==="1") effect.value="gradient", effect.onchange();
+      if (e.key==="2") effect.value="solid", effect.onchange();
+      if (e.key==="3") effect.value="fire", effect.onchange();
+      if (e.key.toLowerCase()==="b") send({ brightness: 0 });
+      if (e.key===" ") freeze = !freeze;
+    });
+
+    applyUI();
+    startPreview();
+  }
+  function applyUI(){
+    if (!P) return;
+    const effect = document.getElementById("effect");
+    if (effect.value !== P.effect) effect.value = P.effect;
+    for (const k of controls) {
+      const el = document.getElementById(k), span = document.getElementById(k+"_v");
+      if (!el) continue;
+      if (el.type==="checkbox") el.checked = !!P[k];
+      else { el.value = P[k]; span.textContent = P[k]; }
+    }
+    ["tintR","tintG","tintB"].forEach((id,i)=> {
+      const el = document.getElementById(id), span = document.getElementById(id+"_v");
+      el.value = P.tint[i]; span.textContent = P.tint[i];
+    });
+  }
+  function send(obj){ if (ws.readyState===1) ws.send(JSON.stringify(obj)); }
+
+  // --- preview render (client-side same math) ---
+  const canvL = document.getElementById("left"),  ctxL = canvL.getContext("2d");
+  const canvR = document.getElementById("right"), ctxR = canvR.getContext("2d");
+
+  const leftF  = new Float32Array(sceneW*sceneH*3);
+  const rightF = new Float32Array(sceneW*sceneH*3);
+
+  let freeze = false;
+
+  function renderScene(target, side, t){
+    switch (P.effect) {
+      case "solid": genSolid(target, sceneW, sceneH, t, P, side); break;
+      case "fire":  genFire(target,  sceneW, sceneH, t, P);      break;
+      default:      genGradient(target, sceneW, sceneH, t, P);    break;
+    }
+    applyStrobe(target, t, P.strobeHz, P.strobeDuty, P.strobeLow);
+    applyBrightnessTint(target, P.tint, P.brightness);
+    applyGamma(target, P.gamma);
+    applyRollX(target, sceneW, sceneH, P.rollPx);
+  }
+
+  function drawScene(ctx, sceneF32){
+    const img = ctx.createImageData(sceneW, sceneH);
+    for(let i=0,j=0;i<sceneF32.length;i+=3,j+=4){
+      img.data[j]   = Math.round(clamp01(sceneF32[i])*255);
+      img.data[j+1] = Math.round(clamp01(sceneF32[i+1])*255);
+      img.data[j+2] = Math.round(clamp01(sceneF32[i+2])*255);
+      img.data[j+3] = 255;
+    }
+    const off = new OffscreenCanvas(sceneW, sceneH);
+    const c2 = off.getContext("2d");
+    c2.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    ctx.drawImage(off, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  }
+
+  function drawSections(ctx, sceneF32, layout){
+    const Wc = ctx.canvas.width, Hc = ctx.canvas.height;
+    ctx.lineWidth = 2; ctx.strokeStyle = "rgba(255,255,255,0.6)";
+    layout.runs.forEach(run=>{
+      run.sections.forEach(sec=>{
+        const y = sec.y * Hc;
+        const x0 = (sec.x0 / layout.sampling.width) * Wc;
+        const x1 = (sec.x1 / layout.sampling.width) * Wc;
+
+        // guide line
+        ctx.beginPath(); ctx.moveTo(x0,y); ctx.lineTo(x1,y); ctx.stroke();
+
+        // per-LED coloured dots (true sampled colour)
+        const bytes = sliceSection(sceneF32, sceneW, sceneH, sec, layout.sampling);
+        for (let i=0;i<sec.led_count;i++){
+          const t = sec.led_count>1 ? i/(sec.led_count-1) : 0;
+          const x = x0 + (x1-x0)*t;
+          const j = i*3;
+          ctx.fillStyle = `rgb(${bytes[j]},${bytes[j+1]},${bytes[j+2]})`;
+          ctx.fillRect(x-1, y-1, 2, 2);
+        }
+      });
+    });
+  }
+
+  function frame(){
+    const t = freeze ? 0 : performance.now()/1000;
+    renderScene(leftF,  "left",  t);
+    if (P.mirrorWalls) rightF.set(leftF); else renderScene(rightF, "right", t);
+    drawScene(ctxL, leftF);
+    drawSections(ctxL, leftF, layoutLeft);
+    drawScene(ctxR, rightF);
+    drawSections(ctxR, rightF, layoutRight);
+    requestAnimationFrame(frame);
+  }
+  function startPreview(){ requestAnimationFrame(frame); }
+</script>
