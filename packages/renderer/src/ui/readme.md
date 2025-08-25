@@ -3,5 +3,8 @@
 Browser interface providing live preview and controls.
 
 - `index.html` – control layout and canvas elements.
-- `preview.mjs` – draws preview scenes and syncs params over WebSocket.
+- `connection.mjs` – WebSocket setup and message handling.
+- `ui-controls.mjs` – reads and updates DOM controls.
+- `renderer.mjs` – scene generation and drawing.
+- `preview.mjs` – bootstrap wiring modules together.
 - `favicon.ico` – page icon.
