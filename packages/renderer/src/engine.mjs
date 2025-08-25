@@ -1,8 +1,5 @@
 // src/engine.mjs
-import http from "http";
-import { WebSocketServer } from "ws";
 import { readFile } from "fs/promises";
-import { createReadStream } from "fs";
 import path from "path";
 import url from "url";
 
@@ -15,12 +12,11 @@ import {
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const CONFIG_DIR = path.join(ROOT, "config");
-const PUBLIC_DIR = path.join(ROOT, "public");
 
-const SCENE_W = 512, SCENE_H = 128; // virtual canvas per side
+export const SCENE_W = 512, SCENE_H = 128; // virtual canvas per side
 
 // ------- params (shared to UI) -------
-let params = {
+export const params = {
   fpsCap: 60,
   effect: "gradient",        // "gradient" | "solid" | "fire"
   mirrorWalls: true,
@@ -56,44 +52,12 @@ async function loadLayout(name){
   if (!j?.sampling?.width || !j?.sampling?.height) throw new Error(`${name}.json missing sampling.width/height`);
   return j;
 }
-const layoutLeft  = await loadLayout("left");
-const layoutRight = await loadLayout("right");
+export const layoutLeft  = await loadLayout("left");
+export const layoutRight = await loadLayout("right");
 
-// ------- HTTP server (UI + assets + layout passthrough) -------
-const server = http.createServer((req, res) => {
-  const u = new URL(req.url, "http://x/");
-  if (u.pathname === "/") return streamFile(path.join(PUBLIC_DIR, "index.html"), "text/html", res);
-  if (u.pathname === "/effects.mjs") return streamFile(path.join(__dirname, "effects.mjs"), "text/javascript", res);
-  if (u.pathname === "/web/preview.mjs") return streamFile(path.join(__dirname, "web", "preview.mjs"), "text/javascript", res);
-  if (u.pathname === "/layout/left")  return sendJson(layoutLeft, res);
-  if (u.pathname === "/layout/right") return sendJson(layoutRight, res);
-  if (u.pathname === "/favicon.ico") return streamFile(path.join(PUBLIC_DIR, "favicon.ico"), "image/x-icon", res);
-  // fallback: 404
-  res.writeHead(404).end("Not found");
-});
-function streamFile(p, mime, res){
-  const s = createReadStream(p);
-  res.writeHead(200, {"Content-Type": mime});
-  s.pipe(res);
+export function updateParams(patch){
+  Object.assign(params, patch);
 }
-function sendJson(obj, res){
-  const buf = Buffer.from(JSON.stringify(obj));
-  res.writeHead(200, {"Content-Type":"application/json"}).end(buf);
-}
-
-// ------- WebSocket for live params -------
-const wss = new WebSocketServer({ server });
-wss.on("connection", (ws) => {
-  ws.send(JSON.stringify({ type: "init", params, scene: { w: SCENE_W, h: SCENE_H }}));
-  ws.on("message", (msg) => {
-    try {
-      const patch = JSON.parse(msg.toString());
-      Object.assign(params, patch);
-      // broadcast new params
-      for (const c of wss.clients) if (c.readyState === 1) c.send(JSON.stringify({ type:"params", params }));
-    } catch {}
-  });
-});
 
 // ------- engine buffers -------
 const leftF  = new Float32Array(SCENE_W*SCENE_H*3);
@@ -141,10 +105,6 @@ function buildSlicesFrame(frame, fps){
 }
 
 // ------- main loop -------
-server.listen(8080, () => {
-  console.log("UI: http://localhost:8080");
-});
-
 let last = process.hrtime.bigint();
 let acc = 0;
 let frame = 0;
