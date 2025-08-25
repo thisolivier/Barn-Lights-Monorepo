@@ -5,12 +5,12 @@
   "type": "module",
   "scripts": {
     "start": "node src/engine.mjs",
-    "test": "node --test"
+    "test": "node --test --test-concurrency=1"
   },
   "dependencies": {
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "puppeteer": "^22.0.0"
+    "puppeteer": "^24.17.0"
   }
 }
