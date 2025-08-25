@@ -24,7 +24,7 @@ test('web view loads with no console errors', async () => {
   try {
     await waitForServer('http://127.0.0.1:8080');
 
-    browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
     const page = await browser.newPage();
     const errors = [];
     page.on('pageerror', err => errors.push(err));
@@ -35,6 +35,8 @@ test('web view loads with no console errors', async () => {
   } finally {
     if (browser) await browser.close().catch(() => {});
     proc.kill();
-    await once(proc, 'exit').catch(() => {});
+    if (proc.exitCode === null) {
+      await once(proc, 'exit').catch(() => {});
+    }
   }
 });

@@ -11,3 +11,10 @@ Minimal Node + browser setup that:
 ```bash
 npm i
 npm start  # UI: http://localhost:8080
+```
+
+## Running tests
+```bash
+npm test
+```
+
