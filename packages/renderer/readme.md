@@ -7,6 +7,11 @@ Minimal Node + browser setup that:
 - **emits SLICES_NDJSON to stdout** (one line per frame),
 - serves a **live preview** with a light barn perspective and per-LED colored dots.
 
+## Architecture
+- `src/engine.mjs` renders frames and streams NDJSON.
+- `src/server.mjs` serves the UI and relays WebSocket param updates.
+- `src/ui/` contains the browser preview and controls.
+
 ## Quick start
 ```bash
 npm i
