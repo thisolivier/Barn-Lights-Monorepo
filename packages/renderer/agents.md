@@ -13,3 +13,15 @@ Your work is deeply appreciated.
 
 ## Directories not to touch
 /node_modules
+
+## Test suite dependency notes
+To run `npm test`, Puppeteer requires several system libraries which Agents usually do not have.
+If tests fail to launch the browser due to missing `.so` libraries, install:
+
+sudo apt-get update
+sudo apt-get install -y \
+  libatk1.0-0 libatk-bridge2.0-0 libcups2t64 libxkbcommon0 \
+  libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
+  libgbm1 libasound2t64
+
+These packages resolved the missing-library errors in this environment.
