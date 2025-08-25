@@ -66,6 +66,7 @@ const server = http.createServer((req, res) => {
   if (u.pathname === "/effects.mjs") return streamFile(path.join(__dirname, "effects.mjs"), "text/javascript", res);
   if (u.pathname === "/layout/left")  return sendJson(layoutLeft, res);
   if (u.pathname === "/layout/right") return sendJson(layoutRight, res);
+  if (u.pathname === "/favicon.ico") return streamFile(path.join(PUBLIC_DIR, "favicon.ico"), "image/x-icon", res);
   // fallback: 404
   res.writeHead(404).end("Not found");
 });

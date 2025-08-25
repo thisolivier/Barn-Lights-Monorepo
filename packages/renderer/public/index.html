@@ -78,6 +78,7 @@
   }
 
   // --- state from server ---
+  const controls = ["fpsCap","mirrorWalls","brightness","gamma","rollPx","strobeHz","strobeDuty","strobeLow","gradPhase"];
   let ws = null, P = null, sceneW=512, sceneH=128;
   try {
     ws = new WebSocket(`ws://${location.host}`);
@@ -109,7 +110,6 @@
   }
 
   // --- UI wiring ---
-  const controls = ["fpsCap","mirrorWalls","brightness","gamma","rollPx","strobeHz","strobeDuty","strobeLow","gradPhase"];
   function initUI(){
     // effect select
     const effect = document.getElementById("effect");
