@@ -1,8 +1,8 @@
+import { effects } from "../effects/index.mjs";
 import {
-  genGradient, genSolid, genFire,
   applyBrightnessTint, applyGamma, applyStrobe, applyRollX,
   sliceSection, clamp01
-} from "../effects.mjs";
+} from "../effects/modifiers.mjs";
 
 let offscreen = null, offCtx = null;
 let freeze = false;
@@ -12,11 +12,8 @@ export function toggleFreeze(){
 }
 
 export function renderScene(target, side, t, P, sceneW, sceneH){
-  switch (P.effect) {
-    case "solid": genSolid(target, sceneW, sceneH, t, P, side); break;
-    case "fire":  genFire(target,  sceneW, sceneH, t, P);      break;
-    default:      genGradient(target, sceneW, sceneH, t, P);    break;
-  }
+  const effect = effects[P.effect] || effects["gradient"];
+  effect.render(target, sceneW, sceneH, t, P, side);
   applyStrobe(target, t, P.strobeHz, P.strobeDuty, P.strobeLow);
   applyBrightnessTint(target, P.tint, P.brightness);
   applyGamma(target, P.gamma);
