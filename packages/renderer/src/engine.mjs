@@ -3,11 +3,11 @@ import { readFile } from "fs/promises";
 import path from "path";
 import url from "url";
 
+import { effects } from "./effects/index.mjs";
 import {
-  genGradient, genSolid, genFire,
   applyBrightnessTint, applyGamma, applyStrobe, applyRollX,
   sliceSection, clamp01
-} from "./effects.mjs";
+} from "./effects/modifiers.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -68,11 +68,8 @@ function renderSceneForSide(side, t){
   const target = side==="left" ? leftF : rightF;
 
   // Stage A
-  switch (params.effect) {
-    case "solid":    genSolid(target, SCENE_W, SCENE_H, t, params, side); break;
-    case "fire":     genFire(target,  SCENE_W, SCENE_H, t, params);       break;
-    default:         genGradient(target, SCENE_W, SCENE_H, t, params);     break;
-  }
+  const effect = effects[params.effect] || effects["gradient"];
+  effect.render(target, SCENE_W, SCENE_H, t, params, side);
 
   // Stage B
   applyStrobe(target, t, params.strobeHz, params.strobeDuty, params.strobeLow);

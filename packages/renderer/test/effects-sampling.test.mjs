@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'assert/strict';
-import { bilinearSampleRGB, sliceSection } from '../src/effects.mjs';
+import { bilinearSampleRGB, sliceSection } from '../src/effects/modifiers.mjs';
 
 // helper to compare arrays with numbers precisely
 const eq = (a, b) => assert.deepEqual(a.map(n => +n.toFixed(5)), b.map(n => +n.toFixed(5)));
