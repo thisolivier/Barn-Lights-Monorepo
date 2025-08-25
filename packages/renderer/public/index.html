@@ -149,6 +149,8 @@
   const leftF  = new Float32Array(sceneW*sceneH*3);
   const rightF = new Float32Array(sceneW*sceneH*3);
 
+  let offscreen = null, offCtx = null;
+
   let freeze = false;
 
   function renderScene(target, side, t){
@@ -164,19 +166,27 @@
   }
 
   function drawScene(ctx, sceneF32){
-    const img = ctx.createImageData(sceneW, sceneH);
+    if (!offscreen || offscreen.width !== sceneW || offscreen.height !== sceneH) {
+      if (window.OffscreenCanvas) {
+        offscreen = new OffscreenCanvas(sceneW, sceneH);
+      } else {
+        offscreen = document.createElement('canvas');
+        offscreen.width = sceneW;
+        offscreen.height = sceneH;
+      }
+      offCtx = offscreen.getContext("2d");
+    }
+    const img = offCtx.createImageData(sceneW, sceneH);
     for(let i=0,j=0;i<sceneF32.length;i+=3,j+=4){
       img.data[j]   = Math.round(clamp01(sceneF32[i])*255);
       img.data[j+1] = Math.round(clamp01(sceneF32[i+1])*255);
       img.data[j+2] = Math.round(clamp01(sceneF32[i+2])*255);
       img.data[j+3] = 255;
     }
-    const off = new OffscreenCanvas(sceneW, sceneH);
-    const c2 = off.getContext("2d");
-    c2.putImageData(img, 0, 0);
+    offCtx.putImageData(img, 0, 0);
     ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-    ctx.drawImage(off, 0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.drawImage(offscreen, 0, 0, ctx.canvas.width, ctx.canvas.height);
   }
 
   function drawSections(ctx, sceneF32, layout){
