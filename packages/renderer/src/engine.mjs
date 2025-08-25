@@ -64,6 +64,7 @@ const server = http.createServer((req, res) => {
   const u = new URL(req.url, "http://x/");
   if (u.pathname === "/") return streamFile(path.join(PUBLIC_DIR, "index.html"), "text/html", res);
   if (u.pathname === "/effects.mjs") return streamFile(path.join(__dirname, "effects.mjs"), "text/javascript", res);
+  if (u.pathname === "/web/preview.mjs") return streamFile(path.join(__dirname, "web", "preview.mjs"), "text/javascript", res);
   if (u.pathname === "/layout/left")  return sendJson(layoutLeft, res);
   if (u.pathname === "/layout/right") return sendJson(layoutRight, res);
   if (u.pathname === "/favicon.ico") return streamFile(path.join(PUBLIC_DIR, "favicon.ico"), "image/x-icon", res);
