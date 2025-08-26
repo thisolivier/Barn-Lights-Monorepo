@@ -7,9 +7,9 @@ Dynamic UI widgets for effect parameters.
 - `checkbox.mjs` – boolean toggle.
 - `enum.mjs` – dropdown selector.
 - `color.mjs` – RGB color picker.
-- `colorStops.mjs` – editable list of color/position pairs.
+- `colorStops.mjs` – wraps the Grapick gradient picker for draggable color/position stops.
 
-The `fireShader` effect uses the `colorStops` widget to define its color gradient.
+The `fireShader` and `gradient` effects use the `colorStops` widget to define their color palettes.
 
 Utilities for RGB conversions live in `utils.mjs`.
 

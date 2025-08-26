@@ -5,3 +5,4 @@ One file per visual effect. Each module exports the following:
 Note that this includes its own render function, and parameters for modification.
 
 Available effects include `gradient`, `solid`, `fire`, and the shader-based `fireShader`.
+The `gradient` effect now supports arbitrary color stops for flexible palettes.
