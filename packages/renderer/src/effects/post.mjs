@@ -2,7 +2,7 @@ import {
   applyBrightnessTint as _applyBrightnessTint,
   applyGamma as _applyGamma,
   applyStrobe as _applyStrobe,
-  applyRollX as _applyRollX,
+  transformScene as _transformScene,
 } from "./modifiers.mjs";
 
 function applyStrobe(sceneF32, t, post, W, H){
@@ -17,11 +17,18 @@ function applyGamma(sceneF32, t, post, W, H){
   _applyGamma(sceneF32, post.gamma);
 }
 
-function applyRollX(sceneF32, t, post, W, H){
-  _applyRollX(sceneF32, W, H, post.rollPx);
+let pitch = 0, yaw = 0, lastT = 0;
+function applyTransform(sceneF32, t, post, W, H){
+  const dt = lastT ? t - lastT : 0;
+  lastT = t;
+  pitch += post.pitchSpeed * dt;
+  yaw += post.yawSpeed * dt;
+  const sx = ((pitch % W) + W) % W;
+  const ang = yaw % (Math.PI * 2);
+  _transformScene(sceneF32, W, H, sx, 0, ang);
 }
 
-export const postPipeline = [applyStrobe, applyBrightnessTint, applyGamma, applyRollX];
+export const postPipeline = [applyStrobe, applyBrightnessTint, applyGamma, applyTransform];
 
 export function registerPostModifier(fn){
   postPipeline.push(fn);

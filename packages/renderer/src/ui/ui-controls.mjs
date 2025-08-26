@@ -1,9 +1,12 @@
 import { effects } from '../effects/index.mjs';
 import { renderControls } from './controls/index.mjs';
 import { rgbToHex } from './controls/utils.mjs';
+import { initSpeedSlider } from './controls/speedSlider.mjs';
 
 let sendFn = null;
 let currentEffectId = null;
+let updatePitch = null;
+let updateYaw = null;
 
 function renderEffectControls(doc, P){
   const container = doc.getElementById('effectControls');
@@ -55,6 +58,8 @@ function applyPost(doc, P){
     el.value = P.post.tint[i];
     if (span) span.textContent = P.post.tint[i];
   });
+  if (updatePitch) updatePitch(P.post.pitchSpeed || 0);
+  if (updateYaw) updateYaw(P.post.yawSpeed || 0);
 }
 
 export function applyUI(doc, P){
@@ -110,6 +115,15 @@ export function initUI(win, doc, P, send, onToggleFreeze){
       send({ tint });
     };
   });
+
+  const pitchEl = doc.getElementById('pitch');
+  if (pitchEl){
+    updatePitch = initSpeedSlider(pitchEl, P, send, 'pitchSpeed', 500);
+  }
+  const yawEl = doc.getElementById('yaw');
+  if (yawEl){
+    updateYaw = initSpeedSlider(yawEl, P, send, 'yawSpeed', Math.PI);
+  }
 
   win.addEventListener('keydown', (e) => {
     if (e.key === '1') effect.value = 'gradient', effect.onchange();

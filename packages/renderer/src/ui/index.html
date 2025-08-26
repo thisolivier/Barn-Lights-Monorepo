@@ -18,6 +18,8 @@
   #right{ transform: rotateY(-15deg) skewY(2deg);  }
   .panel { display:flex; flex-direction:column; gap:var(--gap); align-items:flex-start; }
   .kbd { padding:1px 6px; border:1px solid #ccc; border-radius:4px; background:#f7f7f7; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .hslider { width:180px; height:20px; position:relative; border:1px solid #ccc; border-radius:10px; background:#f3f3f3; touch-action:none; }
+  .hslider .handle { position:absolute; width:12px; height:12px; border-radius:50%; background:#666; top:50%; transform:translate(-50%,-50%); left:50%; }
 </style>
 
 <link rel="stylesheet" href="/vendor/grapick/dist/grapick.min.css">
@@ -46,7 +48,12 @@
     <div class="row">
       <label>Brightness <input id="brightness" type="range" min="0" max="1" step="0.01"><span id="brightness_v"></span></label>
       <label>Gamma <input id="gamma" type="range" min="0.5" max="3" step="0.01"><span id="gamma_v"></span><small class="desc">brightness curve</small></label>
-      <label>Roll px <input id="rollPx" type="range" min="0" max="512" step="1"><span id="rollPx_v"></span><small class="desc">shift pattern</small></label>
+      <label>Pitch
+        <div id="pitch" class="hslider"><div class="handle"></div></div>
+      </label>
+      <label>Yaw
+        <div id="yaw" class="hslider"><div class="handle"></div></div>
+      </label>
       <label>FPS cap <input id="fpsCap" type="range" min="1" max="60" step="1"><span id="fpsCap_v"></span></label>
     </div>
   </fieldset>

@@ -27,7 +27,8 @@ export const params = {
     strobeHz: 0.0,
     strobeDuty: 0.5,
     strobeLow: 0.0,
-    rollPx: 0,
+    pitchSpeed: 0,
+    yawSpeed: 0,
   }
 };
 
