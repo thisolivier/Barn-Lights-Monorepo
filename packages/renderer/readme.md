@@ -6,6 +6,7 @@ Minimal Node + browser setup that:
 - samples per your layout JSON into per-row "slices",
 - **emits SLICES_NDJSON to stdout** (one line per frame),
 - serves a **live preview** with a light barn perspective and per-LED colored dots.
+- allows saving and loading effect presets through the UI with a dropdown of saved presets.
 
 ## Architecture
 - `bin/engine.mjs` launches the HTTP server and invokes the engine's `start` function, streaming NDJSON frames.
