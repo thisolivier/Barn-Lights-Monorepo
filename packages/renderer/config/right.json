@@ -1,32 +1,32 @@
 {
   "side": "right",
-  "total_leds": 1200,
+  "total_leds": 1500,
   "runs": [
     {
       "run_index": 0,
-      "led_count": 400,
+      "led_count": 500,
       "sections": [
-        { "id": "row_A1", "led_count": 180, "y": 0.18, "x0": 0.0, "x1": 0.20 },
-        { "id": "row_A2", "led_count": 120, "y": 0.22, "x0": 0.20,  "x1": 1.35 },
-        { "id": "row_A3", "led_count": 100,  "y": 0.26, "x0": 0.75,  "x1": 1.80 }
+        { "id": "row_A1", "led_count": 200, "y": 0.12, "x0": 0.05, "x1": 0.85 },
+        { "id": "row_A2", "led_count": 180, "y": 0.18, "x0": 0.90, "x1": 1.70 },
+        { "id": "row_A3", "led_count": 120, "y": 0.24, "x0": 0.20, "x1": 1.50 }
       ]
     },
     {
       "run_index": 1,
-      "led_count": 400,
+      "led_count": 500,
       "sections": [
-        { "id": "row_B1", "led_count": 140, "y": 0.50, "x0": 0.00,  "x1": 1.00 },
-        { "id": "row_B2", "led_count": 120, "y": 0.55, "x0": 0.60,  "x1": 1.60 },
-        { "id": "row_B3", "led_count": 140, "y": 0.58, "x0": 0.10, "x1": 0.90 }
+        { "id": "row_B1", "led_count": 160, "y": 0.45, "x0": 0.00, "x1": 1.00 },
+        { "id": "row_B2", "led_count": 170, "y": 0.52, "x0": 0.75, "x1": 1.95 },
+        { "id": "row_B3", "led_count": 170, "y": 0.60, "x0": 0.30, "x1": 1.20 }
       ]
     },
     {
       "run_index": 2,
-      "led_count": 400,
+      "led_count": 500,
       "sections": [
-        { "id": "row_C1", "led_count": 150, "y": 0.78, "x0": 0.25,  "x1": 1.30 },
-        { "id": "row_C2", "led_count": 130, "y": 0.82, "x0": 0.00,  "x1": 1.10 },
-        { "id": "row_C3", "led_count": 120, "y": 0.88, "x0": 1.00,  "x1": 2.00 }
+        { "id": "row_C1", "led_count": 190, "y": 0.78, "x0": 0.10, "x1": 1.40 },
+        { "id": "row_C2", "led_count": 160, "y": 0.84, "x0": 0.60, "x1": 1.80 },
+        { "id": "row_C3", "led_count": 150, "y": 0.90, "x0": 1.10, "x1": 2.00 }
       ]
     }
   ],
