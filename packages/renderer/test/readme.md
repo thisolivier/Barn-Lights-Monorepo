@@ -9,6 +9,6 @@ Automated checks for BarnLights Playbox:
 - `preset-ui.test.mjs` – ensures the preset dropdown reflects available files.
 - `web.test.mjs` – loads the browser preview and fails on console errors.
 
-The engine exports a `start` function and is invoked via `bin/engine.mjs`, which also launches the HTTP server. Web server and engine can be invoked indepndenly for testing.
+The engine exports a `start` function and is invoked via `bin/engine.mjs`, which also launches the HTTP server. Web server and engine can be invoked independently for testing.
 
 Run with `npm test`.

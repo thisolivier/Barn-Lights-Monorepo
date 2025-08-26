@@ -5,15 +5,13 @@ import url from "url";
 
 import { effects } from "./effects/index.mjs";
 import { sliceSection } from "./effects/modifiers.mjs";
-import { postPipeline, registerPostModifier } from "./effects/post.mjs";
+import { renderScene, SCENE_W, SCENE_H } from "./render-scene.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const CONFIG_DIR = path.join(ROOT, "config");
 
-export { registerPostModifier };
-
-export const SCENE_W = 512, SCENE_H = 128; // virtual canvas per side
+export { SCENE_W, SCENE_H };
 
 // ------- params (shared to UI) -------
 export const params = {
@@ -75,21 +73,6 @@ export function updateParams(patch){
 const leftFrame  = new Float32Array(SCENE_W * SCENE_H * 3);
 const rightFrame = new Float32Array(SCENE_W * SCENE_H * 3);
 
-// ------- scene render -------
-// Draw the active effect into the left frame, apply post-processing,
-// and clone the result for the right side
-function renderScene(t) {
-  const effect = effects[params.effect] || effects["gradient"];
-  const effectParams = params.effects[effect.id] || {};
-  effect.render(leftFrame, SCENE_W, SCENE_H, t, effectParams);
-
-  const post = params.post;
-  for (const fn of postPipeline) {
-    fn(leftFrame, t, post, SCENE_W, SCENE_H);
-  }
-
-  rightFrame.set(leftFrame);
-}
 
 // ------- build slices frame -------
 // Convert the raw float frames into NDJSON ready pixel data
@@ -134,7 +117,8 @@ function tick(){
     acc = 0;
 
     // Render scene and duplicate
-    renderScene(t);
+    renderScene(leftFrame, t, params);
+    rightFrame.set(leftFrame);
 
     // Emit SLICES_NDJSON to stdout
     const out = buildSlicesFrame(frame++, cap);

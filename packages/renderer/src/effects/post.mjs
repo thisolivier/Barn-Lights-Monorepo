@@ -29,7 +29,3 @@ function applyTransform(sceneF32, t, post, W, H){
 }
 
 export const postPipeline = [applyStrobe, applyBrightnessTint, applyGamma, applyTransform];
-
-export function registerPostModifier(fn){
-  postPipeline.push(fn);
-}

@@ -10,6 +10,7 @@ Minimal Node + browser setup that:
 
 ## Architecture
 - `bin/engine.mjs` launches the HTTP server and invokes the engine's `start` function, streaming NDJSON frames.
+- `src/render-scene.mjs` implements shared scene rendering and post-processing.
 - `src/engine.mjs` renders frames and exposes live parameters.
 - `src/server.mjs` exports a `startServer` helper that serves the UI and relays WebSocket param updates.
 - `src/ui/` contains the browser preview and controls.

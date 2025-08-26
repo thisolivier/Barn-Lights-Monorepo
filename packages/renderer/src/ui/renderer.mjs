@@ -1,8 +1,5 @@
-import { effects } from "../effects/index.mjs";
 import { sliceSection, clamp01 } from "../effects/modifiers.mjs";
-import { postPipeline, registerPostModifier } from "../effects/post.mjs";
-
-export { registerPostModifier };
+import { renderScene } from "../render-scene.mjs";
 
 let offscreen = null, offCtx = null;
 let freeze = false;
@@ -27,16 +24,6 @@ export function toggleFreeze(){
   freeze = !freeze;
 }
 
-// renderScene: draw the active effect into a buffer and apply post-processing
-export function renderScene(target, t, P, sceneW, sceneH) {
-  const effect = effects[P.effect] || effects["gradient"];
-  const effectParams = P.effects[effect.id] || {};
-  effect.render(target, sceneW, sceneH, t, effectParams);
-  const post = P.post;
-  for (const fn of postPipeline) {
-    fn(target, t, post, sceneW, sceneH);
-  }
-}
 
 export function drawScene(ctx, sceneF32, sceneW, sceneH, win, doc){
   if (!offscreen || offscreen.width !== sceneW || offscreen.height !== sceneH){
@@ -92,7 +79,7 @@ function drawSections(ctx, sceneF32, layout, sceneW, sceneH){
 // frame: render once, draw to both previews, then schedule the next loop
 export function frame(win, doc, ctxL, ctxR, leftFrame, rightFrame, P, layoutLeft, layoutRight, sceneW, sceneH) {
   const t = freeze ? 0 : win.performance.now() / 1000;
-  renderScene(leftFrame, t, P, sceneW, sceneH);
+  renderScene(leftFrame, t, P);
   rightFrame.set(leftFrame);
   drawScene(ctxL, leftFrame, sceneW, sceneH, win, doc);
   if (layoutLeft) drawSections(ctxL, leftFrame, layoutLeft, sceneW, sceneH);
