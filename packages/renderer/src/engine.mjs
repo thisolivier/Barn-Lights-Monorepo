@@ -19,7 +19,6 @@ export const SCENE_W = 512, SCENE_H = 128; // virtual canvas per side
 export const params = {
   fpsCap: 60,
   effect: "gradient",        // "gradient" | "solid" | "fire"
-  wallMode: "duplicate",     // "duplicate" | "independent" | "extend"
   effects: {},
   post: {
     brightness: 0.8,
@@ -56,7 +55,7 @@ for (const eff of Object.values(effects)) {
 
 export function updateParams(patch){
   for (const [key, value] of Object.entries(patch)) {
-    if (key === "fpsCap" || key === "effect" || key === "wallMode") {
+    if (key === "fpsCap" || key === "effect") {
       params[key] = value;
     } else if (postKeys.has(key)) {
       params.post[key] = value;
@@ -71,40 +70,28 @@ export function updateParams(patch){
 }
 
 // ------- engine buffers -------
-const leftF  = new Float32Array(SCENE_W*SCENE_H*3);
-const rightF = new Float32Array(SCENE_W*SCENE_H*3);
-const bothF  = new Float32Array(SCENE_W*SCENE_H*3*2);
+// leftFrame and rightFrame hold RGB float data for each wall
+const leftFrame  = new Float32Array(SCENE_W * SCENE_H * 3);
+const rightFrame = new Float32Array(SCENE_W * SCENE_H * 3);
 
 // ------- scene render -------
-function renderSceneForSide(side, t){
-  const target = side==="left" ? leftF : rightF;
-
-  // Stage A
+// Draw the active effect into the left frame, apply post-processing,
+// and clone the result for the right side
+function renderScene(t) {
   const effect = effects[params.effect] || effects["gradient"];
   const effectParams = params.effects[effect.id] || {};
-  effect.render(target, SCENE_W, SCENE_H, t, effectParams, side);
+  effect.render(leftFrame, SCENE_W, SCENE_H, t, effectParams);
 
-  // Stage B
   const post = params.post;
   for (const fn of postPipeline) {
-    fn(target, t, post, SCENE_W, SCENE_H);
+    fn(leftFrame, t, post, SCENE_W, SCENE_H);
   }
-}
 
-function renderSceneExtended(t){
-  const effect = effects[params.effect] || effects["gradient"];
-  const effectParams = params.effects[effect.id] || {};
-  effect.render(bothF, SCENE_W*2, SCENE_H, t, effectParams, "both");
-  const post = params.post;
-  for (const fn of postPipeline) {
-    fn(bothF, t, post, SCENE_W*2, SCENE_H);
-  }
-  const half = SCENE_W*SCENE_H*3;
-  leftF.set(bothF.subarray(0, half));
-  rightF.set(bothF.subarray(half));
+  rightFrame.set(leftFrame);
 }
 
 // ------- build slices frame -------
+// Convert the raw float frames into NDJSON ready pixel data
 function buildSlicesFrame(frame, fps){
   function sideSlices(sceneF32, layout){
     const out = {};
@@ -121,8 +108,8 @@ function buildSlicesFrame(frame, fps){
     frame, fps,
     format: "rgb8",
     sides: {
-      [layoutLeft.side]:  sideSlices(leftF,  layoutLeft),
-      [layoutRight.side]: sideSlices(rightF, layoutRight)
+      [layoutLeft.side]:  sideSlices(leftFrame,  layoutLeft),
+      [layoutRight.side]: sideSlices(rightFrame, layoutRight)
     }
   };
 }
@@ -130,6 +117,7 @@ function buildSlicesFrame(frame, fps){
 // ------- main loop -------
 let last, acc, frame;
 
+// tick: regulate frame rate, render, and emit LED data
 function tick(){
   const now = process.hrtime.bigint();
   const dt  = Number(now - last)/1e9;
@@ -144,14 +132,8 @@ function tick(){
     const t = Number(now)/1e9;
     acc = 0;
 
-    // Stage A+B for left/right
-    if (params.wallMode === "extend") {
-      renderSceneExtended(t);
-    } else {
-      renderSceneForSide("left", t);
-      if (params.wallMode === "duplicate") rightF.set(leftF);
-      else renderSceneForSide("right", t);
-    }
+    // Render scene and duplicate
+    renderScene(t);
 
     // Emit SLICES_NDJSON to stdout
     const out = buildSlicesFrame(frame++, cap);
@@ -161,6 +143,7 @@ function tick(){
   setImmediate(tick);
 }
 
+// start: initialize counters and kick off the main loop
 export function start(){
   last = process.hrtime.bigint();
   acc = 0;

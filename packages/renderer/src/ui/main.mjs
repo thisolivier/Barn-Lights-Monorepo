@@ -38,10 +38,10 @@ export async function run(docArg = globalThis.document){
       Object.assign(params, m.params);
       const sceneW = m.scene.w;
       const sceneH = m.scene.h;
-      const leftF  = new Float32Array(sceneW * sceneH * 3);
-      const rightF = new Float32Array(sceneW * sceneH * 3);
+      const leftFrame  = new Float32Array(sceneW * sceneH * 3);
+      const rightFrame = new Float32Array(sceneW * sceneH * 3);
       initUI(win, doc, params, send, toggleFreeze);
-      if (ctxL && ctxR) frame(win, doc, ctxL, ctxR, leftF, rightF, params, layoutLeft, layoutRight, sceneW, sceneH);
+      if (ctxL && ctxR) frame(win, doc, ctxL, ctxR, leftFrame, rightFrame, params, layoutLeft, layoutRight, sceneW, sceneH);
       else setStatus(doc, "Preview unavailable");
     },
     (m) => {

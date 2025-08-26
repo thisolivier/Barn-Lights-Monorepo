@@ -33,9 +33,10 @@ function renderEffectControls(doc, P){
 function applyTop(doc, P){
   const fps = doc.getElementById('fpsCap');
   const fpsV = doc.getElementById('fpsCap_v');
-  if (fps){ fps.value = P.fpsCap; if (fpsV) fpsV.textContent = P.fpsCap; }
-  const wallMode = doc.getElementById('wallMode');
-  if (wallMode) wallMode.value = P.wallMode;
+  if (fps) {
+    fps.value = P.fpsCap;
+    if (fpsV) fpsV.textContent = P.fpsCap;
+  }
 }
 
 function applyPost(doc, P){
@@ -72,15 +73,15 @@ export function initUI(win, doc, P, send, onToggleFreeze){
 
   const fps = doc.getElementById('fpsCap');
   const fpsV = doc.getElementById('fpsCap_v');
-  if (fps){
+  if (fps) {
     fps.value = P.fpsCap;
     if (fpsV) fpsV.textContent = P.fpsCap;
-    fps.oninput = () => { const v = parseFloat(fps.value); P.fpsCap = v; if (fpsV) fpsV.textContent = v; send({ fpsCap: v }); };
-  }
-  const wallMode = doc.getElementById('wallMode');
-  if (wallMode){
-    wallMode.value = P.wallMode;
-    wallMode.onchange = () => { P.wallMode = wallMode.value; send({ wallMode: wallMode.value }); };
+    fps.oninput = () => {
+      const v = parseFloat(fps.value);
+      P.fpsCap = v;
+      if (fpsV) fpsV.textContent = v;
+      send({ fpsCap: v });
+    };
   }
   for (const [key,val] of Object.entries(P.post)){
     if (key === 'tint') continue;
