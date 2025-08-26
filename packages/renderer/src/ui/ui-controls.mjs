@@ -3,22 +3,30 @@ const controls = [
   "strobeHz", "strobeDuty", "strobeLow", "gradPhase"
 ];
 
+function paramSource(P, key){
+  if (key === "fpsCap" || key === "mirrorWalls") return P;
+  if (key === "gradPhase") return P.effects.gradient;
+  return P.post;
+}
+
 export function applyUI(doc, P){
   const effect = doc.getElementById("effect");
   if (effect && effect.value !== P.effect) effect.value = P.effect;
   for (const k of controls){
     const el = doc.getElementById(k);
     const span = doc.getElementById(k + "_v");
-    if (!el) continue;
-    if (el.type === "checkbox") el.checked = !!P[k];
-    else { el.value = P[k]; if (span) span.textContent = P[k]; }
+    const src = paramSource(P, k);
+    if (!el || !src) continue;
+    const val = src[k];
+    if (el.type === "checkbox") el.checked = !!val;
+    else { el.value = val; if (span) span.textContent = val; }
   }
   ["tintR","tintG","tintB"].forEach((id,i)=>{
     const el = doc.getElementById(id);
     const span = doc.getElementById(id + "_v");
     if (!el) return;
-    el.value = P.tint[i];
-    if (span) span.textContent = P.tint[i];
+    el.value = P.post.tint[i];
+    if (span) span.textContent = P.post.tint[i];
   });
 }
 
@@ -30,26 +38,33 @@ export function initUI(win, doc, P, send, onToggleFreeze){
   for (const k of controls){
     const el = doc.getElementById(k);
     const span = doc.getElementById(k + "_v");
-    if (!el) continue;
+    const src = paramSource(P, k);
+    if (!el || !src) continue;
     if (el.type === "checkbox"){
-      el.checked = !!P[k];
-      el.oninput = () => send({ [k]: el.checked });
+      el.checked = !!src[k];
+      el.oninput = () => { const s = paramSource(P, k); if(s){ s[k] = el.checked; } send({ [k]: el.checked }); };
     } else {
-      el.value = P[k];
-      if (span) span.textContent = P[k];
-      el.oninput = () => { if (span) span.textContent = el.value; send({ [k]: parseFloat(el.value) }); };
+      el.value = src[k];
+      if (span) span.textContent = src[k];
+      el.oninput = () => {
+        const v = parseFloat(el.value);
+        const s = paramSource(P, k); if(s){ s[k] = v; }
+        if (span) span.textContent = v;
+        send({ [k]: v });
+      };
     }
   }
 
   ["tintR","tintG","tintB"].forEach((id,i)=>{
     const el = doc.getElementById(id);
     const span = doc.getElementById(id + "_v");
-    el.value = P.tint[i];
-    if (span) span.textContent = P.tint[i];
+    el.value = P.post.tint[i];
+    if (span) span.textContent = P.post.tint[i];
     el.oninput = () => {
-      P.tint[i] = parseFloat(el.value);
+      const tint = P.post.tint;
+      tint[i] = parseFloat(el.value);
       if (span) span.textContent = el.value;
-      send({ tint: P.tint });
+      send({ tint });
     };
   });
 

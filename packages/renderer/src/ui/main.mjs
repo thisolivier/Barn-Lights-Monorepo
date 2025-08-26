@@ -17,7 +17,7 @@ async function loadLightLayout(win, doc, side){
   }
 }
 
-export async function boot(docArg = globalThis.document){
+export async function run(docArg = globalThis.document){
   const doc = docArg;
   const win = docArg.defaultView || globalThis;
 

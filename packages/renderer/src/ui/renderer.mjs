@@ -13,11 +13,13 @@ export function toggleFreeze(){
 
 export function renderScene(target, side, t, P, sceneW, sceneH){
   const effect = effects[P.effect] || effects["gradient"];
-  effect.render(target, sceneW, sceneH, t, P, side);
-  applyStrobe(target, t, P.strobeHz, P.strobeDuty, P.strobeLow);
-  applyBrightnessTint(target, P.tint, P.brightness);
-  applyGamma(target, P.gamma);
-  applyRollX(target, sceneW, sceneH, P.rollPx);
+  const effectParams = P.effects[effect.id] || {};
+  effect.render(target, sceneW, sceneH, t, effectParams, side);
+  const post = P.post;
+  applyStrobe(target, t, post.strobeHz, post.strobeDuty, post.strobeLow);
+  applyBrightnessTint(target, post.tint, post.brightness);
+  applyGamma(target, post.gamma);
+  applyRollX(target, sceneW, sceneH, post.rollPx);
 }
 
 export function drawScene(ctx, sceneF32, sceneW, sceneH, win, doc){

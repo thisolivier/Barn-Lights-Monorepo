@@ -6,7 +6,7 @@ import url from "url";
 import { effects } from "./effects/index.mjs";
 import {
   applyBrightnessTint, applyGamma, applyStrobe, applyRollX,
-  sliceSection, clamp01
+  sliceSection
 } from "./effects/modifiers.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
@@ -20,30 +20,21 @@ export const params = {
   fpsCap: 60,
   effect: "gradient",        // "gradient" | "solid" | "fire"
   mirrorWalls: true,
-
-  // gradient
-  gradStart: [0.0, 0.0, 1.0],
-  gradEnd:   [1.0, 0.0, 0.0],
-  gradPhase: 0.0,
-
-  // solid
-  solidLeft:  [0.0, 1.0, 0.0],
-  solidRight: [1.0, 1.0, 1.0],
-
-  // fire
-  fireSpeed: 0.35,
-  fireScale: 2.2,
-  fireIntensity: 1.2,
-
-  // post
-  brightness: 0.8,
-  tint: [1.0, 1.0, 1.0],
-  gamma: 1.0,
-  strobeHz: 0.0,
-  strobeDuty: 0.5,
-  strobeLow: 0.0,
-  rollPx: 0
+  effects: {},
+  post: {
+    brightness: 0.8,
+    tint: [1.0, 1.0, 1.0],
+    gamma: 1.0,
+    strobeHz: 0.0,
+    strobeDuty: 0.5,
+    strobeLow: 0.0,
+    rollPx: 0,
+  }
 };
+
+for (const eff of Object.values(effects)) {
+  params.effects[eff.id] = { ...(eff.defaultParams || {}) };
+}
 
 // ------- load layouts -------
 async function loadLayout(name){
@@ -55,8 +46,28 @@ async function loadLayout(name){
 export const layoutLeft  = await loadLayout("left");
 export const layoutRight = await loadLayout("right");
 
+const postKeys = new Set(Object.keys(params.post));
+const effectParamMap = {};
+for (const eff of Object.values(effects)) {
+  for (const key of Object.keys(eff.defaultParams || {})) {
+    effectParamMap[key] = eff.id;
+  }
+}
+
 export function updateParams(patch){
-  Object.assign(params, patch);
+  for (const [key, value] of Object.entries(patch)) {
+    if (key === "fpsCap" || key === "effect" || key === "mirrorWalls") {
+      params[key] = value;
+    } else if (postKeys.has(key)) {
+      params.post[key] = value;
+    } else if (effectParamMap[key]) {
+      const id = effectParamMap[key];
+      params.effects[id] = params.effects[id] || {};
+      params.effects[id][key] = value;
+    } else {
+      params[key] = value;
+    }
+  }
 }
 
 // ------- engine buffers -------
@@ -69,13 +80,15 @@ function renderSceneForSide(side, t){
 
   // Stage A
   const effect = effects[params.effect] || effects["gradient"];
-  effect.render(target, SCENE_W, SCENE_H, t, params, side);
+  const effectParams = params.effects[effect.id] || {};
+  effect.render(target, SCENE_W, SCENE_H, t, effectParams, side);
 
   // Stage B
-  applyStrobe(target, t, params.strobeHz, params.strobeDuty, params.strobeLow);
-  applyBrightnessTint(target, params.tint, params.brightness);
-  applyGamma(target, params.gamma);
-  applyRollX(target, SCENE_W, SCENE_H, params.rollPx);
+  const post = params.post;
+  applyStrobe(target, t, post.strobeHz, post.strobeDuty, post.strobeLow);
+  applyBrightnessTint(target, post.tint, post.brightness);
+  applyGamma(target, post.gamma);
+  applyRollX(target, SCENE_W, SCENE_H, post.rollPx);
 }
 
 // ------- build slices frame -------
