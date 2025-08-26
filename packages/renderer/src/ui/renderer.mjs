@@ -1,8 +1,8 @@
 import { effects } from "../effects/index.mjs";
-import {
-  applyBrightnessTint, applyGamma, applyStrobe, applyRollX,
-  sliceSection, clamp01
-} from "../effects/modifiers.mjs";
+import { sliceSection, clamp01 } from "../effects/modifiers.mjs";
+import { postPipeline, registerPostModifier } from "../effects/post.mjs";
+
+export { registerPostModifier };
 
 let offscreen = null, offCtx = null;
 let freeze = false;
@@ -16,10 +16,9 @@ export function renderScene(target, side, t, P, sceneW, sceneH){
   const effectParams = P.effects[effect.id] || {};
   effect.render(target, sceneW, sceneH, t, effectParams, side);
   const post = P.post;
-  applyStrobe(target, t, post.strobeHz, post.strobeDuty, post.strobeLow);
-  applyBrightnessTint(target, post.tint, post.brightness);
-  applyGamma(target, post.gamma);
-  applyRollX(target, sceneW, sceneH, post.rollPx);
+  for (const fn of postPipeline) {
+    fn(target, t, post, sceneW, sceneH);
+  }
 }
 
 export function drawScene(ctx, sceneF32, sceneW, sceneH, win, doc){

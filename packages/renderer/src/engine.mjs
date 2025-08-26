@@ -4,14 +4,14 @@ import path from "path";
 import url from "url";
 
 import { effects } from "./effects/index.mjs";
-import {
-  applyBrightnessTint, applyGamma, applyStrobe, applyRollX,
-  sliceSection
-} from "./effects/modifiers.mjs";
+import { sliceSection } from "./effects/modifiers.mjs";
+import { postPipeline, registerPostModifier } from "./effects/post.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 const CONFIG_DIR = path.join(ROOT, "config");
+
+export { registerPostModifier };
 
 export const SCENE_W = 512, SCENE_H = 128; // virtual canvas per side
 
@@ -85,10 +85,9 @@ function renderSceneForSide(side, t){
 
   // Stage B
   const post = params.post;
-  applyStrobe(target, t, post.strobeHz, post.strobeDuty, post.strobeLow);
-  applyBrightnessTint(target, post.tint, post.brightness);
-  applyGamma(target, post.gamma);
-  applyRollX(target, SCENE_W, SCENE_H, post.rollPx);
+  for (const fn of postPipeline) {
+    fn(target, t, post, SCENE_W, SCENE_H);
+  }
 }
 
 // ------- build slices frame -------
