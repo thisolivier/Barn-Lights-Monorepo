@@ -19,9 +19,9 @@ export const defaultParams = {
   fireIntensity: 1.2,
 };
 export const paramSchema = {
-  fireSpeed:     { type: 'float' },
-  fireScale:     { type: 'float' },
-  fireIntensity: { type: 'float' },
+  fireSpeed:     { type: 'number', min: 0, max: 5, step: 0.01 },
+  fireScale:     { type: 'number', min: 0.5, max: 10, step: 0.1 },
+  fireIntensity: { type: 'number', min: 0, max: 3, step: 0.01 },
 };
 
 export function render(sceneF32, W, H, t, params){

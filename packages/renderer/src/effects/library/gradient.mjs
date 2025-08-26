@@ -9,9 +9,9 @@ export const defaultParams = {
   gradPhase: 0.0,
 };
 export const paramSchema = {
-  gradStart: { type: 'rgb' },
-  gradEnd:   { type: 'rgb' },
-  gradPhase: { type: 'float' },
+  gradStart: { type: 'color' },
+  gradEnd:   { type: 'color' },
+  gradPhase: { type: 'number', min: 0, max: 1, step: 0.001 },
 };
 
 export function render(sceneF32, W, H, t, params){

@@ -5,8 +5,8 @@ export const defaultParams = {
   solidRight: [1.0, 1.0, 1.0],
 };
 export const paramSchema = {
-  solidLeft:  { type: 'rgb' },
-  solidRight: { type: 'rgb' },
+  solidLeft:  { type: 'color' },
+  solidRight: { type: 'color' },
 };
 
 export function render(sceneF32, W, H, t, params, side){
