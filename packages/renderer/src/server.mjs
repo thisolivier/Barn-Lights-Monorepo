@@ -53,6 +53,13 @@ wss.on("connection", ws => {
   });
 });
 
-server.listen(8080, () => {
-  console.log("UI: http://localhost:8080");
-});
+export function startServer(port = 8080){
+  server.listen(port, () => {
+    console.error(`UI: http://localhost:${port}`);
+  });
+}
+
+const isMain = url.pathToFileURL(process.argv[1]).href === import.meta.url;
+if (isMain) {
+  startServer();
+}

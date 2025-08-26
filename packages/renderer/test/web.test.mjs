@@ -19,7 +19,10 @@ async function waitForServer(url, retries = 100){
 }
 
 test('web view loads with no console errors', async () => {
-  const proc = spawn('node', ['src/server.mjs'], { cwd: ROOT });
+  const proc = spawn('node', ['bin/engine.mjs'], {
+    cwd: ROOT,
+    stdio: ['ignore', 'ignore', 'pipe']
+  });
   let browser;
   try {
     await waitForServer('http://127.0.0.1:8080');

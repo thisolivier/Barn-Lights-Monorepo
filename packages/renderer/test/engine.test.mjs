@@ -9,7 +9,7 @@ import { fileURLToPath } from 'url';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 async function getFrame(){
-  const proc = spawn('node', ['src/engine.mjs'], { cwd: ROOT });
+  const proc = spawn('node', ['bin/engine.mjs'], { cwd: ROOT });
   const rl = createInterface({ input: proc.stdout });
   let jsonLine = null;
   for await (const line of rl) {

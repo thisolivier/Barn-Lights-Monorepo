@@ -128,9 +128,7 @@ function buildSlicesFrame(frame, fps){
 }
 
 // ------- main loop -------
-let last = process.hrtime.bigint();
-let acc = 0;
-let frame = 0;
+let last, acc, frame;
 
 function tick(){
   const now = process.hrtime.bigint();
@@ -163,7 +161,9 @@ function tick(){
   setImmediate(tick);
 }
 
-// Only tick if we are running as the main process to prevent output swamping tests
-if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
+export function start(){
+  last = process.hrtime.bigint();
+  acc = 0;
+  frame = 0;
   tick();
 }
