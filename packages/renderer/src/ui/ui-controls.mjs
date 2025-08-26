@@ -34,8 +34,8 @@ function applyTop(doc, P){
   const fps = doc.getElementById('fpsCap');
   const fpsV = doc.getElementById('fpsCap_v');
   if (fps){ fps.value = P.fpsCap; if (fpsV) fpsV.textContent = P.fpsCap; }
-  const mirror = doc.getElementById('mirrorWalls');
-  if (mirror) mirror.checked = !!P.mirrorWalls;
+  const wallMode = doc.getElementById('wallMode');
+  if (wallMode) wallMode.value = P.wallMode;
 }
 
 function applyPost(doc, P){
@@ -77,10 +77,10 @@ export function initUI(win, doc, P, send, onToggleFreeze){
     if (fpsV) fpsV.textContent = P.fpsCap;
     fps.oninput = () => { const v = parseFloat(fps.value); P.fpsCap = v; if (fpsV) fpsV.textContent = v; send({ fpsCap: v }); };
   }
-  const mirror = doc.getElementById('mirrorWalls');
-  if (mirror){
-    mirror.checked = !!P.mirrorWalls;
-    mirror.oninput = () => { P.mirrorWalls = mirror.checked; send({ mirrorWalls: mirror.checked }); };
+  const wallMode = doc.getElementById('wallMode');
+  if (wallMode){
+    wallMode.value = P.wallMode;
+    wallMode.onchange = () => { P.wallMode = wallMode.value; send({ wallMode: wallMode.value }); };
   }
   for (const [key,val] of Object.entries(P.post)){
     if (key === 'tint') continue;

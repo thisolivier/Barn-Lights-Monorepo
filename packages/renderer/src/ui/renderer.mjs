@@ -6,6 +6,7 @@ export { registerPostModifier };
 
 let offscreen = null, offCtx = null;
 let freeze = false;
+let bothF = null;
 
 function fullBrightRGB(r, g, b){
   const min = Math.min(r, g, b);
@@ -90,8 +91,16 @@ function drawSections(ctx, sceneF32, layout, sceneW, sceneH){
 
 export function frame(win, doc, ctxL, ctxR, leftF, rightF, P, layoutLeft, layoutRight, sceneW, sceneH){
   const t = freeze ? 0 : win.performance.now() / 1000;
-  renderScene(leftF, "left", t, P, sceneW, sceneH);
-  if (P.mirrorWalls) rightF.set(leftF); else renderScene(rightF, "right", t, P, sceneW, sceneH);
+  if (P.wallMode === "extend") {
+    const len = leftF.length;
+    if (!bothF || bothF.length !== len * 2) bothF = new Float32Array(len * 2);
+    renderScene(bothF, "both", t, P, sceneW * 2, sceneH);
+    leftF.set(bothF.subarray(0, len));
+    rightF.set(bothF.subarray(len));
+  } else {
+    renderScene(leftF, "left", t, P, sceneW, sceneH);
+    if (P.wallMode === "duplicate") rightF.set(leftF); else renderScene(rightF, "right", t, P, sceneW, sceneH);
+  }
   drawScene(ctxL, leftF, sceneW, sceneH, win, doc);
   if (layoutLeft)  drawSections(ctxL, leftF, layoutLeft, sceneW, sceneH);
   drawScene(ctxR, rightF, sceneW, sceneH, win, doc);

@@ -19,7 +19,7 @@ export const SCENE_W = 512, SCENE_H = 128; // virtual canvas per side
 export const params = {
   fpsCap: 60,
   effect: "gradient",        // "gradient" | "solid" | "fire"
-  mirrorWalls: true,
+  wallMode: "duplicate",     // "duplicate" | "independent" | "extend"
   effects: {},
   post: {
     brightness: 0.8,
@@ -56,7 +56,7 @@ for (const eff of Object.values(effects)) {
 
 export function updateParams(patch){
   for (const [key, value] of Object.entries(patch)) {
-    if (key === "fpsCap" || key === "effect" || key === "mirrorWalls") {
+    if (key === "fpsCap" || key === "effect" || key === "wallMode") {
       params[key] = value;
     } else if (postKeys.has(key)) {
       params.post[key] = value;
@@ -73,6 +73,7 @@ export function updateParams(patch){
 // ------- engine buffers -------
 const leftF  = new Float32Array(SCENE_W*SCENE_H*3);
 const rightF = new Float32Array(SCENE_W*SCENE_H*3);
+const bothF  = new Float32Array(SCENE_W*SCENE_H*3*2);
 
 // ------- scene render -------
 function renderSceneForSide(side, t){
@@ -88,6 +89,19 @@ function renderSceneForSide(side, t){
   for (const fn of postPipeline) {
     fn(target, t, post, SCENE_W, SCENE_H);
   }
+}
+
+function renderSceneExtended(t){
+  const effect = effects[params.effect] || effects["gradient"];
+  const effectParams = params.effects[effect.id] || {};
+  effect.render(bothF, SCENE_W*2, SCENE_H, t, effectParams, "both");
+  const post = params.post;
+  for (const fn of postPipeline) {
+    fn(bothF, t, post, SCENE_W*2, SCENE_H);
+  }
+  const half = SCENE_W*SCENE_H*3;
+  leftF.set(bothF.subarray(0, half));
+  rightF.set(bothF.subarray(half));
 }
 
 // ------- build slices frame -------
@@ -133,9 +147,13 @@ function tick(){
     acc = 0;
 
     // Stage A+B for left/right
-    renderSceneForSide("left", t);
-    if (params.mirrorWalls) rightF.set(leftF);
-    else renderSceneForSide("right", t);
+    if (params.wallMode === "extend") {
+      renderSceneExtended(t);
+    } else {
+      renderSceneForSide("left", t);
+      if (params.wallMode === "duplicate") rightF.set(leftF);
+      else renderSceneForSide("right", t);
+    }
 
     // Emit SLICES_NDJSON to stdout
     const out = buildSlicesFrame(frame++, cap);
