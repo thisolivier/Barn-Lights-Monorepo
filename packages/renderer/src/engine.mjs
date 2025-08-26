@@ -1,5 +1,5 @@
 // src/engine.mjs
-import { readFile } from "fs/promises";
+import fs from "fs/promises";
 import path from "path";
 import url from "url";
 
@@ -37,8 +37,8 @@ for (const eff of Object.values(effects)) {
 }
 
 // ------- load layouts -------
-async function loadLayout(name){
-  const raw = await readFile(path.join(CONFIG_DIR, `${name}.json`), "utf8");
+export async function loadLayout(name){
+  const raw = await fs.readFile(path.join(CONFIG_DIR, `${name}.json`), "utf8");
   const j = JSON.parse(raw);
   if (!j?.sampling?.width || !j?.sampling?.height) throw new Error(`${name}.json missing sampling.width/height`);
   return j;
@@ -145,4 +145,8 @@ function tick(){
 
   setImmediate(tick);
 }
-tick();
+
+// Only tick if we are running as the main process to prevent output swamping tests
+if (import.meta.url === url.pathToFileURL(process.argv[1]).href) {
+  tick();
+}
