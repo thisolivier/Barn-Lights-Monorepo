@@ -9,7 +9,7 @@ Dynamic UI widgets for effect parameters.
 - `color.mjs` – RGB color picker.
 - `colorStops.mjs` – wraps the Grapick gradient picker for draggable color/position stops.
 
-The `fireShader` and `gradient` effects use the `colorStops` widget to define their color palettes.
+The `gradient` effect uses the `colorStops` widget to define its color palette.
 
 Additional widgets support motion controls used by the Orientation panel:
 - `speedSlider.mjs` – horizontal slider with a 5% center dead zone for pitch and yaw speeds.
