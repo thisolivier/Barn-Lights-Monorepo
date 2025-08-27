@@ -3,18 +3,25 @@ export async function fetchPresetNames(win){
   return res.json();
 }
 
-export function populatePresetDropdown(doc, selectEl, names){
-  selectEl.innerHTML = '';
+export function renderPresetList(doc, container, names, onSelect){
+  container.innerHTML = '';
   names.forEach(n => {
-    const opt = doc.createElement('option');
-    opt.value = n;
-    opt.textContent = n;
-    selectEl.appendChild(opt);
+    const item = doc.createElement('div');
+    item.className = 'presetItem';
+    const img = doc.createElement('img');
+    img.src = `/preset/preview/${encodeURIComponent(n)}`;
+    img.alt = n;
+    item.appendChild(img);
+    const label = doc.createElement('div');
+    label.textContent = n;
+    item.appendChild(label);
+    item.onclick = () => onSelect(n);
+    container.appendChild(item);
   });
 }
 
-export async function refreshPresetDropdown(win, doc, selectEl){
+export async function refreshPresetPanel(win, doc, container, onSelect){
   const names = await fetchPresetNames(win);
-  populatePresetDropdown(doc, selectEl, names);
+  renderPresetList(doc, container, names, onSelect);
   return names;
 }

@@ -68,6 +68,16 @@ const server = http.createServer(async (req, res) => {
       return;
     }
   }
+  if (u.pathname.startsWith("/preset/preview/")) {
+    const name = decodeURIComponent(u.pathname.slice("/preset/preview/".length));
+    const p = path.join(__dirname, "../config/presets", `${name}.png`);
+    try {
+      return streamFile(p, "image/png", res);
+    } catch {
+      res.writeHead(404).end("Not found");
+      return;
+    }
+  }
   res.writeHead(404).end("Not found");
 });
 

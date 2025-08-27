@@ -3,7 +3,7 @@ import { effects } from '../effects/index.mjs';
 import { renderControls } from './subviews/index.mjs';
 import { rgbToHex } from './subviews/utils.mjs';
 import { initSpeedSlider } from './subviews/speedSlider.mjs';
-import { refreshPresetDropdown } from './presets.mjs';
+import { refreshPresetPanel } from './presets.mjs';
 
 // Function used to send parameter patches back to the engine
 let sendFn = null;
@@ -195,15 +195,18 @@ export function initUI(win, doc, P, send){
   updateAngles();
 
   const presetInput = doc.getElementById('presetName');
-  const presetList = doc.getElementById('presetList');
-  if (presetList){
-    presetList.onchange = () => { if (presetInput) presetInput.value = presetList.value; };
-    refreshPresetDropdown(win, doc, presetList);
+  const presetContainer = doc.getElementById('presetList');
+  const loadPreset = async (name) => {
+    await win.fetch(`/preset/load/${encodeURIComponent(name)}`);
+    if (presetInput) presetInput.value = name;
+  };
+  if (presetContainer){
+    refreshPresetPanel(win, doc, presetContainer, loadPreset);
   }
   const saveBtn = doc.getElementById('savePreset');
   if (saveBtn){
     saveBtn.onclick = async () => {
-      const name = presetInput?.value.trim() || presetList?.value;
+      const name = presetInput?.value.trim();
       if (!name) return;
       const left = doc.getElementById('left');
       const right = doc.getElementById('right');
@@ -224,16 +227,8 @@ export function initUI(win, doc, P, send){
       } else {
         await win.fetch(`/preset/save/${encodeURIComponent(name)}`, { method: 'POST' });
       }
-      await refreshPresetDropdown(win, doc, presetList);
+      await refreshPresetPanel(win, doc, presetContainer, loadPreset);
       if (presetInput) presetInput.value = name;
-    };
-  }
-  const loadBtn = doc.getElementById('loadPreset');
-  if (loadBtn){
-    loadBtn.onclick = async () => {
-      const name = presetInput?.value.trim() || presetList?.value;
-      if (!name) return;
-      await win.fetch(`/preset/load/${encodeURIComponent(name)}`);
     };
   }
 

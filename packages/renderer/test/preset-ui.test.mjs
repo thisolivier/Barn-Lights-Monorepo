@@ -1,21 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { refreshPresetDropdown } from '../src/ui/presets.mjs';
+import { refreshPresetPanel } from '../src/ui/presets.mjs';
 
-test('preset dropdown matches fetched names', async () => {
+test('preset panel matches fetched names', async () => {
   const names = ['one','two'];
   const win = { fetch: async () => ({ json: async () => names }) };
   const doc = {
     createElement(tag){
-      return { tag, value: '', textContent: '', appendChild(){}};
+      return {
+        tag,
+        children: [],
+        className: '',
+        src: '',
+        alt: '',
+        textContent: '',
+        onclick: null,
+        appendChild(child){ this.children.push(child); }
+      };
     }
   };
-  const select = {
+  const container = {
     innerHTML: '',
-    options: [],
-    appendChild(opt){ this.options.push(opt); }
+    children: [],
+    appendChild(child){ this.children.push(child); }
   };
-  await refreshPresetDropdown(win, doc, select);
-  assert.equal(select.options.length, names.length);
-  assert.deepEqual(select.options.map(o => o.value), names);
+  await refreshPresetPanel(win, doc, container, ()=>{});
+  assert.equal(container.children.length, names.length);
 });
