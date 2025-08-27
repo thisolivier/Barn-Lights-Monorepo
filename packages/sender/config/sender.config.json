@@ -5,8 +5,8 @@
   },
   "renderer": {
     "cmd": "node",
-    "args": ["./bin/renderer"],
-    "cwd": "./renderer" 
+    "args": ["./test/fixtures/renderer_stream.mjs"],
+    "cwd": "."
   },
   "telemetry": {
     "interval_ms": 1000,
