@@ -16,6 +16,13 @@ export class Assembler extends EventEmitter {
     this.config = runtimeConfig;
     this.logger = logger;
     this.mailbox = mailbox;
+
+    const sides = this.config.sides || {};
+    for (const [sideName, sideCfg] of Object.entries(sides)) {
+      if (!Array.isArray(sideCfg.runs)) {
+        throw new Error(`Side ${sideName} configuration missing runs array`);
+      }
+    }
   }
 
   /**
@@ -47,12 +54,7 @@ export class Assembler extends EventEmitter {
       const runBuffers = [];
       let sideIsValid = true;
 
-      const runs = Array.isArray(sideConfig.runs) ? sideConfig.runs : [];
-      if (!runs.length) {
-        continue;
-      }
-
-      for (const runConfig of runs) {
+      for (const runConfig of sideConfig.runs) {
         const runBuffer = new Uint8Array(runConfig.led_count * 3);
         let bufferOffset = 0;
 
