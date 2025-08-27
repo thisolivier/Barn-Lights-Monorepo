@@ -1,18 +1,21 @@
-const assert = require('assert');
+// Tests for the renderer process module using Node's built-in test runner.
+//
+// These tests simulate renderer behaviors using small fixture scripts. The
+// fixtures are executed via `process.execPath` (Node itself), which keeps
+// the test environment simple and portable.
+
+const test = require('node:test');
+const assert = require('node:assert/strict');
 const path = require('path');
 const { RendererProcess } = require('../src/renderer-process');
 
-// This test spins up a fake renderer that writes a mix of good and
-// bad NDJSON lines. We verify that the good frame is ingested and that
-// errors were logged for the bad ones.
-async function testIngestAndErrors() {
+test('ingests NDJSON lines and logs errors', async () => {
   const logs = [];
-  // Simple logger implementation that records error messages so we can
-  // make assertions about what happened.
+  // Logger stub records error messages so we can make assertions later.
   const logger = { error: (msg) => logs.push(msg), warn() {}, info() {}, debug() {} };
   const runtimeConfig = {
     renderer: {
-      // Use Node itself to execute our small fixture script.
+      // Use Node to run the fixture that emits a mix of good and bad lines.
       cmd: process.execPath,
       args: [path.join(__dirname, 'fixtures', 'renderer_stream.js')],
     },
@@ -20,19 +23,20 @@ async function testIngestAndErrors() {
   const rp = new RendererProcess(runtimeConfig, logger);
   const frames = [];
   rp.on('FrameIngest', (frame) => frames.push(frame));
+
+  // Start the renderer and wait for it to exit so all lines are processed.
   const child = rp.start();
-  // Wait for the fixture process to finish writing its lines.
   await new Promise((resolve) => child.on('close', resolve));
+
+  // Verify that only the valid frame was ingested.
   assert.strictEqual(frames.length, 1, `expected 1 frame, got ${frames.length}`);
   assert.strictEqual(frames[0].frame, 1);
-  // Ensure our logger caught parse and format errors.
+  // Ensure error messages were logged for the malformed and unsupported lines.
   assert(logs.some((l) => l.includes('Failed to parse NDJSON line')));
   assert(logs.some((l) => l.includes('Unsupported format')));
-}
+});
 
-// This test uses a renderer that exits immediately with a nonzero code.
-// The RendererProcess should surface this as an error event.
-async function testCrashEmitsError() {
+test('emits error when renderer crashes', async () => {
   const runtimeConfig = {
     renderer: {
       cmd: process.execPath,
@@ -40,14 +44,13 @@ async function testCrashEmitsError() {
     },
   };
   const rp = new RendererProcess(runtimeConfig, console);
+
+  // The error event should fire with an Error instance when the renderer exits
+  // with a nonzero status code.
   const err = await new Promise((resolve) => {
     rp.on('error', resolve);
     rp.start();
   });
   assert(err instanceof Error);
-}
+});
 
-(async () => {
-  await testIngestAndErrors();
-  await testCrashEmitsError();
-})();
