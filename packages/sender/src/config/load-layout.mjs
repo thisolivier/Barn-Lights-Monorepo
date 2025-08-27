@@ -1,5 +1,4 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
 
 /**
  * @typedef {{id: string, led_count: number}} SectionCfg
@@ -14,7 +13,7 @@ const path = require('path');
  * @param {{warn: Function}} [logger=console] - Logger used for warnings.
  * @returns {SideLayout}
  */
-function loadLayout(filePath, logger = console) {
+export function loadLayout(filePath, logger = console) {
   const raw = fs.readFileSync(filePath, 'utf8');
   const layout = JSON.parse(raw);
 
@@ -46,5 +45,3 @@ function loadLayout(filePath, logger = console) {
 
   return layout;
 }
-
-module.exports = { loadLayout };
