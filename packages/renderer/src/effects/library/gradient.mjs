@@ -9,10 +9,12 @@ export const defaultParams = {
     { pos: 1, color: [1.0, 0.0, 0.0] },
   ],
   gradPhase: 0.0,
+  reverse: false,
 };
 export const paramSchema = {
   stops: { type: 'colorStops', label: 'Stops' },
   gradPhase: { type: 'number', min: 0, max: 1, step: 0.001 },
+  reverse: { type: 'button', label: 'Reverse' },
 };
 
 function sampleGradient(stops, u){
@@ -27,11 +29,12 @@ function sampleGradient(stops, u){
 }
 
 export function render(sceneF32, W, H, t, params){
-  const { stops = [], gradPhase = 0 } = params;
+  const { stops = [], gradPhase = 0, reverse = false } = params;
   if (stops.length < 2) return;
   for(let y=0;y<H;y++){
     for(let x=0;x<W;x++){
-      const u = (x/W + gradPhase) % 1;
+      const base = (x / W + gradPhase) % 1;
+      const u = reverse ? (1 - base) : base;
       const rgb = sampleGradient(stops, u);
       const i=(y*W+x)*3;
       sceneF32[i]=rgb[0]; sceneF32[i+1]=rgb[1]; sceneF32[i+2]=rgb[2];

@@ -3,6 +3,7 @@ import { checkboxWidget } from './checkbox.mjs';
 import { enumWidget } from './enum.mjs';
 import { colorWidget } from './color.mjs';
 import { colorStopsWidget } from './colorStops.mjs';
+import { buttonWidget } from './button.mjs';
 
 const widgets = {
   number: numberWidget,
@@ -12,6 +13,7 @@ const widgets = {
   color: colorWidget,
   rgb: colorWidget,
   colorStops: colorStopsWidget,
+  button: buttonWidget,
 };
 
 export function renderControls(schema, values, send){

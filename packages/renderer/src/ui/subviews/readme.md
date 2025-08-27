@@ -5,6 +5,7 @@ Dynamic UI widgets for effect parameters.
 - `index.mjs` – exports `renderControls` which builds form elements from a schema.
 - `number.mjs` – slider/number input.
 - `checkbox.mjs` – boolean toggle.
+- `button.mjs` – sends a boolean toggle on click.
 - `enum.mjs` – dropdown selector.
 - `color.mjs` – RGB color picker.
 - `colorStops.mjs` – wraps the Grapick gradient picker for draggable color/position stops.
