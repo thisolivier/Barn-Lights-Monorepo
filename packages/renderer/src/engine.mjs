@@ -16,7 +16,7 @@ export { SCENE_W, SCENE_H };
 // ------- params (shared to UI) -------
 export const params = {
   fpsCap: 60,
-  effect: "gradient",        // "gradient" | "solid" | "fire"
+  effect: "gradient",        // "gradient" | "solid" | "noise"
   renderMode: "duplicate",    // "duplicate" | "extended" | "mirror"
   effects: {},
   post: {

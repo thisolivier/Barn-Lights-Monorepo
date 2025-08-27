@@ -1,0 +1,62 @@
+{
+  "effect": "noise",
+  "fpsCap": 60,
+  "renderMode": "duplicate",
+  "post": {
+    "brightness": 1,
+    "tint": [
+      1,
+      1,
+      1
+    ],
+    "gamma": 1,
+    "strobeHz": 0,
+    "strobeDuty": 0.5,
+    "strobeLow": 0,
+    "pitchSpeed": 78.81181318681318,
+    "yawSpeed": 0,
+    "pitch": 345.87168325852997,
+    "yaw": 0
+  },
+  "effects": {
+    "noise": {
+      "noiseSpeed": 0,
+      "noiseScale": 2.4,
+      "noiseIntensity": 1.83,
+      "stops": [
+        {
+          "pos": 0,
+          "color": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "pos": 0.33,
+          "color": [
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "pos": 0.66,
+          "color": [
+            1,
+            0.5019607843137255,
+            0
+          ]
+        },
+        {
+          "pos": 1,
+          "color": [
+            1,
+            1,
+            1
+          ]
+        }
+      ]
+    }
+  }
+}
