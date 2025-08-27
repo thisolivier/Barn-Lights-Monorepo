@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node bin/lights-sender",
-    "test": "node test/cli.test.js"
+    "test": "node --test --test-concurrency=1 test/*.test.js"
   },
   "keywords": [],
   "author": "",
