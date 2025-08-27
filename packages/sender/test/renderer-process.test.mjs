@@ -40,6 +40,27 @@ test('ingests NDJSON lines and logs errors', async () => {
   assert(logs.some((l) => l.includes('Unsupported format')));
 });
 
+test('ignores output until the first timestamped frame', async () => {
+  const logs = [];
+  const logger = { error: (msg) => logs.push(msg), warn() {}, info() {}, debug() {} };
+  const runtimeConfig = {
+    renderer: {
+      cmd: process.execPath,
+      args: [path.join(__dirname, 'fixtures', 'renderer_preamble.mjs')],
+    },
+  };
+  const rendererProcess = new RendererProcess(runtimeConfig, logger);
+  const frames = [];
+  rendererProcess.on('FrameIngest', (frame) => frames.push(frame));
+
+  const child = rendererProcess.start();
+  await new Promise((resolve) => child.on('close', resolve));
+
+  assert.strictEqual(frames.length, 1);
+  assert.strictEqual(frames[0].frame, 1);
+  assert.strictEqual(logs.length, 0);
+});
+
 test('emits error when renderer crashes', async () => {
   const runtimeConfig = {
     renderer: {
