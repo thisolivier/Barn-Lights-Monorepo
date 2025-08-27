@@ -9,11 +9,13 @@ export class Assembler extends EventEmitter {
   /**
    * @param {object} runtimeConfig - Loaded sender configuration containing side layouts.
    * @param {{error:Function, warn:Function, info:Function, debug:Function}} [logger=console] - Logger for diagnostics.
+   * @param {object} [mailbox] - Optional mailbox for assembled frames.
    */
-  constructor(runtimeConfig, logger = console) {
+  constructor(runtimeConfig, logger = console, mailbox = null) {
     super();
     this.config = runtimeConfig;
     this.logger = logger;
+    this.mailbox = mailbox;
   }
 
   /**
@@ -79,11 +81,15 @@ export class Assembler extends EventEmitter {
       }
 
       if (sideIsValid) {
-        this.emit('FrameAssembled', {
+        const assembled = {
           side: sideConfig.side || sideName,
           frame_id: ndjsonFrame.frame >>> 0,
           runs: runBuffers,
-        });
+        };
+        this.emit('FrameAssembled', assembled);
+        if (this.mailbox) {
+          this.mailbox.write(sideConfig.side || sideName, assembled);
+        }
       }
     }
   }
