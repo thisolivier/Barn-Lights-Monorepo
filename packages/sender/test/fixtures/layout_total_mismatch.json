@@ -1,0 +1,16 @@
+{
+  "side": "left",
+  "total_leds": 150,
+  "runs": [
+    {
+      "run_index": 0,
+      "led_count": 50,
+      "sections": [ { "id": "s1", "led_count": 50 } ]
+    },
+    {
+      "run_index": 1,
+      "led_count": 50,
+      "sections": [ { "id": "s2", "led_count": 50 } ]
+    }
+  ]
+}
