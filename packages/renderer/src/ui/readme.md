@@ -6,8 +6,6 @@ Browser interface providing live preview and controls.
 - `main.mjs` – entry point for JS logic, wiring modules together, exposes a 'run' function.
 - `connection.mjs` – WebSocket setup and message handling.
 - `controls-logic.mjs` – wires DOM controls to params and renders effect-specific widgets.
-- `presets.mjs` – fetches preset names and populates the dropdown list.
-- Preset controls allow saving and loading configuration snapshots.
-- `subviews/` – reusable widgets and `renderControls` helper.
 - `preview-renderer.mjs` – scene generation and drawing, duplicating a single scene to both canvases.
-- Keyboard shortcuts were removed; all interactions occur through on-screen controls.
+- `presets.mjs` – handles saving/retreiving configuration and listing the saved options.
+- `subviews/` – reusable widgets and `renderControls` helper.
