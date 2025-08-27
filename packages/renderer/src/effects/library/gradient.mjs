@@ -20,12 +20,16 @@ export function render(sceneF32, W, H, t, params){
   const { stops = [], gradPhase = 0, reverse = false } = params;
   if (stops.length < 2) return;
   const sortedStops = sortColorStops(stops);
-  for(let y=0;y<H;y++){
-    for(let x=0;x<W;x++){
-      const u = (x/W + gradPhase) % 1;
-      const rgb = sampleGradient(sortedStops, u);
-      const index=(y*W+x)*3;
-      sceneF32[index]=rgb[0]; sceneF32[index+1]=rgb[1]; sceneF32[index+2]=rgb[2];
+  for (let y = 0; y < H; y++){
+    for (let x = 0; x < W; x++){
+      const basePosition = reverse ? (W - x) / W : x / W;
+      let samplePosition = basePosition + gradPhase;
+      if (samplePosition > 1) samplePosition -= 1;
+      const rgb = sampleGradient(sortedStops, samplePosition);
+      const index = (y * W + x) * 3;
+      sceneF32[index] = rgb[0];
+      sceneF32[index + 1] = rgb[1];
+      sceneF32[index + 2] = rgb[2];
     }
   }
 }
