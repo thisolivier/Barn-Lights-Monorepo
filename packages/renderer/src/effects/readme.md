@@ -6,7 +6,7 @@ Effect modules and utilities for the renderer.
 - `index.mjs` – aggregates the library into an `effects` map keyed by id.
 - `modifiers.mjs` – shared modifiers and sampling helpers, including pitch/yaw transforms.
   Provides both clamped (`bilinearSampleRGB`) and wrapping (`bilinearSampleWrapRGB`) bilinear sampling.
-- `post.mjs` – post-processing pipeline and modifier registration.
+- `post.mjs` – post-processing pipeline and modifier registration; respects manual pitch/yaw angles when speeds are zero.
 
 The `transformScene` helper uses wrapping bilinear sampling so that shifts and rotations 
 loop seamlessly across scene edges.

@@ -150,16 +150,38 @@ export function initUI(win, doc, P, send){
   if (pitchEl){
     updatePitch = initSpeedSlider(pitchEl, P, send, 'pitchSpeed', 500);
   }
+  if (pitchDeg){
+    pitchDeg.onchange = () => {
+      const v = parseFloat(pitchDeg.value);
+      if (Number.isFinite(v)){
+        P.post.pitch = v;
+        P.post.pitchSpeed = 0;
+        send({ pitch: v, pitchSpeed: 0 });
+        if (updatePitch) updatePitch(0);
+      }
+    };
+  }
 
   const yawEl = doc.getElementById('yaw');
   const yawDeg = doc.getElementById('yawDeg');
   if (yawEl){
     updateYaw = initSpeedSlider(yawEl, P, send, 'yawSpeed', Math.PI);
   }
+  if (yawDeg){
+    yawDeg.onchange = () => {
+      const v = parseFloat(yawDeg.value);
+      if (Number.isFinite(v)){
+        P.post.yaw = v;
+        P.post.yawSpeed = 0;
+        send({ yaw: v, yawSpeed: 0 });
+        if (updateYaw) updateYaw(0);
+      }
+    };
+  }
 
   const updateAngles = () => {
-    if (pitchDeg) pitchDeg.value = Math.abs(P.post.pitch || 0).toFixed(1);
-    if (yawDeg) yawDeg.value = Math.abs(P.post.yaw || 0).toFixed(1);
+    if (pitchDeg && doc.activeElement !== pitchDeg) pitchDeg.value = Math.abs(P.post.pitch || 0).toFixed(1);
+    if (yawDeg && doc.activeElement !== yawDeg) yawDeg.value = Math.abs(P.post.yaw || 0).toFixed(1);
     win.requestAnimationFrame(updateAngles);
   };
   updateAngles();
