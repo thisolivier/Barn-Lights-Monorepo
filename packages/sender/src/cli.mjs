@@ -5,6 +5,7 @@ import { RendererProcess } from './renderer-process/index.mjs';
 import { Mailbox } from './mailbox/index.mjs';
 import { Assembler } from './assembler/index.mjs';
 import { UdpSender } from './udp-sender/index.mjs';
+import { Telemetry } from './telemetry/index.mjs';
 
 function parseArgs(argv) {
   const result = {};
@@ -82,19 +83,25 @@ export async function main(argv = process.argv) {
     const assembler = new Assembler(config, logger, mailbox);
     assembler.bindFrameEmitter(rp);
     const sender = new UdpSender(config, mailbox, logger);
+    const telemetry = new Telemetry(config, mailbox, logger);
+    telemetry.bindRenderer(rp);
+    telemetry.bindAssembler(assembler);
 
     rp.on('error', (err) => {
       logger.error(err.message);
       sender.stop();
+      telemetry.stop();
       rp.stop();
       process.exit(2);
     });
 
     rp.start();
     sender.start();
+    telemetry.start();
 
     const shutdown = () => {
       sender.stop();
+      telemetry.stop();
       rp.stop();
       process.exit(0);
     };
