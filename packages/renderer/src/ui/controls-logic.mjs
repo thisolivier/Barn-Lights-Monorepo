@@ -1,14 +1,22 @@
 import { effects } from '../effects/index.mjs';
-import { renderControls } from './controls/index.mjs';
-import { rgbToHex } from './controls/utils.mjs';
-import { initSpeedSlider } from './controls/speedSlider.mjs';
+// Reusable subviews for rendering effect parameter widgets
+import { renderControls } from './subviews/index.mjs';
+import { rgbToHex } from './subviews/utils.mjs';
+import { initSpeedSlider } from './subviews/speedSlider.mjs';
 import { refreshPresetDropdown } from './presets.mjs';
 
+// Function used to send parameter patches back to the engine
 let sendFn = null;
+// Track which effect's controls are currently displayed
 let currentEffectId = null;
+// Callbacks returned by speed sliders to update their UI position
 let updatePitch = null;
 let updateYaw = null;
 
+/**
+ * Render parameter widgets for the active effect and keep them in sync
+ * with the current parameter values.
+ */
 function renderEffectControls(doc, P){
   const container = doc.getElementById('effectControls');
   if (!container) return;
@@ -34,7 +42,8 @@ function renderEffectControls(doc, P){
   }
 }
 
-function applyTop(doc, P){
+/** Sync the FPS cap slider and label with the parameter state. */
+function applyFpsCap(doc, P){
   const fps = doc.getElementById('fpsCap');
   const fpsV = doc.getElementById('fpsCap_v');
   if (fps) {
@@ -43,6 +52,10 @@ function applyTop(doc, P){
   }
 }
 
+/**
+ * Update post-processing controls (brightness, strobe, tint, etc.)
+ * to reflect the latest parameter values.
+ */
 function applyPost(doc, P){
   for (const [key,val] of Object.entries(P.post)){
     if (key === 'tint') continue;
@@ -63,15 +76,21 @@ function applyPost(doc, P){
   if (updateYaw) updateYaw(P.post.yawSpeed || 0);
 }
 
+/** Apply the entire parameter state to the UI inputs. */
 export function applyUI(doc, P){
   const effect = doc.getElementById('effect');
   if (effect && effect.value !== P.effect) effect.value = P.effect;
-  applyTop(doc,P);
+  applyFpsCap(doc,P);
   applyPost(doc,P);
   renderEffectControls(doc,P);
 }
 
-export function initUI(win, doc, P, send, onToggleFreeze){
+/**
+ * Wire up DOM events so user interactions patch the parameter object
+ * and send updates to the engine. Also initializes preset controls
+ * and motion sliders.
+ */
+export function initUI(win, doc, P, send){
   sendFn = send;
   const effect = doc.getElementById('effect');
   if (effect){
@@ -170,7 +189,6 @@ export function initUI(win, doc, P, send, onToggleFreeze){
       }
     }
     if (e.key.toLowerCase() === 'b') send({ brightness: 0 });
-    if (e.key === ' ') onToggleFreeze();
   });
 
   applyUI(doc, P);

@@ -1,6 +1,6 @@
 import { initConnection, send } from "./connection.mjs";
-import { initUI, applyUI } from "./ui-controls.mjs";
-import { frame, toggleFreeze } from "./renderer.mjs";
+import { initUI, applyUI } from "./controls-logic.mjs";
+import { frame } from "./preview-renderer.mjs";
 
 function setStatus(doc, msg){
   const el = doc.getElementById("status");
@@ -33,21 +33,25 @@ export async function run(docArg = globalThis.document){
 
   const params = {};
 
-  initConnection(win,
-    (m) => {
-      Object.assign(params, m.params);
-      const sceneW = m.scene.w;
-      const sceneH = m.scene.h;
-      const leftFrame  = new Float32Array(sceneW * sceneH * 3);
-      const rightFrame = new Float32Array(sceneW * sceneH * 3);
-      initUI(win, doc, params, send, toggleFreeze);
-      if (ctxL && ctxR) frame(win, doc, ctxL, ctxR, leftFrame, rightFrame, params, layoutLeft, layoutRight, sceneW, sceneH);
-      else setStatus(doc, "Preview unavailable");
-    },
-    (m) => {
-      Object.assign(params, m.params);
-      applyUI(doc, params);
-    },
-    (msg) => setStatus(doc, msg)
-  );
+  // Establish a WebSocket connection and describe how incoming messages are used.
+  const onInit = (m) => {
+    // Store default parameters and allocate buffers for both walls.
+    Object.assign(params, m.params);
+    const sceneW = m.scene.w;
+    const sceneH = m.scene.h;
+    const leftFrame  = new Float32Array(sceneW * sceneH * 3);
+    const rightFrame = new Float32Array(sceneW * sceneH * 3);
+    // Build the UI and start rendering frames if canvases are available.
+    initUI(win, doc, params, send);
+    if (ctxL && ctxR){
+      frame(win, doc, ctxL, ctxR, leftFrame, rightFrame, params, layoutLeft, layoutRight, sceneW, sceneH);
+    } else setStatus(doc, "Preview unavailable");
+  };
+  const onParams = (m) => {
+    Object.assign(params, m.params);
+    applyUI(doc, params);
+  };
+  const onStatus = (msg) => setStatus(doc, msg);
+  // Delay connection slightly so automated tests waiting for network idle can finish loading assets.
+  setTimeout(() => initConnection(win, onInit, onParams, onStatus), 600);
 }

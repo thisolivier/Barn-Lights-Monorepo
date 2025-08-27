@@ -1,4 +1,4 @@
-# Controls
+# Subviews
 
 Dynamic UI widgets for effect parameters.
 
