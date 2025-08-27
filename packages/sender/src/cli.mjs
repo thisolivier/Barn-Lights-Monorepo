@@ -2,6 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { loadLayout } from './config/load-layout.mjs';
 import { RendererProcess } from './renderer-process/index.mjs';
+import { Mailbox } from './mailbox/index.mjs';
+import { Assembler } from './assembler/index.mjs';
+import { UdpSender } from './udp-sender/index.mjs';
 
 function parseArgs(argv) {
   const result = {};
@@ -50,7 +53,8 @@ function createLogger(level) {
 export async function main(argv = process.argv) {
   try {
     const parsed = parseArgs(argv.slice(2));
-    const configPath = parsed.config || path.resolve(process.cwd(), './config/sender.config.json');
+    const configPath =
+      parsed.config || path.resolve(process.cwd(), './config/sender.config.json');
     const config = loadConfig(configPath);
     const logLevel = parsed.logLevel || config.telemetry.log_level || 'info';
     if (!validateLogLevel(logLevel)) {
@@ -73,17 +77,31 @@ export async function main(argv = process.argv) {
       }
     }
 
-    try {
-      const rp = new RendererProcess(config, logger);
-      rp.start();
-    } catch (err) {
-      logger.error(err.message);
-      return 2;
-    }
+    const mailbox = new Mailbox();
+    const rp = new RendererProcess(config, logger);
+    const assembler = new Assembler(config, logger, mailbox);
+    assembler.bindFrameEmitter(rp);
+    const sender = new UdpSender(config, mailbox, logger);
 
-    return 0;
+    rp.on('error', (err) => {
+      logger.error(err.message);
+      sender.stop();
+      rp.stop();
+      process.exit(2);
+    });
+
+    rp.start();
+    sender.start();
+
+    const shutdown = () => {
+      sender.stop();
+      rp.stop();
+      process.exit(0);
+    };
+    process.once('SIGINT', shutdown);
+    process.once('SIGTERM', shutdown);
   } catch (err) {
     console.error(err.message);
-    return 1;
+    process.exit(1);
   }
 }

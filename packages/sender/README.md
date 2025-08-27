@@ -1,6 +1,8 @@
 # Barn Lights UDP Sender
 
-A simple command line tool for sending UDP packets to barn lights controllers. This project is a skeleton and currently provides a CLI for loading configuration and initializing logging.
+A simple command line tool for sending UDP packets to barn lights controllers. The CLI
+loads configuration and layout files, spawns a renderer, assembles frames, and sends
+them over UDP until a shutdown signal is received.
 
 ## Usage
 
@@ -17,6 +19,9 @@ Options:
 - `--config <path>` Path to `sender.config.json`. Defaults to `./config/sender.config.json`.
 - `--log-level <level>` One of `error`, `warn`, `info`, or `debug`. Overrides the log level from the config file.
 
+The process continues running until it receives `SIGINT` or `SIGTERM`, at which point
+the renderer and UDP sender shut down cleanly.
+
 ## Exit Codes
 
 - `0` Normal shutdown.
@@ -26,3 +31,4 @@ Options:
 ## Development
 
 All source files use ES modules and carry the `.mjs` extension. The entry point is in `src/cli.mjs`. The executable script is `bin/lights-sender.mjs` which invokes `main()` from the CLI module and starts the renderer via `RendererProcess`.
+

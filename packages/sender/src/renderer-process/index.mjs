@@ -6,6 +6,7 @@
 import { spawn } from 'child_process';
 import readline from 'readline';
 import { EventEmitter } from 'events';
+import fs from 'fs';
 
 export class RendererProcess extends EventEmitter {
   constructor(runtimeConfig, logger = console) {
@@ -24,6 +25,11 @@ export class RendererProcess extends EventEmitter {
     const options = {};
     if (cwd) {
       // Allow the caller to control the renderer's working directory.
+      if (!fs.existsSync(cwd)) {
+        const error = new Error(`Renderer working directory not found: ${cwd}`);
+        this.emit('error', error);
+        return;
+      }
       options.cwd = cwd;
     }
     // Spawn the renderer process with the provided command and args.
