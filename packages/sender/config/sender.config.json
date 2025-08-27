@@ -1,0 +1,15 @@
+{
+  "sides": {
+    "left":  { "ip": "10.10.0.2", "portBase": 49600, "layout": "./config/left.json" },
+    "right": { "ip": "10.10.0.3", "portBase": 49610, "layout": "./config/right.json" }
+  },
+  "renderer": {
+    "cmd": "node",
+    "args": ["./bin/renderer"],
+    "cwd": "./renderer" 
+  },
+  "telemetry": {
+    "interval_ms": 1000,
+    "log_level": "info"
+  }
+}

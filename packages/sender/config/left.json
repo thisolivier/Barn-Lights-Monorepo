@@ -1,0 +1,34 @@
+{
+  "side": "left",
+  "total_leds": 1200,
+  "runs": [
+    {
+      "run_index": 0,
+      "led_count": 400,
+      "sections": [
+        { "id": "row_A1", "led_count": 180, "y": 0.18, "x0": 0.0, "x1": 0.20 },
+        { "id": "row_A2", "led_count": 120, "y": 0.22, "x0": 0.20,  "x1": 1.35 },
+        { "id": "row_A3", "led_count": 100,  "y": 0.26, "x0": 0.75,  "x1": 1.80 }
+      ]
+    },
+    {
+      "run_index": 1,
+      "led_count": 400,
+      "sections": [
+        { "id": "row_B1", "led_count": 140, "y": 0.50, "x0": 0.00,  "x1": 1.00 },
+        { "id": "row_B2", "led_count": 120, "y": 0.55, "x0": 0.60,  "x1": 1.60 },
+        { "id": "row_B3", "led_count": 140, "y": 0.58, "x0": 0.10, "x1": 0.90 }
+      ]
+    },
+    {
+      "run_index": 2,
+      "led_count": 400,
+      "sections": [
+        { "id": "row_C1", "led_count": 150, "y": 0.78, "x0": 0.25,  "x1": 1.30 },
+        { "id": "row_C2", "led_count": 130, "y": 0.82, "x0": 0.00,  "x1": 1.10 },
+        { "id": "row_C3", "led_count": 120, "y": 0.88, "x0": 1.00,  "x1": 2.00 }
+      ]
+    }
+  ],
+  "sampling": { "space": "normalized", "width": 2.0, "height": 1.0 }
+}
