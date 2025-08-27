@@ -22,6 +22,25 @@ Options:
 The process continues running until it receives `SIGINT` or `SIGTERM`, at which point
 the renderer and UDP sender shut down cleanly.
 
+### Demo Renderer
+
+For development and testing a demo renderer is provided that continuously emits
+NDJSON frames. Run the sender with the demo configuration:
+
+```bash
+npm start -- --config ./config/demo.config.json
+```
+
+Telemetry appears in the terminal:
+
+```
+side ingested built sent drop_build drop_overwrite  pps      Bps last_frame                last_send
+left       25    25   25          0              0 75.0  90300.0         24 2025-08-27T16:52:19.867Z
+right      25    25   25          0              0 75.0 112800.0         24 2025-08-27T16:52:19.867Z
+```
+
+Use `Ctrl+C` to stop the sender and demo renderer.
+
 ## Exit Codes
 
 - `0` Normal shutdown.
