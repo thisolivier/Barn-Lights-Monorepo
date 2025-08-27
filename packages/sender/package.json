@@ -1,17 +1,15 @@
 {
   "name": "barn-lights-udp-sender",
-  "version": "1.0.0",
-  "description": "A simple command line tool for sending UDP packets to barn lights controllers. This project is a skeleton and currently provides a CLI for loading configuration and initializing logging.",
-  "main": "index.js",
+  "description": "A command line tool for sending UDP packets to barn lights controllers.",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "main": "src/cli.mjs",
   "scripts": {
-    "start": "node bin/lights-sender",
-    "test": "node --test --test-concurrency=1 test/*.test.js"
+    "start": "node bin/lights-sender.mjs",
+    "test": "node --test --test-concurrency=1 test/*.test.mjs"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "bin": {
-    "lights-sender": "bin/lights-sender"
+    "lights-sender": "bin/lights-sender.mjs"
   }
 }

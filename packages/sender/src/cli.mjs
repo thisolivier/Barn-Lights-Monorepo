@@ -1,5 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { loadLayout } from './config/load-layout.mjs';
+import { RendererProcess } from './renderer-process/index.mjs';
 
 function parseArgs(argv) {
   const result = {};
@@ -45,7 +47,7 @@ function createLogger(level) {
   };
 }
 
-async function main(argv = process.argv) {
+export async function main(argv = process.argv) {
   try {
     const parsed = parseArgs(argv.slice(2));
     const configPath = parsed.config || path.resolve(process.cwd(), './config/sender.config.json');
@@ -56,11 +58,32 @@ async function main(argv = process.argv) {
     }
     const logger = createLogger(logLevel);
     logger.info(`Loaded configuration from ${configPath}`);
+
+    const baseDir = path.dirname(configPath);
+    if (config.sides) {
+      for (const [side, cfg] of Object.entries(config.sides)) {
+        if (cfg.layout) {
+          let layoutPath = path.resolve(baseDir, cfg.layout);
+          if (!fs.existsSync(layoutPath)) {
+            layoutPath = path.resolve(process.cwd(), cfg.layout);
+          }
+          cfg.layout = loadLayout(layoutPath, logger);
+          logger.debug(`Loaded ${side} layout from ${layoutPath}`);
+        }
+      }
+    }
+
+    try {
+      const rp = new RendererProcess(config, logger);
+      rp.start();
+    } catch (err) {
+      logger.error(err.message);
+      return 2;
+    }
+
     return 0;
   } catch (err) {
     console.error(err.message);
     return 1;
   }
 }
-
-module.exports = { main };

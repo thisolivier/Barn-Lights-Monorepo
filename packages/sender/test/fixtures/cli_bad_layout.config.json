@@ -1,0 +1,8 @@
+{
+  "sides": {
+    "left": { "ip": "10.10.0.2", "portBase": 49600, "layout": "./layout_duplicate_run.json" },
+    "right": { "ip": "10.10.0.3", "portBase": 49610, "layout": "./layout_duplicate_run.json" }
+  },
+  "renderer": { "cmd": "node", "args": ["test/fixtures/renderer_stream.mjs"], "cwd": "." },
+  "telemetry": { "interval_ms": 1000, "log_level": "info" }
+}

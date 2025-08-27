@@ -3,11 +3,11 @@
 // The renderer is expected to write NDJSON (newline-delimited JSON)
 // frames to stdout. Each JSON object must have a `format` field of
 // "rgb8" or it will be ignored.
-const { spawn } = require('child_process');
-const readline = require('readline');
-const EventEmitter = require('events');
+import { spawn } from 'child_process';
+import readline from 'readline';
+import { EventEmitter } from 'events';
 
-class RendererProcess extends EventEmitter {
+export class RendererProcess extends EventEmitter {
   constructor(runtimeConfig, logger = console) {
     super();
     // Remember the configuration object and a simple logger so we can
@@ -78,5 +78,3 @@ class RendererProcess extends EventEmitter {
     }
   }
 }
-
-module.exports = { RendererProcess };
