@@ -48,20 +48,28 @@
     </div>
   </fieldset>
 
-  <fieldset>
-    <legend>General</legend>
-    <div class="row">
-      <label>Brightness <input id="brightness" type="range" min="0" max="1" step="0.01"><span id="brightness_v"></span></label>
-      <label>Gamma <input id="gamma" type="range" min="0.5" max="3" step="0.01"><span id="gamma_v"></span><small class="desc">brightness curve</small></label>
-      <label>Pitch
-        <div id="pitch" class="hslider"><div class="handle"></div></div>
-      </label>
-      <label>Yaw
-        <div id="yaw" class="hslider"><div class="handle"></div></div>
-      </label>
-      <label>FPS cap <input id="fpsCap" type="range" min="1" max="60" step="1"><span id="fpsCap_v"></span></label>
-    </div>
-  </fieldset>
+    <fieldset>
+      <legend>General</legend>
+      <div class="row">
+        <label>Brightness <input id="brightness" type="range" min="0" max="1" step="0.01"><span id="brightness_v"></span></label>
+        <label>Gamma <input id="gamma" type="range" min="0.5" max="3" step="0.01"><span id="gamma_v"></span><small class="desc">brightness curve</small></label>
+        <label>FPS cap <input id="fpsCap" type="range" min="1" max="60" step="1"><span id="fpsCap_v"></span></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Orientation</legend>
+      <div class="row">
+        <label>Pitch
+          <div id="pitch" class="hslider"><div class="handle"></div></div>
+          <input id="pitchDeg" type="number" min="0" max="360" step="0.1" readonly style="width:60px">
+        </label>
+        <label>Yaw
+          <div id="yaw" class="hslider"><div class="handle"></div></div>
+          <input id="yawDeg" type="number" min="0" max="360" step="0.1" readonly style="width:60px">
+        </label>
+      </div>
+    </fieldset>
 
   <fieldset>
     <legend>Strobe</legend>

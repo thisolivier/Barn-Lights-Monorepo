@@ -25,6 +25,8 @@ function applyTransform(sceneF32, t, post, W, H){
   yaw += post.yawSpeed * dt;
   const sx = ((pitch % W) + W) % W;
   const ang = yaw % (Math.PI * 2);
+  post.pitch = (sx / W) * 360;
+  post.yaw = ((ang * 180 / Math.PI) + 360) % 360;
   _transformScene(sceneF32, W, H, sx, 0, ang);
 }
 

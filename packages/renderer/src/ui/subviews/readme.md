@@ -11,7 +11,7 @@ Dynamic UI widgets for effect parameters.
 
 The `fireShader` and `gradient` effects use the `colorStops` widget to define their color palettes.
 
-Additional widgets support motion controls used by the General panel:
+Additional widgets support motion controls used by the Orientation panel:
 - `speedSlider.mjs` – horizontal slider with a 5% center dead zone for pitch and yaw speeds.
 
 Utilities for RGB conversions live in `utils.mjs`.

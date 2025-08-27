@@ -27,6 +27,8 @@ export const params = {
     strobeLow: 0.0,
     pitchSpeed: 0,
     yawSpeed: 0,
+    pitch: 0,
+    yaw: 0,
   }
 };
 
