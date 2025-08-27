@@ -36,9 +36,20 @@ export class RendererProcess extends EventEmitter {
     this.child = spawn(cmd, args, options);
 
     // Create a line reader on the child's stdout so we get complete
-    // NDJSON objects instead of partial buffers.
+    // NDJSON objects instead of partial buffers. Some renderers may
+    // print banner text or other informational lines before they start
+    // streaming frames. We ignore all output until we encounter the
+    // first line beginning with '{"ts'.
     const rl = readline.createInterface({ input: this.child.stdout });
+    let ndjsonStarted = false;
     rl.on('line', (line) => {
+      if (!ndjsonStarted) {
+        if (!line.startsWith('{"ts')) {
+          return;
+        }
+        ndjsonStarted = true;
+      }
+
       let parsed;
       try {
         // NDJSON is just JSON separated by newlines, so each line
