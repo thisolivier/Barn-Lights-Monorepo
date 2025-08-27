@@ -1,0 +1,20 @@
+{
+  "name": "barn-lights-udp-sender",
+  "version": "1.0.0",
+  "description": "A simple command line tool for sending UDP packets to barn lights controllers. This project is a skeleton and currently provides a CLI for loading configuration and initializing logging.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/cli.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "bin": {
+    "lights-sender": "bin/lights-sender"
+  }
+}
