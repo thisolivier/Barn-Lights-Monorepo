@@ -6,25 +6,31 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spawnSync } from 'child_process';
+import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-test('CLI exits with code 0', () => {
-  // Resolve the path to the CLI entry point relative to this test file.
+test('CLI exits with code 0 after SIGINT', async () => {
   const bin = path.join(__dirname, '..', 'bin', 'lights-sender.mjs');
-  const configPath = path.join(__dirname, 'fixtures', 'cli_renderer.config.json');
-  // Run the CLI synchronously so the test waits for it to finish.
-  const result = spawnSync('node', [bin, '--config', configPath], { encoding: 'utf8' });
-  // Assert that the process exited successfully. Include stdout/stderr in
-  // the message to help debug failures.
-  assert.strictEqual(
-    result.status,
-    0,
-    `expected exit code 0, got ${result.status}\nstdout: ${result.stdout}\nstderr: ${result.stderr}`,
+  const configPath = path.join(
+    __dirname,
+    'fixtures',
+    'cli_renderer.config.json',
   );
+  const child = spawn('node', [bin, '--config', configPath], {
+    stdio: 'pipe',
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  child.kill('SIGINT');
+
+  const exitCode = await new Promise((resolve) => {
+    child.on('exit', (code) => resolve(code));
+  });
+
+  assert.strictEqual(exitCode, 0);
 });
 
