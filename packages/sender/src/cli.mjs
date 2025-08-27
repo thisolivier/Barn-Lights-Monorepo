@@ -1,6 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const { loadLayout } = require('./config/layout.ts');
+import fs from 'fs';
+import path from 'path';
+import { loadLayout } from './config/load-layout.mjs';
+import { RendererProcess } from './renderer-process/index.mjs';
 
 function parseArgs(argv) {
   const result = {};
@@ -46,7 +47,7 @@ function createLogger(level) {
   };
 }
 
-async function main(argv = process.argv) {
+export async function main(argv = process.argv) {
   try {
     const parsed = parseArgs(argv.slice(2));
     const configPath = parsed.config || path.resolve(process.cwd(), './config/sender.config.json');
@@ -72,11 +73,17 @@ async function main(argv = process.argv) {
       }
     }
 
+    try {
+      const rp = new RendererProcess(config, logger);
+      rp.start();
+    } catch (err) {
+      logger.error(err.message);
+      return 2;
+    }
+
     return 0;
   } catch (err) {
     console.error(err.message);
     return 1;
   }
 }
-
-module.exports = { main };

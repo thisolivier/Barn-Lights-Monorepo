@@ -4,10 +4,14 @@
 // fixtures are executed via `process.execPath` (Node itself), which keeps
 // the test environment simple and portable.
 
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
-const { RendererProcess } = require('../src/renderer-process');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { RendererProcess } from '../src/renderer-process/index.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 test('ingests NDJSON lines and logs errors', async () => {
   const logs = [];
@@ -17,7 +21,7 @@ test('ingests NDJSON lines and logs errors', async () => {
     renderer: {
       // Use Node to run the fixture that emits a mix of good and bad lines.
       cmd: process.execPath,
-      args: [path.join(__dirname, 'fixtures', 'renderer_stream.js')],
+      args: [path.join(__dirname, 'fixtures', 'renderer_stream.mjs')],
     },
   };
   const rp = new RendererProcess(runtimeConfig, logger);
@@ -40,7 +44,7 @@ test('emits error when renderer crashes', async () => {
   const runtimeConfig = {
     renderer: {
       cmd: process.execPath,
-      args: [path.join(__dirname, 'fixtures', 'renderer_crash.js')],
+      args: [path.join(__dirname, 'fixtures', 'renderer_crash.mjs')],
     },
   };
   const rp = new RendererProcess(runtimeConfig, console);

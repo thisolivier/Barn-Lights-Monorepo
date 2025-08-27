@@ -1,7 +1,11 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
-const { loadLayout } = require('../src/config/layout.ts');
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { loadLayout } from '../src/config/load-layout.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 test('loads valid layout files', () => {
   const layoutPath = path.join(__dirname, '..', 'config', 'left.json');
