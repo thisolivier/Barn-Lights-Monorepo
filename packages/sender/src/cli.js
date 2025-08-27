@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { loadLayout } = require('./config/layout.ts');
 
 function parseArgs(argv) {
   const result = {};
@@ -56,6 +57,21 @@ async function main(argv = process.argv) {
     }
     const logger = createLogger(logLevel);
     logger.info(`Loaded configuration from ${configPath}`);
+
+    const baseDir = path.dirname(configPath);
+    if (config.sides) {
+      for (const [side, cfg] of Object.entries(config.sides)) {
+        if (cfg.layout) {
+          let layoutPath = path.resolve(baseDir, cfg.layout);
+          if (!fs.existsSync(layoutPath)) {
+            layoutPath = path.resolve(process.cwd(), cfg.layout);
+          }
+          cfg.layout = loadLayout(layoutPath, logger);
+          logger.debug(`Loaded ${side} layout from ${layoutPath}`);
+        }
+      }
+    }
+
     return 0;
   } catch (err) {
     console.error(err.message);
