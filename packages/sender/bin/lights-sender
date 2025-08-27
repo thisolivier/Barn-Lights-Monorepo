@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // Simple entry script invoking the CLI main()
-require('ts-node/register');
 const { main } = require('../src/cli');
 
 main(process.argv).then(code => {
