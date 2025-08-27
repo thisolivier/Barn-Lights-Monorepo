@@ -3,39 +3,6 @@
   "effect": "digitalRain",
   "renderMode": "duplicate",
   "effects": {
-    "gradient": {
-      "stops": [
-        {
-          "pos": 0,
-          "color": [
-            0,
-            0,
-            1
-          ]
-        },
-        {
-          "pos": 1,
-          "color": [
-            1,
-            0,
-            0
-          ]
-        }
-      ],
-      "gradPhase": 0
-    },
-    "solid": {
-      "solidColor": [
-        0,
-        1,
-        0
-      ]
-    },
-    "fire": {
-      "fireSpeed": 0.35,
-      "fireScale": 2.2,
-      "fireIntensity": 1.2
-    },
     "digitalRain": {
       "dropSpeed": 0.95,
       "dropSize": 10,
@@ -46,20 +13,6 @@
         1,
         0
       ]
-    },
-    "diagonalStripes": {
-      "colorA": [
-        1,
-        1,
-        1
-      ],
-      "colorB": [
-        0,
-        0,
-        0
-      ],
-      "width": 0.1,
-      "angle": 45
     }
   },
   "post": {

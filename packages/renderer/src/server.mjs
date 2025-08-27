@@ -59,9 +59,10 @@ const server = http.createServer(async (req, res) => {
   if (u.pathname.startsWith("/preset/load/")) {
     const name = u.pathname.slice("/preset/load/".length);
     try {
-      const loaded = await loadPreset(name);
-      Object.assign(params, loaded);
-      for (const c of wss.clients) if (c.readyState === 1) c.send(JSON.stringify({ type: "params", params }));
+      await loadPreset(name, params);
+      for (const client of wss.clients) {
+        if (client.readyState === 1) client.send(JSON.stringify({ type: "params", params }));
+      }
       return sendJson({ ok: true }, res);
     } catch {
       res.writeHead(404).end("Not found");
