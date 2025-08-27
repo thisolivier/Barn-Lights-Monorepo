@@ -47,18 +47,4 @@ function loadLayout(filePath, logger = console) {
   return layout;
 }
 
-/**
- * Load left and right layouts from a directory.
- *
- * @param {string} dir - Directory containing left.json and right.json.
- * @param {{warn: Function}} [logger=console]
- * @returns {{left: SideLayout, right: SideLayout}}
- */
-function loadLayouts(dir, logger = console) {
-  return {
-    left: loadLayout(path.join(dir, 'left.json'), logger),
-    right: loadLayout(path.join(dir, 'right.json'), logger),
-  };
-}
-
-module.exports = { loadLayout, loadLayouts };
+module.exports = { loadLayout };
