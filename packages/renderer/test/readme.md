@@ -8,6 +8,7 @@ Automated checks for BarnLights Playbox:
 - `preset.test.mjs` – saves and loads effect presets and their preview images.
 - `preset-ui.test.mjs` – ensures the preset panel reflects available files.
 - `web.test.mjs` – loads the browser preview and fails on console errors.
+- `renderFrames.test.mjs` – verifies duplicate, extended, and mirror frame-splitting modes.
 - `gradient.test.mjs` – confirms the gradient effect can reverse direction.
 
 The engine exports a `start` function and is invoked via `bin/engine.mjs`, which also launches the HTTP server. Web server and engine can be invoked independently for testing.

@@ -1,7 +1,7 @@
 import { sliceSection, clamp01 } from "../effects/modifiers.mjs";
 import { renderFrames } from "../render-scene.mjs";
 
-function drawSceneToCanvas(ctx, sceneF32, sceneW, sceneH){
+export function drawSceneToCanvas(ctx, sceneF32, sceneW, sceneH){
   const img = ctx.createImageData(sceneW, sceneH);
   const dim = 0.75; // dim factor for non-pixel regions
   for (let i = 0, j = 0; i < sceneF32.length; i += 3, j += 4){
