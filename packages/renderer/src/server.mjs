@@ -28,7 +28,7 @@ const server = http.createServer(async (req, res) => {
   if (u.pathname === "/connection.mjs") return streamFile(path.join(UI_DIR, "connection.mjs"), "text/javascript", res);
   if (u.pathname === "/controls-logic.mjs") return streamFile(path.join(UI_DIR, "controls-logic.mjs"), "text/javascript", res);
   if (u.pathname === "/presets.mjs") return streamFile(path.join(UI_DIR, "presets.mjs"), "text/javascript", res);
-  if (u.pathname === "/preview-renderer.mjs") return streamFile(path.join(UI_DIR, "preview-renderer.mjs"), "text/javascript", res);
+  if (u.pathname === "/renderer.mjs") return streamFile(path.join(UI_DIR, "renderer.mjs"), "text/javascript", res);
   if (u.pathname === "/render-scene.mjs") return streamFile(path.join(__dirname, "render-scene.mjs"), "text/javascript", res);
   if (u.pathname.startsWith("/subviews/")) {
     const p = path.join(UI_DIR, u.pathname.slice(1));
@@ -50,7 +50,10 @@ const server = http.createServer(async (req, res) => {
   if (u.pathname === "/presets") return sendJson(await listPresets(), res);
   if (u.pathname.startsWith("/preset/save/")) {
     const name = u.pathname.slice("/preset/save/".length);
-    await savePreset(name, params);
+    const chunks = [];
+    for await (const c of req) chunks.push(c);
+    const buf = chunks.length ? Buffer.concat(chunks) : null;
+    await savePreset(name, params, buf);
     return sendJson({ ok: true }, res);
   }
   if (u.pathname.startsWith("/preset/load/")) {

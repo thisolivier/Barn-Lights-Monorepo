@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { savePreset, loadPreset, listPresets } from '../src/config-store.mjs';
-import { unlink } from 'node:fs/promises';
+import { unlink, stat } from 'node:fs/promises';
 import path from 'node:path';
 import url from 'node:url';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const presetPath = path.resolve(__dirname, '../config/presets/test.json');
+const presetImg = path.resolve(__dirname, '../config/presets/test-image.png');
+const presetImgJson = path.resolve(__dirname, '../config/presets/test-image.json');
 
 const sampleParams = {
   fpsCap: 30,
@@ -33,4 +35,16 @@ test('save and load preset', async () => {
   const list = await listPresets();
   assert(list.includes('test'));
   await unlink(presetPath);
+});
+
+test('save preset with image', async () => {
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQI12P4//8/AwAI/AL+XJ/kAAAAAElFTkSuQmCC',
+    'base64'
+  );
+  await savePreset('test-image', sampleParams, png);
+  const s = await stat(presetImg);
+  assert(s.size > 0);
+  await unlink(presetImg);
+  await unlink(presetImgJson);
 });

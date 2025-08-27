@@ -1,6 +1,6 @@
 import { initConnection, send } from "./connection.mjs";
 import { initUI, applyUI } from "./controls-logic.mjs";
-import { frame } from "./preview-renderer.mjs";
+import { frame } from "./renderer.mjs";
 
 function setStatus(doc, msg){
   const el = doc.getElementById("status");

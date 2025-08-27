@@ -15,10 +15,14 @@ export async function listPresets(){
   }
 }
 
-export async function savePreset(name, params){
+export async function savePreset(name, params, imageBuf){
   await fs.mkdir(PRESET_DIR, { recursive: true });
   const p = path.join(PRESET_DIR, `${name}.json`);
   await fs.writeFile(p, JSON.stringify(params, null, 2), "utf8");
+  if (imageBuf){
+    const imgPath = path.join(PRESET_DIR, `${name}.png`);
+    await fs.writeFile(imgPath, imageBuf);
+  }
 }
 
 export async function loadPreset(name){

@@ -5,7 +5,7 @@ import url from "url";
 
 import { effects } from "./effects/index.mjs";
 import { sliceSection } from "./effects/modifiers.mjs";
-import { renderScene, SCENE_W, SCENE_H } from "./render-scene.mjs";
+import { renderFrames, SCENE_W, SCENE_H } from "./render-scene.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -17,6 +17,7 @@ export { SCENE_W, SCENE_H };
 export const params = {
   fpsCap: 60,
   effect: "gradient",        // "gradient" | "solid" | "fire"
+  renderMode: "duplicate",    // "duplicate" | "extended" | "mirror"
   effects: {},
   post: {
     brightness: 0.8,
@@ -56,7 +57,7 @@ for (const eff of Object.values(effects)) {
 
 export function updateParams(patch){
   for (const [key, value] of Object.entries(patch)) {
-    if (key === "fpsCap" || key === "effect") {
+    if (key === "fpsCap" || key === "effect" || key === "renderMode") {
       params[key] = value;
     } else if (postKeys.has(key)) {
       params.post[key] = value;
@@ -117,10 +118,7 @@ function tick(){
   if (acc >= step) {
     const t = Number(now)/1e9;
     acc = 0;
-
-    // Render scene and duplicate
-    renderScene(leftFrame, t, params);
-    rightFrame.set(leftFrame);
+    renderFrames(leftFrame, rightFrame, params, t);
 
     // Emit SLICES_NDJSON to stdout
     const out = buildSlicesFrame(frame++, cap);

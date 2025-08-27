@@ -82,6 +82,8 @@ export function applyUI(doc, P){
   if (effect && effect.value !== P.effect) effect.value = P.effect;
   applyFpsCap(doc,P);
   applyPost(doc,P);
+  const rm = doc.getElementById('renderMode');
+  if (rm && rm.value !== P.renderMode) rm.value = P.renderMode;
   renderEffectControls(doc,P);
 }
 
@@ -179,6 +181,12 @@ export function initUI(win, doc, P, send){
     };
   }
 
+  const renderMode = doc.getElementById('renderMode');
+  if (renderMode){
+    renderMode.value = P.renderMode;
+    renderMode.onchange = () => { P.renderMode = renderMode.value; send({ renderMode: renderMode.value }); };
+  }
+  
   const updateAngles = () => {
     if (pitchDeg && doc.activeElement !== pitchDeg) pitchDeg.value = Math.abs(P.post.pitch || 0).toFixed(1);
     if (yawDeg && doc.activeElement !== yawDeg) yawDeg.value = Math.abs(P.post.yaw || 0).toFixed(1);
@@ -197,7 +205,25 @@ export function initUI(win, doc, P, send){
     saveBtn.onclick = async () => {
       const name = presetInput?.value.trim() || presetList?.value;
       if (!name) return;
-      await win.fetch(`/preset/save/${encodeURIComponent(name)}`, { method: 'POST' });
+      const left = doc.getElementById('left');
+      const right = doc.getElementById('right');
+      if (left && right){
+        const size = Math.min(left.width, left.height);
+        const off = doc.createElement('canvas');
+        off.width = size * 2;
+        off.height = size;
+        const ctx = off.getContext('2d');
+        ctx.drawImage(left, 0, 0, left.width, left.height, 0, 0, size, size);
+        ctx.drawImage(right, 0, 0, right.width, right.height, size, 0, size, size);
+        const blob = await new Promise(res => off.toBlob(res, 'image/png'));
+        await win.fetch(`/preset/save/${encodeURIComponent(name)}`, {
+          method: 'POST',
+          body: blob,
+          headers: { 'Content-Type': 'image/png' }
+        });
+      } else {
+        await win.fetch(`/preset/save/${encodeURIComponent(name)}`, { method: 'POST' });
+      }
       await refreshPresetDropdown(win, doc, presetList);
       if (presetInput) presetInput.value = name;
     };
