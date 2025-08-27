@@ -4,9 +4,9 @@
     "right": { "ip": "10.10.0.3", "portBase": 49610, "layout": "./config/right.json" }
   },
   "renderer": {
-    "cmd": "node",
-    "args": ["./test/fixtures/renderer_stream.mjs"],
-    "cwd": "."
+    "cmd": "npm",
+    "args": ["start"],
+    "cwd": "../renderer"
   },
   "telemetry": {
     "interval_ms": 1000,
