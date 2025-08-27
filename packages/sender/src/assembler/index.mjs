@@ -47,7 +47,12 @@ export class Assembler extends EventEmitter {
       const runBuffers = [];
       let sideIsValid = true;
 
-      for (const runConfig of sideConfig.runs) {
+      const runs = Array.isArray(sideConfig.runs) ? sideConfig.runs : [];
+      if (!runs.length) {
+        continue;
+      }
+
+      for (const runConfig of runs) {
         const runBuffer = new Uint8Array(runConfig.led_count * 3);
         let bufferOffset = 0;
 

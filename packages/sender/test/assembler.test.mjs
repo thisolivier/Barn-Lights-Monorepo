@@ -96,3 +96,22 @@ test('drops side when sections are missing or mismatched', () => {
   assert(loggerMessages.some((m) => m.includes('Missing section')));
   assert(loggerMessages.some((m) => m.includes('length mismatch')));
 });
+
+test('skips sides with non-array run configurations', () => {
+  const frameEmitter = new EventEmitter();
+  const malformedSideConfig = {
+    side: 'left',
+    total_leds: 3,
+    runs: { not: 'an array' },
+  };
+  const runtimeConfig = { sides: { left: malformedSideConfig } };
+  const assembler = new Assembler(runtimeConfig, console);
+  assembler.bindFrameEmitter(frameEmitter);
+
+  const assembledFrames = [];
+  assembler.on('FrameAssembled', (assembled) => assembledFrames.push(assembled));
+
+  const frame = { frame: 1, sides: { left: {} } };
+  assert.doesNotThrow(() => frameEmitter.emit('FrameIngest', frame));
+  assert.strictEqual(assembledFrames.length, 0);
+});
