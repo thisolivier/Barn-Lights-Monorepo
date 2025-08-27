@@ -44,7 +44,7 @@ export async function run(docArg = globalThis.document){
     // Build the UI and start rendering frames if canvases are available.
     initUI(win, doc, params, send);
     if (ctxL && ctxR){
-      frame(win, doc, ctxL, ctxR, leftFrame, rightFrame, params, layoutLeft, layoutRight, sceneW, sceneH);
+        frame(win, ctxL, ctxR, leftFrame, rightFrame, params, layoutLeft, layoutRight, sceneW, sceneH);
     } else setStatus(doc, "Preview unavailable");
   };
   const onParams = (m) => {

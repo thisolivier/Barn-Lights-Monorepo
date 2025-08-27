@@ -1,20 +1,8 @@
 import { sliceSection, clamp01 } from "../effects/modifiers.mjs";
 import { renderFrames } from "../render-scene.mjs";
 
-let offscreen = null, offCtx = null;
-
-function drawSceneToCanvas(ctx, sceneF32, sceneW, sceneH, win, doc){
-  if (!offscreen || offscreen.width !== sceneW || offscreen.height !== sceneH){
-    if (win.OffscreenCanvas){
-      offscreen = new win.OffscreenCanvas(sceneW, sceneH);
-    } else {
-      offscreen = doc.createElement("canvas");
-      offscreen.width = sceneW;
-      offscreen.height = sceneH;
-    }
-    offCtx = offscreen.getContext("2d");
-  }
-  const img = offCtx.createImageData(sceneW, sceneH);
+function drawSceneToCanvas(ctx, sceneF32, sceneW, sceneH){
+  const img = ctx.createImageData(sceneW, sceneH);
   const dim = 0.75; // dim factor for non-pixel regions
   for (let i = 0, j = 0; i < sceneF32.length; i += 3, j += 4){
     img.data[j]   = Math.round(clamp01(sceneF32[i]) * 255 * dim);
@@ -22,10 +10,8 @@ function drawSceneToCanvas(ctx, sceneF32, sceneW, sceneH, win, doc){
     img.data[j+2] = Math.round(clamp01(sceneF32[i+2]) * 255 * dim);
     img.data[j+3] = 255;
   }
-  offCtx.putImageData(img, 0, 0);
   ctx.imageSmoothingEnabled = false;
-  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
-  ctx.drawImage(offscreen, 0, 0, ctx.canvas.width, ctx.canvas.height);
+  ctx.putImageData(img, 0, 0);
 }
 
 function drawSectionsToCanvas(ctx, sceneF32, layout, sceneW, sceneH){
@@ -59,7 +45,6 @@ function drawSectionsToCanvas(ctx, sceneF32, layout, sceneW, sceneH){
 // frame: render once, draw to both previews, then schedule the next loop
 export function frame(
   win,
-  doc,
   ctxL, ctxR,
   leftFrame, rightFrame,
   P,
@@ -68,9 +53,9 @@ export function frame(
 ) {
   const t = win.performance.now() / 1000;
   renderFrames(leftFrame, rightFrame, P, t);
-  drawSceneToCanvas(ctxL, leftFrame, sceneW, sceneH, win, doc);
+  drawSceneToCanvas(ctxL, leftFrame, sceneW, sceneH);
   if (layoutLeft) drawSectionsToCanvas(ctxL, leftFrame, layoutLeft, sceneW, sceneH);
-  drawSceneToCanvas(ctxR, rightFrame, sceneW, sceneH, win, doc);
+  drawSceneToCanvas(ctxR, rightFrame, sceneW, sceneH);
   if (layoutRight) drawSectionsToCanvas(ctxR, rightFrame, layoutRight, sceneW, sceneH);
-  win.requestAnimationFrame(() => frame(win, doc, ctxL, ctxR, leftFrame, rightFrame, P, layoutLeft, layoutRight, sceneW, sceneH));
+  win.requestAnimationFrame(() => frame(win, ctxL, ctxR, leftFrame, rightFrame, P, layoutLeft, layoutRight, sceneW, sceneH));
 }
