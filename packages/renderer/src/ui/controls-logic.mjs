@@ -189,17 +189,5 @@ export function initUI(win, doc, P, send){
     };
   }
 
-  win.addEventListener('keydown', (e) => {
-    if (e.key >= '1' && e.key <= '9'){
-      const idx = e.key.charCodeAt(0) - '1'.charCodeAt(0);
-      const ids = Object.keys(effects);
-      if (idx < ids.length && effect){
-        effect.value = ids[idx];
-        effect.onchange();
-      }
-    }
-    if (e.key.toLowerCase() === 'b') send({ brightness: 0 });
-  });
-
   applyUI(doc, P);
 }

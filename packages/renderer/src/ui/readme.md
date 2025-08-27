@@ -10,3 +10,4 @@ Browser interface providing live preview and controls.
 - Preset controls allow saving and loading configuration snapshots.
 - `subviews/` – reusable widgets and `renderControls` helper.
 - `preview-renderer.mjs` – scene generation and drawing, duplicating a single scene to both canvases.
+- Keyboard shortcuts were removed; all interactions occur through on-screen controls.
