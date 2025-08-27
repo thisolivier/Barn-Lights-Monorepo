@@ -5,6 +5,8 @@ export function colorStopsWidget(key, schema, values, send){
   label.textContent = schema.label || key;
   const container = document.createElement('div');
   container.style.width = '250px';
+  container.style.paddingTop = '20px';
+  container.style.paddingBottom = '5px';
   label.appendChild(container);
 
   const stops = values[key] || [];
