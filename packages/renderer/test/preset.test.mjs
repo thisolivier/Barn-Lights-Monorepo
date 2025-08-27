@@ -84,3 +84,26 @@ test('save preset with image', async () => {
   await unlink(presetImg);
   await unlink(presetImgJson);
 });
+
+test('saving preset overwrites existing data and images', async () => {
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQI12P4//8/AwAI/AL+XJ/kAAAAAElFTkSuQmCC',
+    'base64'
+  );
+  const overwritePath = path.resolve(__dirname, '../config/presets/overwrite.json');
+  const overwriteImg = path.resolve(__dirname, '../config/presets/overwrite.png');
+
+  await savePreset('overwrite', sampleParams, png);
+
+  const updatedParams = { ...sampleParams, fpsCap: 45 };
+  await savePreset('overwrite', updatedParams);
+
+  const loaded = await loadPreset('overwrite');
+  assert.equal(loaded.fpsCap, 45);
+  await assert.rejects(stat(overwriteImg));
+
+  await unlink(overwritePath);
+  try {
+    await unlink(overwriteImg);
+  } catch {}
+});

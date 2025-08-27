@@ -18,6 +18,7 @@ export async function listPresets(){
 export async function savePreset(name, params, imageBuf){
   await fs.mkdir(PRESET_DIR, { recursive: true });
   const presetPath = path.join(PRESET_DIR, `${name}.json`);
+  const imagePath = path.join(PRESET_DIR, `${name}.png`);
 
   const effectId = params.effect;
   const effectParams = params.effects?.[effectId] || {};
@@ -31,8 +32,13 @@ export async function savePreset(name, params, imageBuf){
 
   await fs.writeFile(presetPath, JSON.stringify(presetData, null, 2), "utf8");
   if (imageBuf){
-    const imagePath = path.join(PRESET_DIR, `${name}.png`);
     await fs.writeFile(imagePath, imageBuf);
+  } else {
+    try {
+      await fs.unlink(imagePath);
+    } catch {
+      // ignore if image did not previously exist
+    }
   }
 }
 
