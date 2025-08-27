@@ -72,7 +72,9 @@ export async function main(argv = process.argv) {
           if (!fs.existsSync(layoutPath)) {
             layoutPath = path.resolve(process.cwd(), cfg.layout);
           }
-          cfg.layout = loadLayout(layoutPath, logger);
+          const layout = loadLayout(layoutPath, logger);
+          Object.assign(cfg, layout);     // merge runs/total_leds/side into cfg
+          cfg.layout = layout; // keep layout for reference only
           logger.debug(`Loaded ${side} layout from ${layoutPath}`);
         }
       }
