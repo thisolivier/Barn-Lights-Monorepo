@@ -2,6 +2,14 @@
 
 The `gen_config.py` script reads a layout JSON file and writes `firmware/include/config_autogen.h` with constants used by the firmware.
 
+## Installation
+
+Install dependencies:
+
+```
+python -m pip install -r tools/requirements.txt
+```
+
 ## Usage
 
 Generate configuration from a layout file:
