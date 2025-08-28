@@ -8,6 +8,7 @@ import { RendererProcess } from '../src/renderer-process/index.mjs';
 import { Assembler } from '../src/assembler/index.mjs';
 import { Mailbox } from '../src/mailbox/index.mjs';
 import { UdpSender } from '../src/udp-sender/index.mjs';
+import { decodeSampleFrame } from './fixtures/decode-sample-frame.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -73,5 +74,14 @@ test('udp sender transmits packets for assembled frames', async () => {
 
   assert(receivedPackets.length > 0, 'expected at least one UDP packet');
   const expectedLength = 4 + leftLayout.runs[0].led_count * 3;
-  assert.strictEqual(receivedPackets[0].length, expectedLength);
+  const firstPacket = receivedPackets[0];
+  assert.strictEqual(firstPacket.length, expectedLength);
+  const expected = decodeSampleFrame(layoutPath);
+  const frameId = firstPacket.readUInt32BE(0);
+  assert.strictEqual(frameId, expected.frameId, 'frame id header mismatch');
+  const rgbPayload = firstPacket.subarray(4);
+  assert.ok(
+    expected.buffer.equals(rgbPayload),
+    'RGB payload does not match renderer output',
+  );
 });
