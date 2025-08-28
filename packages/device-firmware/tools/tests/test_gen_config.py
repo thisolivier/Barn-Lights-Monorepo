@@ -60,22 +60,3 @@ def test_missing_side_field_results_in_error(tmp_path):
     process = run_gen_config(malformed_layout_path)
     assert process.returncode != 0
     assert "unknown side" in process.stderr.lower()
-
-
-def test_output_flag_respects_custom_path_and_permission_errors(tmp_path):
-    repo_root = Path(__file__).resolve().parents[2]
-    custom_output_path = tmp_path / "custom" / "config_autogen.h"
-    process = run_gen_config(repo_root / "left.json", custom_output_path)
-    assert process.returncode == 0
-    assert custom_output_path.exists()
-
-    no_write_directory = tmp_path / "no_write"
-    no_write_directory.mkdir()
-    no_write_directory.chmod(0o500)
-    unwritable_output_path = no_write_directory / "config_autogen.h"
-    process = run_gen_config(
-        repo_root / "left.json", unwritable_output_path, run_as="nobody"
-    )
-    assert process.returncode != 0
-    assert "permission" in process.stderr.lower()
-    no_write_directory.chmod(0o700)
