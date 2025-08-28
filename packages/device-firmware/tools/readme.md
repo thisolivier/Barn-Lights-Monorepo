@@ -23,3 +23,7 @@ Specify a custom output path if needed:
 ```
 python tools/gen_config.py --layout right.json --output /tmp/config.h
 ```
+
+The script will exit with an error when the layout file is malformed or missing
+required fields. It will also report permission errors if the output path is
+not writable.
