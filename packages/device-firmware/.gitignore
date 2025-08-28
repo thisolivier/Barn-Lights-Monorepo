@@ -1,0 +1,9 @@
+# ESP-IDF build artifacts
+build/
+sdkconfig
+sdkconfig.old
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
