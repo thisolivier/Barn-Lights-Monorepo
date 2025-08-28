@@ -1,0 +1,2 @@
+# Default configuration for the Barn Lights firmware
+CONFIG_IDF_TARGET="esp32"
