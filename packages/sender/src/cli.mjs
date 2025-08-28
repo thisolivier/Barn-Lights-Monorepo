@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { loadLayout } from './config/load-layout.mjs';
+import { loadConfig, validateLogLevel } from './config/load-config.mjs';
 import { RendererProcess } from './renderer-process/index.mjs';
 import { Mailbox } from './mailbox/index.mjs';
 import { Assembler } from './assembler/index.mjs';
@@ -20,22 +21,6 @@ function parseArgs(argv) {
   return result;
 }
 
-function validateLogLevel(level) {
-  return level === 'error' || level === 'warn' || level === 'info' || level === 'debug';
-}
-
-function loadConfig(configPath) {
-  const raw = fs.readFileSync(configPath, 'utf8');
-  const parsed = JSON.parse(raw);
-  if (!parsed.telemetry) {
-    throw new Error('Missing telemetry configuration');
-  }
-  const lvl = parsed.telemetry.log_level;
-  if (lvl && !validateLogLevel(lvl)) {
-    throw new Error(`Invalid telemetry.log_level: ${lvl}`);
-  }
-  return parsed;
-}
 
 function createLogger(level) {
   const order = { error: 0, warn: 1, info: 2, debug: 3 };
