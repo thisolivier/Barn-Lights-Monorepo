@@ -137,7 +137,6 @@ void rx_task_start(void) {
 #endif
 }
 
-#ifdef UNIT_TEST
 uint32_t rx_task_get_frame_id(int slot_index) {
     if (slot_index < 0 || slot_index > 1) {
         return 0;
@@ -158,5 +157,4 @@ bool rx_task_run_received(int slot_index, unsigned int run_index) {
     }
     return frame_slots[slot_index].run_received[run_index];
 }
-#endif
 

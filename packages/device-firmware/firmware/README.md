@@ -7,7 +7,7 @@ This directory contains the ESP-IDF based firmware for the Barn Lights system.
 - **main/**: entry point containing `app_main.c`. It creates FreeRTOS tasks:
   - `network_task` handles networking.
   - `rx_task` processes inbound messages.
-  - `driver_task` drives the light output.
+  - `driver_task` drives the light output with one RMT channel per run, triggering channels simultaneously and enforcing a one second blackout at boot.
   - `status_task` reports status.
 - **components/**: custom components for the firmware (currently empty).
 
