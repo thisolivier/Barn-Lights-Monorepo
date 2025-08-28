@@ -1,0 +1,69 @@
+#include "unity.h"
+#include "rx_task.h"
+#include "config_autogen.h"
+#include <stdlib.h>
+#include <string.h>
+
+void setUp(void) {
+    rx_task_start();
+}
+
+void tearDown(void) {
+}
+
+void test_invalid_length_ignored(void) {
+    size_t len = 4 + LED_COUNT[0] * 3 - 3;
+    uint8_t *packet = (uint8_t *)malloc(len);
+    memset(packet, 0, len);
+    packet[3] = 1;
+    rx_task_process_packet(0, packet, len);
+    TEST_ASSERT_FALSE(rx_task_run_received(0, 0));
+    free(packet);
+}
+
+void test_rgb_to_grb(void) {
+    size_t len = 4 + LED_COUNT[0] * 3;
+    uint8_t *packet = (uint8_t *)malloc(len);
+    memset(packet, 0, len);
+    packet[3] = 1;
+    packet[4] = 1; // R
+    packet[5] = 2; // G
+    packet[6] = 3; // B
+    rx_task_process_packet(0, packet, len);
+    const uint8_t *out = rx_task_get_run_buffer(0, 0);
+    TEST_ASSERT_EQUAL_UINT8(2, out[0]);
+    TEST_ASSERT_EQUAL_UINT8(1, out[1]);
+    TEST_ASSERT_EQUAL_UINT8(3, out[2]);
+    free(packet);
+}
+
+void test_frame_slots_only_keep_current_and_next(void) {
+    size_t len = 4 + LED_COUNT[0] * 3;
+    uint8_t *packet = (uint8_t *)malloc(len);
+    memset(packet + 4, 0, len - 4);
+    // complete frame 1
+    packet[3] = 1;
+    for (unsigned int run = 0; run < RUN_COUNT; ++run) {
+        rx_task_process_packet(run, packet, len);
+    }
+    TEST_ASSERT_EQUAL_UINT32(1, rx_task_get_frame_id(0));
+
+    // send frame 2 for run 0
+    packet[3] = 2;
+    rx_task_process_packet(0, packet, len);
+    TEST_ASSERT_EQUAL_UINT32(2, rx_task_get_frame_id(1));
+
+    // send frame 3 which should be ignored
+    packet[3] = 3;
+    rx_task_process_packet(0, packet, len);
+    TEST_ASSERT_EQUAL_UINT32(2, rx_task_get_frame_id(1));
+    free(packet);
+}
+
+int main(void) {
+    UNITY_BEGIN();
+    RUN_TEST(test_invalid_length_ignored);
+    RUN_TEST(test_rgb_to_grb);
+    RUN_TEST(test_frame_slots_only_keep_current_and_next);
+    return UNITY_END();
+}

@@ -1,13 +1,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "net_task.h"
-
-static void rx_task(void *task_parameters)
-{
-    for (;;) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-}
+#include "rx_task.h"
 
 static void driver_task(void *task_parameters)
 {
@@ -26,7 +20,7 @@ static void status_task(void *task_parameters)
 void app_main(void)
 {
     net_task_start();
-    xTaskCreate(rx_task, "rx_task", 2048, NULL, 5, NULL);
+    rx_task_start();
     xTaskCreate(driver_task, "driver_task", 2048, NULL, 5, NULL);
     xTaskCreate(status_task, "status_task", 2048, NULL, 5, NULL);
 }
