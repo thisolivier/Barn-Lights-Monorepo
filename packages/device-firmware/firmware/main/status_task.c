@@ -1,6 +1,7 @@
 #include "status_task.h"
 #include "config_autogen.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -42,7 +43,7 @@ size_t status_task_format_json(char *buffer, size_t buffer_len, uint32_t uptime_
     snprintf(ip_str, sizeof(ip_str), "%u.%u.%u.%u", STATIC_IP_ADDR0, STATIC_IP_ADDR1, STATIC_IP_ADDR2, STATIC_IP_ADDR3);
     size_t offset = 0;
     offset += snprintf(buffer + offset, buffer_len - offset,
-                       "{\"id\":\"%s\",\"ip\":\"%s\",\"uptime_ms\":%u,\"link\":%s,\"runs\":%u,\"leds\":[",
+                       "{\"id\":\"%s\",\"ip\":\"%s\",\"uptime_ms\":%" PRIu32 ",\"link\":%s,\"runs\":%u,\"leds\":[",
                        SIDE_ID_STR, ip_str, uptime_ms, link ? "true" : "false", RUN_COUNT);
     for (unsigned int i = 0; i < RUN_COUNT; ++i) {
         offset += snprintf(buffer + offset, buffer_len - offset, "%u", LED_COUNT[i]);
@@ -51,7 +52,7 @@ size_t status_task_format_json(char *buffer, size_t buffer_len, uint32_t uptime_
         }
     }
     offset += snprintf(buffer + offset, buffer_len - offset,
-                       "],\"rx_frames\":%u,\"complete\":%u,\"applied\":%u,\"dropped_frames\":%u,\"errors\":[]}",
+                       "],\"rx_frames\":%" PRIu32 ",\"complete\":%" PRIu32 ",\"applied\":%" PRIu32 ",\"dropped_frames\":%" PRIu32 ",\"errors\":[]}",
                        rx_frames_count, complete_count, applied_count, dropped_count);
     return offset;
 }
