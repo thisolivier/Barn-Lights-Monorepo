@@ -24,3 +24,12 @@ target_include_directories(test_rx_task PRIVATE ../include ../main)
 target_compile_definitions(test_rx_task PRIVATE UNIT_TEST)
 target_link_libraries(test_rx_task unity)
 
+add_executable(test_status_task
+    test_status_task.c
+    ../main/status_task.c
+)
+
+target_include_directories(test_status_task PRIVATE ../include ../main)
+target_compile_definitions(test_status_task PRIVATE UNIT_TEST)
+target_link_libraries(test_status_task unity)
+
