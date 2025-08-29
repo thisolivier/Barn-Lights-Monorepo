@@ -21,19 +21,19 @@ void test_invalid_length_ignored(void) {
     free(packet);
 }
 
-void test_rgb_to_grb(void) {
-    size_t len = 4 + LED_COUNT[0] * 3;
-    uint8_t *packet = (uint8_t *)malloc(len);
-    memset(packet, 0, len);
+void test_copy_payload_without_reordering(void) {
+    size_t length = 4 + LED_COUNT[0] * 3;
+    uint8_t *packet = (uint8_t *)malloc(length);
+    memset(packet, 0, length);
     packet[3] = 1;
     packet[4] = 1; // R
     packet[5] = 2; // G
     packet[6] = 3; // B
-    rx_task_process_packet(0, packet, len);
-    const uint8_t *out = rx_task_get_run_buffer(0, 0);
-    TEST_ASSERT_EQUAL_UINT8(2, out[0]);
-    TEST_ASSERT_EQUAL_UINT8(1, out[1]);
-    TEST_ASSERT_EQUAL_UINT8(3, out[2]);
+    rx_task_process_packet(0, packet, length);
+    const uint8_t *buffer = rx_task_get_run_buffer(0, 0);
+    TEST_ASSERT_EQUAL_UINT8(1, buffer[0]);
+    TEST_ASSERT_EQUAL_UINT8(2, buffer[1]);
+    TEST_ASSERT_EQUAL_UINT8(3, buffer[2]);
     free(packet);
 }
 
@@ -63,7 +63,7 @@ void test_frame_slots_only_keep_current_and_next(void) {
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_invalid_length_ignored);
-    RUN_TEST(test_rgb_to_grb);
+    RUN_TEST(test_copy_payload_without_reordering);
     RUN_TEST(test_frame_slots_only_keep_current_and_next);
     return UNITY_END();
 }
