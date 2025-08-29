@@ -82,8 +82,8 @@ static void network_task(void *param)
     phy_config.reset_gpio_num = -1;
 
     eth_esp32_emac_config_t emac_config = ETH_ESP32_EMAC_DEFAULT_CONFIG();
-    emac_config.smi_gpio.mdc = RMII_MDC_GPIO;
-    emac_config.smi_gpio.mdio = RMII_MDIO_GPIO;
+    emac_config.smi_mdc_gpio_num = RMII_MDC_GPIO;
+    emac_config.smi_mdio_gpio_num = RMII_MDIO_GPIO;
     emac_config.clock_config.rmii.clock_mode = EMAC_CLK_OUT;
     emac_config.clock_config.rmii.clock_gpio = RMII_REF_CLK_GPIO;
 
