@@ -58,31 +58,23 @@ GPIO0, 1, 2 are avoided (RMII clock/strap, UART0, boot strap). Alternate pins ar
 
 ### Heartbeat & events (controller → sender)
 - **Mode:** active unicast to `SENDER_IP:STATUS_PORT`.  
-- **Cadence:** 1 Hz heartbeat + immediate event pings on significant errors.  
+- **Cadence:** 1 Hz heartbeat
 
 **Heartbeat JSON example (≤256B):**
 ```json
 {
   "id": "LEFT",
   "ip": "10.10.0.2",
-  "fw": "0.1.1",
   "uptime_ms": 123456,
   "link": true,
   "runs": 3,
   "leds": [400,400,400],
-  "rx_frames": 2345,
-  "complete": 2301,
-  "applied": 2299,
-  "last_id": 2299,
-  "last_mask": 7,
-  "drops": { "len": 2, "stale": 5 }
+  "rx_frames": 59, // since the last heartbeat
+  "complete": 55, // since the last heartbeat
+  "applied": 54, // since the last heartbeat
+  "dropped_frames": 2, // since the last heartbeat
+  "errors": ["TIMESTAMP: error output"] // since last heartbeat. Each message truncated to 600 chars.
 }
-```
-**Event examples:**
-```
-{"event":"first_frame_applied","id":1189}
-{"event":"drop_len","frame":1193,"run":1}
-{"event":"stale_frame","frame":1194}
 ```
 
 ## 3. Build-Time Config
@@ -119,8 +111,7 @@ GPIO0, 1, 2 are avoided (RMII clock/strap, UART0, boot strap). Alternate pins ar
   - Convert RGB→GRB on prep.
 
 - **status_task**  
-  - Every 1000 ms: send heartbeat JSON.  
-  - On notable events: send short event JSON (rate-limited).
+  - Every 1000 ms: send heartbeat JSON.
 
 - **led_status helper**  
   - Blink onboard LED slow until first frame.  
@@ -167,7 +158,7 @@ GPIO0, 1, 2 are avoided (RMII clock/strap, UART0, boot strap). Alternate pins ar
 - Send a valid run packet: strip updates only when all runs for that frame arrive.  
 - Full sender @30–60 FPS: confirm smooth updates.  
 - Drop runs randomly: controller holds last complete frame.  
-- Heartbeat visible at 1 Hz, event pings on induced errors.  
+- Heartbeat visible at 1 Hz 
 - Observe counters (`rx_frames`, `complete`, `applied`) match expected.
 
 
