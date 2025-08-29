@@ -2,6 +2,7 @@
 
 #include "config_autogen.h"
 #include "rx_task.h"
+#include "status_task.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -139,6 +140,7 @@ static void driver_task(void *arg)
         bool blackout_elapsed = (now - start_tick) >= pdMS_TO_TICKS(1000);
         if (selected_slot >= 0 && blackout_elapsed) {
             send_frame(selected_slot);
+            status_task_increment_applied();
             last_frame_id = selected_id;
             first_frame_sent = true;
         }
