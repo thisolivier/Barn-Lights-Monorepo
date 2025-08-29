@@ -24,7 +24,12 @@ For ESP-IDF unit tests and more details on the testing strategy, see
 
 Build firmware (requires ESP-IDF):
 
+Ensure the [ESP-IDF](https://docs.espressif.com/projects/esp-idf/) environment is installed
+and exported so that the `idf.py` helper is on your `PATH` (e.g. `. $IDF_PATH/export.sh`).
+Then run:
+
 ```
 cd firmware
+idf.py set-target esp32
 idf.py build
 ```
