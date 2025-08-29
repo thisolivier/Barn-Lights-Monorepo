@@ -5,8 +5,10 @@
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "driver/rmt.h"
+#include "driver/rmt_tx.h"
+#include "driver/rmt_encoder.h"
 #include "esp_log.h"
+#include "soc/soc_caps.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -28,7 +30,7 @@ _Static_assert(RMT_T1H_TICKS + RMT_T1L_TICKS == RMT_TICKS_PER_BIT, "T1 timing");
 
 static const gpio_num_t RUN_GPIO[RUN_COUNT] = {RUN0_GPIO, RUN1_GPIO, RUN2_GPIO};
 
-_Static_assert(RUN_COUNT <= RMT_CHANNEL_MAX, "Too many runs for available RMT channels");
+_Static_assert(RUN_COUNT <= SOC_RMT_CHANNELS_PER_GROUP, "Too many runs for available RMT channels");
 _Static_assert(RUN0_GPIO >= 0 && RUN0_GPIO <= 39, "RUN0_GPIO out of range");
 #if RUN_COUNT > 1
 _Static_assert(RUN1_GPIO >= 0 && RUN1_GPIO <= 39, "RUN1_GPIO out of range");
@@ -37,12 +39,18 @@ _Static_assert(RUN1_GPIO >= 0 && RUN1_GPIO <= 39, "RUN1_GPIO out of range");
 _Static_assert(RUN2_GPIO >= 0 && RUN2_GPIO <= 39, "RUN2_GPIO out of range");
 #endif
 
-static rmt_item32_t *rmt_items[RUN_COUNT];
+static rmt_symbol_word_t *rmt_items[RUN_COUNT];
 static size_t rmt_item_count[RUN_COUNT];
+static rmt_channel_handle_t rmt_channels[RUN_COUNT];
+static rmt_encoder_handle_t copy_encoder;
+static rmt_sync_manager_handle_t sync_manager;
+static const rmt_transmit_config_t TRANSMIT_CONFIG = {
+    .loop_count = 0,
+};
 
 static inline void encode_run(unsigned int run_index, const uint8_t *rgb_data)
 {
-    rmt_item32_t *items = rmt_items[run_index];
+    rmt_symbol_word_t *items = rmt_items[run_index];
     size_t item_index = 0;
     for (unsigned int led_index = 0; led_index < LED_COUNT[run_index]; ++led_index) {
         uint8_t red = rgb_data[led_index * 3];
@@ -73,41 +81,57 @@ static void send_frame(int slot_index)
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
         const uint8_t *buffer = rx_task_get_run_buffer(slot_index, run);
         encode_run(run, buffer);
-        rmt_fill_tx_items(run, rmt_items[run], rmt_item_count[run], 0);
+        ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run], copy_encoder,
+                                     rmt_items[run],
+                                     sizeof(rmt_symbol_word_t) * rmt_item_count[run],
+                                     &TRANSMIT_CONFIG));
     }
+    ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-        rmt_tx_start(run, true);
-    }
-    for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-        rmt_wait_tx_done(run, pdMS_TO_TICKS(1));
+        ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
     }
 }
 
 static void send_black(void)
 {
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-        memset(rmt_items[run], 0, sizeof(rmt_item32_t) * rmt_item_count[run]);
-        rmt_fill_tx_items(run, rmt_items[run], rmt_item_count[run], 0);
+        memset(rmt_items[run], 0, sizeof(rmt_symbol_word_t) * rmt_item_count[run]);
+        ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run], copy_encoder,
+                                     rmt_items[run],
+                                     sizeof(rmt_symbol_word_t) * rmt_item_count[run],
+                                     &TRANSMIT_CONFIG));
     }
+    ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-        rmt_tx_start(run, true);
-    }
-    for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-        rmt_wait_tx_done(run, pdMS_TO_TICKS(1));
+        ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
     }
 }
 
 static void driver_task(void *arg)
 {
+    rmt_copy_encoder_config_t copy_config = {};
+    ESP_ERROR_CHECK(rmt_new_copy_encoder(&copy_config, &copy_encoder));
+
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-        rmt_config_t config = RMT_DEFAULT_CONFIG_TX(RUN_GPIO[run], run);
-        config.clk_div = RMT_CLK_DIV;
-        rmt_config(&config);
-        rmt_driver_install(run, 0, 0);
+        rmt_tx_channel_config_t channel_config = {
+            .gpio_num = RUN_GPIO[run],
+            .clk_src = RMT_CLK_SRC_DEFAULT,
+            .resolution_hz = 80000000 / RMT_CLK_DIV,
+            .mem_block_symbols = 64,
+            .trans_queue_depth = 1,
+        };
+        ESP_ERROR_CHECK(rmt_new_tx_channel(&channel_config, &rmt_channels[run]));
+        ESP_ERROR_CHECK(rmt_enable(rmt_channels[run]));
         rmt_item_count[run] = LED_COUNT[run] * 24;
-        rmt_items[run] = (rmt_item32_t *)malloc(sizeof(rmt_item32_t) * rmt_item_count[run]);
-        memset(rmt_items[run], 0, sizeof(rmt_item32_t) * rmt_item_count[run]);
+        rmt_items[run] = (rmt_symbol_word_t *)malloc(sizeof(rmt_symbol_word_t) * rmt_item_count[run]);
+        memset(rmt_items[run], 0, sizeof(rmt_symbol_word_t) * rmt_item_count[run]);
     }
+
+    rmt_sync_manager_config_t sync_config = {
+        .tx_channel_array = rmt_channels,
+        .array_size = RUN_COUNT,
+    };
+    ESP_ERROR_CHECK(rmt_new_sync_manager(&sync_config, &sync_manager));
 
     send_black();
 
