@@ -19,4 +19,5 @@ message-parsing behaviour without requiring an ESP32.
 ESP-IDF's built-in test runner executes tests on the target or in the ESP-IDF
 emulation environment. Running `idf.py test` within the `firmware` directory
 builds and runs these tests to assert correct integration with the ESP-IDF
-framework.
+framework. These tests are not executed in continuous integration and should
+be run locally when developing firmware changes.

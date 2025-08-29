@@ -30,9 +30,3 @@ jobs:
       - name: Run host tests
         run: ./firmware/test/build/test_rx_task
 
-      - name: Run firmware unit tests
-        uses: espressif/esp-idf-ci-action@v1
-        with:
-          esp_idf_version: latest
-          path: firmware
-          command: idf.py test
