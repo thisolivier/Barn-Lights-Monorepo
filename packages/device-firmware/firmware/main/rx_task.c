@@ -1,6 +1,7 @@
 #include "rx_task.h"
 
 #include "config_autogen.h"
+#include "status_task.h"
 
 #include <stdbool.h>
 #include <stdlib.h>
@@ -68,10 +69,12 @@ static void clear_slot(FrameSlot *slot) {
 
 void rx_task_process_packet(unsigned int run_index, const uint8_t *data, size_t length) {
     if (run_index >= RUN_COUNT) {
+        status_task_increment_drops();
         return;
     }
     size_t expected_length = LED_COUNT[run_index] * 3 + 4;
     if (length != expected_length) {
+        status_task_increment_drops();
         return;
     }
     uint32_t frame_id = ((uint32_t)data[0] << 24) |
@@ -95,24 +98,24 @@ void rx_task_process_packet(unsigned int run_index, const uint8_t *data, size_t 
             next_slot->frame_id = frame_id;
             target_slot = next_slot;
         } else {
+            status_task_increment_drops();
             rx_task_unlock();
             return;
         }
     } else {
+        status_task_increment_drops();
         rx_task_unlock();
         return;
     }
 
-    const uint8_t *src = data + 4;
-    uint8_t *dest = frame_buffers[target_slot == current_slot ? current_slot_index : 1 - current_slot_index][run_index];
-    for (unsigned int i = 0; i < LED_COUNT[run_index]; ++i) {
-        uint8_t red = src[i * 3];
-        uint8_t green = src[i * 3 + 1];
-        uint8_t blue = src[i * 3 + 2];
-        dest[i * 3] = green;
-        dest[i * 3 + 1] = red;
-        dest[i * 3 + 2] = blue;
-    }
+    status_task_increment_rx_frames();
+
+    size_t payload_length = LED_COUNT[run_index] * 3;
+    uint8_t *destination_buffer =
+        frame_buffers[target_slot == current_slot ? current_slot_index : 1 - current_slot_index][run_index];
+    // Copy payload as-is; driver_task handles any RGB to GRB reordering.
+    memcpy(destination_buffer, data + 4, payload_length);
+
     target_slot->run_received[run_index] = true;
 
     bool complete = true;
@@ -121,6 +124,9 @@ void rx_task_process_packet(unsigned int run_index, const uint8_t *data, size_t 
             complete = false;
             break;
         }
+    }
+    if (complete) {
+        status_task_increment_complete();
     }
     if (target_slot == next_slot && complete) {
         current_slot_index = 1 - current_slot_index;
