@@ -13,14 +13,11 @@ This directory contains the ESP-IDF based firmware for the Barn Lights system.
 
 ## Building
 
-Ensure ESP-IDF is installed and in your PATH. Then run:
+First ensure you have generated your config using `./tools/gen_config.py` (see tools/readme.md).
+Ensure ESP-IDF is installed and in your PATH (see `./ESP-IDF.md`)
+Navigate to this directory, then run:
 
 ```
+idf.py set-target esp32
 idf.py build
-```
-
-`config_autogen.h` contains constants derived from the layout JSON files and can be regenerated:
-
-```
-python tools/gen_config.py --layout left.json
 ```
