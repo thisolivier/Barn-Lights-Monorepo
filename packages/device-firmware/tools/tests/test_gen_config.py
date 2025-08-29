@@ -40,6 +40,10 @@ def test_left_layout_generates_expected_header(tmp_path):
     assert "#define RUN_COUNT 3" in header_text
     assert "#define TOTAL_LED_COUNT 1200" in header_text
     assert "{400, 400, 400}" in header_text
+    assert "#define STATIC_IP_ADDR0 10" in header_text
+    assert "#define STATIC_IP_ADDR3 2" in header_text
+    assert "#define STATIC_NETMASK_ADDR0 255" in header_text
+    assert "#define STATIC_GW_ADDR3 1" in header_text
 
 
 def test_right_layout_generates_expected_header(tmp_path):
@@ -48,6 +52,9 @@ def test_right_layout_generates_expected_header(tmp_path):
     assert "#define RUN_COUNT 3" in header_text
     assert "#define TOTAL_LED_COUNT 1500" in header_text
     assert "{500, 500, 500}" in header_text
+    assert "#define STATIC_IP_ADDR3 3" in header_text
+    assert "#define STATIC_NETMASK_ADDR1 255" in header_text
+    assert "#define STATIC_GW_ADDR0 10" in header_text
 
 
 def test_missing_side_field_results_in_error(tmp_path):
