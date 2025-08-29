@@ -13,9 +13,11 @@ This directory contains the ESP-IDF based firmware for the Barn Lights system.
 
 ## Building
 
-Ensure ESP-IDF is installed and in your PATH. Then run:
+Ensure the ESP-IDF environment is installed and exported so that `idf.py`
+is available (e.g. `. $IDF_PATH/export.sh`). Then run:
 
 ```
+idf.py set-target esp32
 idf.py build
 ```
 
