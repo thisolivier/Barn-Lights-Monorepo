@@ -18,6 +18,7 @@ endif()
 add_executable(test_rx_task
     test_rx_task.c
     ../main/rx_task.c
+    ../main/status_task.c
 )
 
 target_include_directories(test_rx_task PRIVATE ../include ../main)
