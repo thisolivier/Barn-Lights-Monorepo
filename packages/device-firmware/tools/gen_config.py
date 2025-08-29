@@ -6,6 +6,16 @@ from pathlib import Path
 SIDE_MAPPING = {"left": 0, "right": 1}
 
 
+def extract_octets(layout_data: dict, field_name: str) -> list:
+    octets = layout_data.get(field_name, [])
+    if len(octets) != 4:
+        raise ValueError(f"{field_name} must have exactly 4 elements")
+    for value in octets:
+        if not isinstance(value, int) or not (0 <= value <= 255):
+            raise ValueError(f"invalid octet in {field_name}: {octets}")
+    return octets
+
+
 def generate_header(layout_data: dict) -> str:
     side_name = layout_data.get("side", "")
     side_identifier = SIDE_MAPPING.get(side_name.lower())
@@ -16,16 +26,32 @@ def generate_header(layout_data: dict) -> str:
     led_counts = [run.get("led_count", 0) for run in layout_data.get("runs", [])]
     total_leds = layout_data.get("total_leds", 0)
 
+    static_ip = extract_octets(layout_data, "static_ip")
+    static_netmask = extract_octets(layout_data, "static_netmask")
+    static_gateway = extract_octets(layout_data, "static_gateway")
+
     header_lines = [
         "#pragma once",
         "",
         f"#define SIDE_ID {side_identifier}",
         f"#define RUN_COUNT {run_count}",
         f"#define TOTAL_LED_COUNT {total_leds}",
-        "",
-        "static const unsigned int LED_COUNT[RUN_COUNT] = {" + ", ".join(str(count) for count in led_counts) + "};",
-        "",
     ]
+
+    for index, value in enumerate(static_ip):
+        header_lines.append(f"#define STATIC_IP_ADDR{index} {value}")
+    for index, value in enumerate(static_netmask):
+        header_lines.append(f"#define STATIC_NETMASK_ADDR{index} {value}")
+    for index, value in enumerate(static_gateway):
+        header_lines.append(f"#define STATIC_GW_ADDR{index} {value}")
+
+    header_lines.extend(
+        [
+            "",
+            "static const unsigned int LED_COUNT[RUN_COUNT] = {" + ", ".join(str(count) for count in led_counts) + "};",
+            "",
+        ]
+    )
     return "\n".join(header_lines)
 
 
