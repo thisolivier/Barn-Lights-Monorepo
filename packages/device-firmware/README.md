@@ -39,3 +39,17 @@ cd firmware
 idf.py set-target esp32
 idf.py build
 ```
+
+### Convenience scripts
+
+To build the application and generate configuration, run:
+
+```
+./build_app.sh
+```
+
+To execute all test suites sequentially, run:
+
+```
+./run_all_tests.sh
+```
