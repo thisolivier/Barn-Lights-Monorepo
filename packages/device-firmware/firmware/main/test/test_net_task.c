@@ -7,14 +7,12 @@
 
 #define ESP_LOGI(tag, fmt, ...)
 #define vTaskDelay(...) return
-#define IP4_ADDR(addr, a,b,c,d)
 
 #define static
 #include "net_task.c"
 #undef static
 #undef vTaskDelay
 #undef ESP_LOGI
-#undef IP4_ADDR
 
 void setUp(void)
 {
@@ -32,7 +30,7 @@ void test_network_task_sets_ready_bit(void)
     esp_event_loop_create_default_ExpectAndReturn(ESP_OK);
     esp_netif_new_ExpectAnyArgsAndReturn((esp_netif_t *)1);
     esp_eth_mac_new_esp32_ExpectAnyArgsAndReturn((esp_eth_mac_t *)1);
-    esp_eth_phy_new_lan8720_ExpectAnyArgsAndReturn((esp_eth_phy_t *)1);
+    esp_eth_phy_new_lan87xx_ExpectAnyArgsAndReturn((esp_eth_phy_t *)1);
     esp_eth_driver_install_ExpectAnyArgsAndReturn(ESP_OK);
     esp_netif_attach_ExpectAnyArgsAndReturn(ESP_OK);
     esp_eth_new_netif_glue_ExpectAnyArgsAndReturn((void *)1);
