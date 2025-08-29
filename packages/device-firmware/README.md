@@ -30,5 +30,6 @@ Build firmware (requires ESP-IDF):
 
 ```
 cd firmware
+idf.py set-target esp32
 idf.py build
 ```
