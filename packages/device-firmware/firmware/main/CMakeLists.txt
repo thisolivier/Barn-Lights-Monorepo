@@ -1,1 +1,1 @@
-idf_component_register(SRCS "app_main.c" "net_task.c" "rx_task.c" "driver_task.c" INCLUDE_DIRS "")
+idf_component_register(SRCS "app_main.c" "net_task.c" "rx_task.c" "driver_task.c" "status_task.c" INCLUDE_DIRS "")
