@@ -4,13 +4,19 @@ Utilities and firmware for the barn lights project.
 
 ## Development
 
-Install Python dependencies:
+### Install Python dependencies:
 
+You should optionally setup a virtual environment first with:
+```
+python -m venv venv
+source venv/bin/activate
+```
+Then install your dependencies:
 ```
 python -m pip install -r tools/requirements.txt
 ```
 
-Run tests:
+### Run tests:
 
 ```
 pytest
@@ -22,7 +28,7 @@ cmake --build firmware/test/build
 For ESP-IDF unit tests and more details on the testing strategy, see
 [`tests/readme.md`](tests/readme.md).
 
-Build firmware (requires ESP-IDF):
+### Build firmware (requires ESP-IDF):
 
 1. Generate the layout config (see tools/readme.md)
 2. Setup your ESP-IDF environment (see esp-idf.md)
