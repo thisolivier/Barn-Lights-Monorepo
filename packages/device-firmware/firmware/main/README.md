@@ -7,4 +7,4 @@ Application entry point and task startup. `app_main.c` creates FreeRTOS tasks fo
 - `driver_task.c` configures one RMT channel per run and triggers them simultaneously. On boot it enforces a one second blackout before displaying the first complete frame, swapping buffers when a new frame arrives and converting RGB bytes to GRB during encoding. Compile-time checks verify RMT timing.
 - `status_task.c` sends a heartbeat JSON every second to `SENDER_IP:STATUS_PORT`, reporting counters since the previous heartbeat.
 
-Unit tests reside in `test/test_net_task.c` and can be run with `idf.py test`.
+Unit tests reside in `test/test_net_task.c` with `test/CMakeLists.txt` wiring them into the ESP-IDF `idf.py test` workflow.
