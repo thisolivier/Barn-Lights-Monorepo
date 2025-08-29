@@ -12,6 +12,16 @@
 #include "freertos/semphr.h"
 #include "lwip/sockets.h"
 #include "esp_log.h"
+#else
+// Minimal FreeRTOS semaphore stubs for host-side unit tests
+typedef int SemaphoreHandle_t;
+static inline SemaphoreHandle_t xSemaphoreCreateRecursiveMutex(void) { return 0; }
+static inline void xSemaphoreTakeRecursive(SemaphoreHandle_t mutex, int ticks) {
+    (void)mutex;
+    (void)ticks;
+}
+static inline void xSemaphoreGiveRecursive(SemaphoreHandle_t mutex) { (void)mutex; }
+#define portMAX_DELAY 0
 #endif
 
 #ifndef PORT_BASE
