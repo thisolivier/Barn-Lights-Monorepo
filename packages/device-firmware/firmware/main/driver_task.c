@@ -70,11 +70,13 @@ static bool frame_is_newer(uint32_t a, uint32_t b)
 
 static void send_frame(int slot_index)
 {
+    rx_task_lock();
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
         const uint8_t *buffer = rx_task_get_run_buffer(slot_index, run);
         encode_run(run, buffer);
         rmt_fill_tx_items(run, rmt_items[run], rmt_item_count[run], 0);
     }
+    rx_task_unlock();
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
         rmt_tx_start(run, true);
     }
@@ -118,6 +120,7 @@ static void driver_task(void *arg)
     for (;;) {
         int selected_slot = -1;
         uint32_t selected_id = last_frame_id;
+        rx_task_lock();
         for (int slot = 0; slot < 2; ++slot) {
             uint32_t frame_id = rx_task_get_frame_id(slot);
             if (frame_is_newer(frame_id, selected_id)) {
@@ -134,6 +137,7 @@ static void driver_task(void *arg)
                 }
             }
         }
+        rx_task_unlock();
 
         TickType_t now = xTaskGetTickCount();
         bool blackout_elapsed = (now - start_tick) >= pdMS_TO_TICKS(1000);

@@ -9,6 +9,7 @@
 #ifndef UNIT_TEST
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/semphr.h"
 #include "lwip/sockets.h"
 #include "esp_log.h"
 #endif
@@ -25,6 +26,15 @@ typedef struct {
 static FrameSlot frame_slots[2];
 static uint8_t **frame_buffers[2];
 static int current_slot_index = 0;
+static SemaphoreHandle_t frame_mutex;
+
+void rx_task_lock(void) {
+    xSemaphoreTakeRecursive(frame_mutex, portMAX_DELAY);
+}
+
+void rx_task_unlock(void) {
+    xSemaphoreGiveRecursive(frame_mutex);
+}
 
 static bool frame_is_newer(uint32_t a, uint32_t b) {
     return (int32_t)(a - b) > 0;
@@ -58,6 +68,7 @@ void rx_task_process_packet(unsigned int run_index, const uint8_t *data, size_t 
                         ((uint32_t)data[1] << 16) |
                         ((uint32_t)data[2] << 8) |
                         (uint32_t)data[3];
+    rx_task_lock();
 
     FrameSlot *current_slot = &frame_slots[current_slot_index];
     FrameSlot *next_slot = &frame_slots[1 - current_slot_index];
@@ -74,9 +85,11 @@ void rx_task_process_packet(unsigned int run_index, const uint8_t *data, size_t 
             next_slot->frame_id = frame_id;
             target_slot = next_slot;
         } else {
+            rx_task_unlock();
             return;
         }
     } else {
+        rx_task_unlock();
         return;
     }
 
@@ -103,6 +116,8 @@ void rx_task_process_packet(unsigned int run_index, const uint8_t *data, size_t 
         current_slot_index = 1 - current_slot_index;
         clear_slot(&frame_slots[1 - current_slot_index]);
     }
+
+    rx_task_unlock();
 }
 
 #ifndef UNIT_TEST
@@ -127,6 +142,7 @@ static void udp_listener_task(void *param) {
 #endif
 
 void rx_task_start(void) {
+    frame_mutex = xSemaphoreCreateRecursiveMutex();
     allocate_buffers();
     clear_slot(&frame_slots[0]);
     clear_slot(&frame_slots[1]);
@@ -141,20 +157,29 @@ uint32_t rx_task_get_frame_id(int slot_index) {
     if (slot_index < 0 || slot_index > 1) {
         return 0;
     }
-    return frame_slots[slot_index].frame_id;
+    rx_task_lock();
+    uint32_t id = frame_slots[slot_index].frame_id;
+    rx_task_unlock();
+    return id;
 }
 
 const uint8_t *rx_task_get_run_buffer(int slot_index, unsigned int run_index) {
     if (slot_index < 0 || slot_index > 1 || run_index >= RUN_COUNT) {
         return NULL;
     }
-    return frame_buffers[slot_index][run_index];
+    rx_task_lock();
+    const uint8_t *buffer = frame_buffers[slot_index][run_index];
+    rx_task_unlock();
+    return buffer;
 }
 
 bool rx_task_run_received(int slot_index, unsigned int run_index) {
     if (slot_index < 0 || slot_index > 1 || run_index >= RUN_COUNT) {
         return false;
     }
-    return frame_slots[slot_index].run_received[run_index];
+    rx_task_lock();
+    bool received = frame_slots[slot_index].run_received[run_index];
+    rx_task_unlock();
+    return received;
 }
 
