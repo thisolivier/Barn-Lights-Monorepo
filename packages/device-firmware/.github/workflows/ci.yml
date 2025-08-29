@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -16,18 +16,23 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Set up ESP-IDF
-        uses: espressif/setup-esp-idf@v1
-        with:
-          version: latest
-          cache: true
-
       - name: Install Python dependencies
         run: python -m pip install --upgrade pip && python -m pip install -r tools/requirements.txt
 
-      - name: Run tests
+      - name: Run Python tests
         run: pytest
 
-      - name: Build firmware
-        working-directory: firmware
-        run: idf.py build
+      - name: Build host tests
+        run: |
+          cmake -S firmware/test -B firmware/test/build
+          cmake --build firmware/test/build
+
+      - name: Run host tests
+        run: ./firmware/test/build/test_rx_task
+
+      - name: Run firmware unit tests
+        uses: espressif/esp-idf-ci-action@v1
+        with:
+          esp_idf_version: latest
+          path: firmware
+          command: idf.py test
