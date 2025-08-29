@@ -22,15 +22,19 @@ _Static_assert(RMT_TICKS_PER_BIT == 50, "Unexpected RMT bit timing");
 _Static_assert(RMT_T0H_TICKS + RMT_T0L_TICKS == RMT_TICKS_PER_BIT, "T0 timing");
 _Static_assert(RMT_T1H_TICKS + RMT_T1L_TICKS == RMT_TICKS_PER_BIT, "T1 timing");
 
-static const gpio_num_t RUN_GPIO[RUN_COUNT] = {12, 13, 14};
+#define RUN0_GPIO 12
+#define RUN1_GPIO 13
+#define RUN2_GPIO 14
+
+static const gpio_num_t RUN_GPIO[RUN_COUNT] = {RUN0_GPIO, RUN1_GPIO, RUN2_GPIO};
 
 _Static_assert(RUN_COUNT <= RMT_CHANNEL_MAX, "Too many runs for available RMT channels");
-_Static_assert(RUN_GPIO[0] >= 0 && RUN_GPIO[0] <= 39, "RUN_GPIO[0] out of range");
+_Static_assert(RUN0_GPIO >= 0 && RUN0_GPIO <= 39, "RUN0_GPIO out of range");
 #if RUN_COUNT > 1
-_Static_assert(RUN_GPIO[1] >= 0 && RUN_GPIO[1] <= 39, "RUN_GPIO[1] out of range");
+_Static_assert(RUN1_GPIO >= 0 && RUN1_GPIO <= 39, "RUN1_GPIO out of range");
 #endif
 #if RUN_COUNT > 2
-_Static_assert(RUN_GPIO[2] >= 0 && RUN_GPIO[2] <= 39, "RUN_GPIO[2] out of range");
+_Static_assert(RUN2_GPIO >= 0 && RUN2_GPIO <= 39, "RUN2_GPIO out of range");
 #endif
 
 static rmt_item32_t *rmt_items[RUN_COUNT];
