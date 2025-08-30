@@ -9,17 +9,22 @@ import { Assembler } from '../src/assembler/index.mjs';
 import { Mailbox } from '../src/mailbox/index.mjs';
 import { UdpSender } from '../src/udp-sender/index.mjs';
 import { decodeSampleFrame } from './fixtures/decode-sample-frame.mjs';
+import { createAdaptedSampleFile } from './fixtures/adapt-sample.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const layoutPath = path.join(__dirname, '..', 'config', 'left.json');
 const leftLayout = JSON.parse(fs.readFileSync(layoutPath, 'utf8'));
+const adaptedSamplePath = createAdaptedSampleFile(layoutPath);
 
 function buildConfig(portBase) {
   return {
     renderer: {
       cmd: process.execPath,
-      args: [path.join(__dirname, 'fixtures', 'renderer_loop.mjs')],
+      args: [
+        path.join(__dirname, 'fixtures', 'renderer_loop.mjs'),
+        adaptedSamplePath,
+      ],
     },
     sides: {
       left: {
@@ -76,7 +81,7 @@ test('udp sender transmits packets for assembled frames', async () => {
   const expectedLength = 4 + leftLayout.runs[0].led_count * 3;
   const firstPacket = receivedPackets[0];
   assert.strictEqual(firstPacket.length, expectedLength);
-  const expected = decodeSampleFrame(layoutPath);
+  const expected = decodeSampleFrame(layoutPath, adaptedSamplePath);
   const frameId = firstPacket.readUInt32BE(0);
   assert.strictEqual(frameId, expected.frameId, 'frame id header mismatch');
   const rgbPayload = firstPacket.subarray(4);
