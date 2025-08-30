@@ -31,6 +31,7 @@ Out-of-scope (v1):
 ## 2. External Contracts
 2.1 Renderer → Sender (NDJSON over stdout)
 One line per rendered frame:
+``` 
 {
   "ts": 1714000000,
   "frame": 0,
@@ -46,6 +47,7 @@ One line per rendered frame:
     }
   }
 }
+``` 
 * format must be "rgb8".
 * frame is reused as wire frame_id (u32, wraps mod 2³²).
 Acceptance rules:
@@ -63,6 +65,7 @@ MCU display rule (FYI):
 ## 3. Configuration (files & schema)
 All config lives under ./config/.
 3.1 sender.config.json
+``` 
 {
   "sides": {
     "left":  { "ip": "10.10.0.2", "portBase": 49600, "layout": "./config/left.json" },
@@ -78,6 +81,7 @@ All config lives under ./config/.
     "log_level": "info"       // "error" | "warn" | "info" | "debug"
   }
 }
+``` 
 * Editable IPs: You asked for a clear file—this is it. Update ip and portBase here.
 * Layout JSON files are your side configs (examples you provided). The sender validates only fields it needs.
 3.2 Side layout files (your format)
@@ -97,6 +101,7 @@ Validation invariants:
 4.1 config/
 * Loader & validator for sender.config.json and side layout files.
 * Produces a RuntimeConfig object:
+``` 
 type SectionCfg = { id: string; led_count: number; }
 type RunCfg = { run_index: number; led_count: number; sections: SectionCfg[]; }
 type SideCfg = { ip: string; portBase: number; runs: RunCfg[]; total_leds: number; side: "left"|"right" }
@@ -106,14 +111,17 @@ type RuntimeConfig = {
   renderer: { cmd: string; args: string[]; cwd?: string };
   telemetry: { interval_ms: number; log_level: LogLevel };
 }
+``` 
 4.2 renderer-process/
 * Spawns the renderer via child_process.spawn.
 * Streams stdout through a line reader; parses NDJSON.
 * Emits FrameIngest events to the assembler:
+``` 
 type NDJSONFrame = {
   ts: number; frame: number; fps: number; format: "rgb8";
   sides: Record<string, Record<string, { length: number; rgb_b64: string }>>;
 }
+``` 
 4.3 assembler/
 * For each configured side:
     * Build exactly one run-buffer per configured run for a given NDJSON frame.
@@ -124,11 +132,13 @@ type NDJSONFrame = {
             * atob(rgb_b64) (base64 decode) → verify length equals section.led_count * 3, else fail side.
             * buffer.set(decoded, offsetBytes), offsetBytes += section.led_count * 3.
         3. On success for all runs in side → produce AssembledFrame:
+``` 
 type AssembledFrame = {
   side: "left" | "right";
   frame_id: number;            // NDJSON frame modulo 2^32
   runs: { run_index: number; data: Uint8Array }[];
 }
+``` 
         4. Write the AssembledFrame into the side’s mailbox (overwriting any previous).
 * Error policy: If any section fails for a side, drop that side’s frame (other side may still succeed).
 4.4 mailbox/
