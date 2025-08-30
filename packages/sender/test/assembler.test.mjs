@@ -96,3 +96,28 @@ test('drops side when sections are missing or mismatched', () => {
   assert(loggerMessages.some((m) => m.includes('Missing section')));
   assert(loggerMessages.some((m) => m.includes('length mismatch')));
 });
+
+test('throws when side config lacks a runs array', () => {
+  const malformedSideConfig = {
+    side: 'left',
+    total_leds: 3,
+  };
+  const runtimeConfig = { sides: { left: malformedSideConfig } };
+  assert.throws(
+    () => new Assembler(runtimeConfig, console),
+    /left.*runs array/i,
+  );
+});
+
+test('throws when run configuration is not an array', () => {
+  const malformedSideConfig = {
+    side: 'left',
+    total_leds: 3,
+    runs: { not: 'an array' },
+  };
+  const runtimeConfig = { sides: { left: malformedSideConfig } };
+  assert.throws(
+    () => new Assembler(runtimeConfig, console),
+    /left.*runs array/i,
+  );
+});

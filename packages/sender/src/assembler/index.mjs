@@ -16,6 +16,13 @@ export class Assembler extends EventEmitter {
     this.config = runtimeConfig;
     this.logger = logger;
     this.mailbox = mailbox;
+
+    const sides = this.config.sides || {};
+    for (const [sideName, sideCfg] of Object.entries(sides)) {
+      if (!Array.isArray(sideCfg.runs)) {
+        throw new Error(`Side ${sideName} configuration missing runs array`);
+      }
+    }
   }
 
   /**
