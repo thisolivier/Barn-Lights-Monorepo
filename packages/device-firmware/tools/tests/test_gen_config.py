@@ -53,6 +53,12 @@ def assert_header_matches_layout(layout_file: str, tmp_dir: Path) -> None:
     total_led_count = layout_data["total_leds"]
     assert f"#define TOTAL_LED_COUNT {total_led_count}" in header_text
 
+    port_base = layout_data["port_base"]
+    assert f"#define PORT_BASE {port_base}" in header_text
+
+    gateway_port = layout_data["gateway_telemetry_port"]
+    assert f"#define STATUS_PORT {gateway_port}" in header_text
+
     expected_led_counts = "{" + ", ".join(str(run["led_count"]) for run in layout_data["runs"]) + "}"
     assert expected_led_counts in header_text
 
@@ -82,3 +88,27 @@ def test_missing_side_field_results_in_error(tmp_path):
     process = run_gen_config(malformed_layout_path)
     assert process.returncode != 0
     assert "unknown side" in process.stderr.lower()
+
+
+def test_missing_port_base_results_in_error(tmp_path):
+    repo_root = Path(__file__).resolve().parents[2]
+    malformed_layout_path = tmp_path / "missing_port_base.json"
+    layout_data = json.loads((repo_root / "left.json").read_text())
+    layout_data.pop("port_base")
+    malformed_layout_path.write_text(json.dumps(layout_data))
+
+    process = run_gen_config(malformed_layout_path)
+    assert process.returncode != 0
+    assert "port_base" in process.stderr.lower()
+
+
+def test_missing_gateway_port_results_in_error(tmp_path):
+    repo_root = Path(__file__).resolve().parents[2]
+    malformed_layout_path = tmp_path / "missing_gateway_port.json"
+    layout_data = json.loads((repo_root / "left.json").read_text())
+    layout_data.pop("gateway_telemetry_port")
+    malformed_layout_path.write_text(json.dumps(layout_data))
+
+    process = run_gen_config(malformed_layout_path)
+    assert process.returncode != 0
+    assert "gateway_telemetry_port" in process.stderr.lower()

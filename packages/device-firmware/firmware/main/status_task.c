@@ -12,9 +12,6 @@
 #define SENDER_IP_ADDR3 1
 #endif
 
-#ifndef STATUS_PORT
-#define STATUS_PORT 49700
-#endif
 
 #if SIDE_ID == 0
 #define SIDE_ID_STR "LEFT"
