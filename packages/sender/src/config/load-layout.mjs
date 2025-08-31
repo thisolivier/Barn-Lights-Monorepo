@@ -20,6 +20,18 @@ export function loadLayout(filePath, logger = console) {
   if (!layout || !Array.isArray(layout.runs)) {
     throw new Error('Layout must have a runs array');
   }
+  if (typeof layout.port_base !== 'number') {
+    throw new Error('Layout must include numeric port_base');
+  }
+  if (
+    !Array.isArray(layout.static_ip) ||
+    layout.static_ip.length !== 4 ||
+    !layout.static_ip.every(
+      (octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255,
+    )
+  ) {
+    throw new Error('Layout must include static_ip [a,b,c,d]');
+  }
 
   const runIndices = new Set();
   let totalRunLeds = 0;

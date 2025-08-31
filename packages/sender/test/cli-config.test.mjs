@@ -38,12 +38,6 @@ test('CLI fails when renderer command is missing', () => {
   assert.strictEqual(result.status, 1);
 });
 
-test('CLI fails when side portBase is not numeric', () => {
-  const badPath = writeTempConfig((cfg) => { cfg.sides.left.portBase = 'abc'; });
-  const result = spawnSync('node', [binaryPath, '--config', badPath], { encoding: 'utf8' });
-  assert.strictEqual(result.status, 1);
-});
-
 test('CLI fails when telemetry interval is non-positive', () => {
   const badPath = writeTempConfig((cfg) => { cfg.telemetry.interval_ms = 0; });
   const result = spawnSync('node', [binaryPath, '--config', badPath], { encoding: 'utf8' });

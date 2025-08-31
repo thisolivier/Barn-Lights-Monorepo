@@ -20,21 +20,15 @@ export function loadConfig(configPath) {
     throw new Error('Missing sides configuration');
   }
   const baseDirectory = path.dirname(configPath);
-  for (const [sideName, sideConfig] of Object.entries(parsedConfig.sides)) {
-    if (typeof sideConfig.ip !== 'string') {
-      throw new Error(`side ${sideName} ip must be a string`);
-    }
-    if (typeof sideConfig.portBase !== 'number') {
-      throw new Error(`side ${sideName} portBase must be a number`);
-    }
-    if (typeof sideConfig.layout !== 'string') {
+  for (const [sideName, layoutRelPath] of Object.entries(parsedConfig.sides)) {
+    if (typeof layoutRelPath !== 'string') {
       throw new Error(`side ${sideName} layout must be a string`);
     }
-    let layoutPath = path.resolve(baseDirectory, sideConfig.layout);
+    let layoutPath = path.resolve(baseDirectory, layoutRelPath);
     if (!fs.existsSync(layoutPath)) {
-      layoutPath = path.resolve(process.cwd(), sideConfig.layout);
+      layoutPath = path.resolve(process.cwd(), layoutRelPath);
       if (!fs.existsSync(layoutPath)) {
-        throw new Error(`Layout file not found for side ${sideName}: ${sideConfig.layout}`);
+        throw new Error(`Layout file not found for side ${sideName}: ${layoutRelPath}`);
       }
     }
   }
