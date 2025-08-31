@@ -17,6 +17,8 @@ python -m pip install -r tools/requirements.txt
 ```
 
 ### Run tests:
+For ESP-IDF unit tests and more details on the testing strategy, see
+[`tests/readme.md`](tests/readme.md). These commands will run the various test suites:
 
 ```
 pytest
@@ -24,9 +26,13 @@ cmake -S firmware/test -B firmware/test/build
 cmake --build firmware/test/build
 ./firmware/test/build/test_rx_task
 ```
+To execute all test suites sequentially, run:
 
-For ESP-IDF unit tests and more details on the testing strategy, see
-[`tests/readme.md`](tests/readme.md).
+```
+./run_all_tests.sh
+```
+
+## Deploying Code
 
 ### Build firmware (requires ESP-IDF):
 
@@ -61,8 +67,4 @@ To build the application and generate configuration, run:
 ./build_app.sh
 ```
 
-To execute all test suites sequentially, run:
-
-```
-./run_all_tests.sh
-```
+## Debugging
