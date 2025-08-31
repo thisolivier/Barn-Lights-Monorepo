@@ -90,19 +90,29 @@ static bool frame_is_newer(uint32_t a, uint32_t b)
 
 static void send_frame(int slot_index)
 {
+    // Protect buffers while we read/encode
+    rx_task_lock();
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
         const uint8_t *buffer = rx_task_get_run_buffer(slot_index, run);
-        encode_run(run, buffer);
-        ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run], copy_encoder,
-                                     rmt_items[run],
-                                     sizeof(rmt_symbol_word_t) * rmt_item_count[run],
-                                     &TRANSMIT_CONFIG));
+        encode_run(run, buffer); // fills rmt_items[run] / rmt_item_count[run]
+        ESP_ERROR_CHECK(rmt_transmit(
+            rmt_channels[run],            // v2 handle
+            copy_encoder,                 // encoder
+            rmt_items[run],               // encoded symbols
+            sizeof(rmt_symbol_word_t) * rmt_item_count[run],
+            &TRANSMIT_CONFIG));           // includes sync config if applicable
     }
+    rx_task_unlock();
+
+    // Release the barrier so all channels start together
     ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
+
+    // Wait until each channel finishes (v2 wait)
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
         ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
     }
 }
+
 
 static void send_black(void)
 {
@@ -154,6 +164,7 @@ static void driver_task(void *arg)
     for (;;) {
         int selected_slot = -1;
         uint32_t selected_id = last_frame_id;
+        rx_task_lock();
         for (int slot = 0; slot < 2; ++slot) {
             uint32_t frame_id = rx_task_get_frame_id(slot);
             if (frame_is_newer(frame_id, selected_id)) {
@@ -170,6 +181,7 @@ static void driver_task(void *arg)
                 }
             }
         }
+        rx_task_unlock();
 
         TickType_t now = xTaskGetTickCount();
         bool blackout_elapsed = (now - start_tick) >= pdMS_TO_TICKS(1000);
