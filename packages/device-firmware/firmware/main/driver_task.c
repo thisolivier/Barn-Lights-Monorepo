@@ -59,6 +59,22 @@ static const rmt_transmit_config_t TRANSMIT_CONFIG = {
     .loop_count = 0,
 };
 
+static esp_err_t wait_all_done_retry(rmt_channel_handle_t channel) {
+    const int MAX_ATTEMPTS = 5;
+    for (int attempt = 0; attempt < MAX_ATTEMPTS; ++attempt) {
+        esp_err_t err = rmt_tx_wait_all_done(channel, pdMS_TO_TICKS(1));
+        if (err == ESP_OK) {
+            return ESP_OK;
+        }
+        if (err != ESP_ERR_TIMEOUT) {
+            return err;
+        }
+        vTaskDelay(pdMS_TO_TICKS(1));
+    }
+    ESP_LOGW("driver_task", "rmt_tx_wait_all_done timeout");
+    return ESP_ERR_TIMEOUT;
+}
+
 static inline void encode_run(unsigned int run_index, const uint8_t *rgb_data)
 {
     rmt_symbol_word_t *items = rmt_items[run_index];
@@ -105,7 +121,7 @@ static void send_frame(int slot_index)
             rmt_items[run],
             sizeof(rmt_symbol_word_t) * rmt_item_count[run],
             &TRANSMIT_CONFIG));
-        ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
+        wait_all_done_retry(rmt_channels[run]);
     }
 }
 
@@ -118,7 +134,7 @@ static void send_black(void)
                                      rmt_items[run],
                                      sizeof(rmt_symbol_word_t) * rmt_item_count[run],
                                      &TRANSMIT_CONFIG));
-        ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
+        wait_all_done_retry(rmt_channels[run]);
     }
 }
 
@@ -139,7 +155,7 @@ static void flash_run(unsigned int run_index,
                                  rmt_items[run_index],
                                  sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
                                  &TRANSMIT_CONFIG));
-    ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run_index], pdMS_TO_TICKS(1)));
+    wait_all_done_retry(rmt_channels[run_index]);
 }
 
 static void delay_ms(uint32_t ms)

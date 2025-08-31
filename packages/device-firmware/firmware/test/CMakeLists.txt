@@ -43,3 +43,9 @@ target_include_directories(test_startup_sequence PRIVATE ../include ../main)
 target_compile_definitions(test_startup_sequence PRIVATE UNIT_TEST)
 target_link_libraries(test_startup_sequence unity)
 
+add_executable(test_driver_task
+    test_driver_task.c
+)
+
+target_link_libraries(test_driver_task unity)
+
