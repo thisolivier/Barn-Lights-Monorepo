@@ -82,7 +82,7 @@ static void network_task(void *param)
 
     eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG();
     eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
-    phy_config.phy_addr = 0;
+    phy_config.phy_addr = 1;
     phy_config.reset_gpio_num = RMII_RESET_GPIO;
 
     eth_esp32_emac_config_t emac_config = ETH_ESP32_EMAC_DEFAULT_CONFIG();
