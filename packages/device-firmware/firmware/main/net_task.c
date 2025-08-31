@@ -100,8 +100,8 @@ static void network_task(void *param)
     if (driver_install_status != ESP_OK) {
         ESP_LOGE(LOG_TAG, "esp_eth_driver_install failed: %s", esp_err_to_name(driver_install_status));
         esp_netif_destroy(netif);
-        esp_eth_mac_free(mac);
-        esp_eth_phy_free(phy);
+        esp_eth_mac_del(mac);
+        esp_eth_phy_del(phy);
         vTaskDelete(NULL);
         return;
     }
