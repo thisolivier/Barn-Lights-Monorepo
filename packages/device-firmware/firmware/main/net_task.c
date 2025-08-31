@@ -5,8 +5,6 @@
 #include "esp_eth.h"
 #include "esp_eth_mac.h"
 #include "esp_eth_phy.h"
-#include "esp_eth_mac_del"
-#include "esp_eth_phy_del"
 #include "esp_netif.h"
 #include "esp_log.h"
 #include "lwip/ip4_addr.h"
