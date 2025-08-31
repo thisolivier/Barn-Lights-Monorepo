@@ -3,6 +3,7 @@
 #include "config_autogen.h"
 #include "rx_task.h"
 #include "status_task.h"
+#include "startup_sequence.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -129,6 +130,32 @@ static void send_black(void)
     }
 }
 
+static void flash_run(unsigned int run_index,
+                      uint8_t red, uint8_t green, uint8_t blue)
+{
+    size_t led_count = LED_COUNT[run_index];
+    size_t byte_count = led_count * 3;
+    uint8_t *rgb_buffer = (uint8_t *)malloc(byte_count);
+    for (unsigned int led = 0; led < led_count; ++led) {
+        rgb_buffer[led * 3] = red;
+        rgb_buffer[led * 3 + 1] = green;
+        rgb_buffer[led * 3 + 2] = blue;
+    }
+    encode_run(run_index, rgb_buffer);
+    free(rgb_buffer);
+    ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run_index], copy_encoder,
+                                 rmt_items[run_index],
+                                 sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
+                                 &TRANSMIT_CONFIG));
+    ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
+    ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run_index], pdMS_TO_TICKS(1)));
+}
+
+static void delay_ms(uint32_t ms)
+{
+    vTaskDelay(pdMS_TO_TICKS(ms));
+}
+
 static void driver_task(void *arg)
 {
     rmt_copy_encoder_config_t copy_config = {};
@@ -156,10 +183,9 @@ static void driver_task(void *arg)
     ESP_ERROR_CHECK(rmt_new_sync_manager(&sync_config, &sync_manager));
 
     send_black();
+    startup_sequence(RUN_COUNT, flash_run, send_black, delay_ms);
 
-    TickType_t start_tick = xTaskGetTickCount();
     uint32_t last_frame_id = 0;
-    bool first_frame_sent = false;
 
     for (;;) {
         int selected_slot = -1;
@@ -168,14 +194,14 @@ static void driver_task(void *arg)
         for (int slot = 0; slot < 2; ++slot) {
             uint32_t frame_id = rx_task_get_frame_id(slot);
             if (frame_is_newer(frame_id, selected_id)) {
-                bool complete = true;
+                bool frame_complete = true;
                 for (unsigned int run = 0; run < RUN_COUNT; ++run) {
                     if (!rx_task_run_received(slot, run)) {
-                        complete = false;
+                        frame_complete = false;
                         break;
                     }
                 }
-                if (complete) {
+                if (frame_complete) {
                     selected_slot = slot;
                     selected_id = frame_id;
                 }
@@ -183,17 +209,10 @@ static void driver_task(void *arg)
         }
         rx_task_unlock();
 
-        TickType_t now = xTaskGetTickCount();
-        bool blackout_elapsed = (now - start_tick) >= pdMS_TO_TICKS(1000);
-        if (selected_slot >= 0 && blackout_elapsed) {
+        if (selected_slot >= 0) {
             send_frame(selected_slot);
             status_task_increment_applied();
             last_frame_id = selected_id;
-            first_frame_sent = true;
-        }
-
-        if (!first_frame_sent && blackout_elapsed && selected_slot < 0) {
-            send_black();
         }
 
         vTaskDelay(pdMS_TO_TICKS(1));
