@@ -25,9 +25,6 @@ static inline void xSemaphoreGiveRecursive(SemaphoreHandle_t mutex) { (void)mute
 #define portMAX_DELAY 0
 #endif
 
-#ifndef PORT_BASE
-#define PORT_BASE 49600
-#endif
 
 typedef struct {
     uint32_t frame_id;

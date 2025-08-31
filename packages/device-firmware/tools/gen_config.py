@@ -29,6 +29,12 @@ def generate_header(layout_data: dict) -> str:
     static_ip = extract_octets(layout_data, "static_ip")
     static_netmask = extract_octets(layout_data, "static_netmask")
     static_gateway = extract_octets(layout_data, "static_gateway")
+    port_base = layout_data.get("port_base")
+    if not isinstance(port_base, int):
+        raise ValueError("port_base must be an integer")
+    gateway_port = layout_data.get("gateway_telemetry_port")
+    if not isinstance(gateway_port, int):
+        raise ValueError("gateway_telemetry_port must be an integer")
 
     header_lines = [
         "#pragma once",
@@ -36,6 +42,8 @@ def generate_header(layout_data: dict) -> str:
         f"#define SIDE_ID {side_identifier}",
         f"#define RUN_COUNT {run_count}",
         f"#define TOTAL_LED_COUNT {total_leds}",
+        f"#define PORT_BASE {port_base}",
+        f"#define STATUS_PORT {gateway_port}",
     ]
 
     for index, value in enumerate(static_ip):
