@@ -1,6 +1,8 @@
 {
   "side": "left",
   "total_leds": 150,
+  "static_ip": [10, 10, 0, 2],
+  "port_base": 12345,
   "runs": [
     {
       "run_index": 0,

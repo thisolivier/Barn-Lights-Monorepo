@@ -13,6 +13,8 @@ test('loads valid layout files', () => {
   // primary keys
   assert.strictEqual(typeof layout.side, 'string');
   assert.strictEqual(typeof layout.total_leds, 'number');
+  assert.strictEqual(typeof layout.port_base, 'number');
+  assert.strictEqual(typeof layout.gateway_telemetry_port, 'number');
   assert.ok(Array.isArray(layout.static_ip));
   assert.ok(layout.static_ip.every((octet) => typeof octet === 'number'));
   assert.ok(Array.isArray(layout.static_netmask));
@@ -40,6 +42,16 @@ test('loads valid layout files', () => {
   assert.strictEqual(typeof sampling.space, 'string');
   assert.strictEqual(typeof sampling.width, 'number');
   assert.strictEqual(typeof sampling.height, 'number');
+});
+
+test('throws when port_base is missing', () => {
+  const layoutPath = path.join(__dirname, 'fixtures', 'layout_missing_port.json');
+  assert.throws(() => loadLayout(layoutPath), /port_base/);
+});
+
+test('throws when static_ip is missing', () => {
+  const layoutPath = path.join(__dirname, 'fixtures', 'layout_missing_ip.json');
+  assert.throws(() => loadLayout(layoutPath), /static_ip/);
 });
 
 test('throws when section counts do not match run led_count', () => {

@@ -18,6 +18,7 @@ const leftLayout = JSON.parse(fs.readFileSync(layoutPath, 'utf8'));
 const adaptedSamplePath = createAdaptedSampleFile(layoutPath);
 
 function buildConfig(portBase) {
+  const layout = { ...leftLayout, port_base: portBase };
   return {
     renderer: {
       cmd: process.execPath,
@@ -28,9 +29,9 @@ function buildConfig(portBase) {
     },
     sides: {
       left: {
-        ...leftLayout,
-        ip: '127.0.0.1',
+        ...layout,
         portBase,
+        ip: '127.0.0.1',
       },
     },
   };

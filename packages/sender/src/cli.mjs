@@ -51,17 +51,22 @@ export async function main(argv = process.argv) {
 
     const baseDir = path.dirname(configPath);
     if (config.sides) {
-      for (const [side, cfg] of Object.entries(config.sides)) {
-        if (cfg.layout) {
-          let layoutPath = path.resolve(baseDir, cfg.layout);
-          if (!fs.existsSync(layoutPath)) {
-            layoutPath = path.resolve(process.cwd(), cfg.layout);
-          }
-          const layout = loadLayout(layoutPath, logger);
-          Object.assign(cfg, layout);     // merge runs/total_leds/side into cfg
-          cfg.layout = layout; // keep layout for reference only
-          logger.debug(`Loaded ${side} layout from ${layoutPath}`);
+      for (const [side, layoutRel] of Object.entries(config.sides)) {
+        let layoutPath = path.resolve(baseDir, layoutRel);
+        if (!fs.existsSync(layoutPath)) {
+          layoutPath = path.resolve(process.cwd(), layoutRel);
         }
+        const layout = loadLayout(layoutPath, logger);
+        const sideCfg = {
+          ip: layout.static_ip.join('.'),
+          portBase: layout.port_base,
+          runs: layout.runs,
+          total_leds: layout.total_leds,
+          side: layout.side,
+          layout,
+        };
+        config.sides[side] = sideCfg;
+        logger.debug(`Loaded ${side} layout from ${layoutPath}`);
       }
     }
 

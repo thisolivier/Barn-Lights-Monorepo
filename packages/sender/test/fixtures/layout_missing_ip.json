@@ -1,0 +1,12 @@
+{
+  "side": "left",
+  "total_leds": 20,
+  "port_base": 12345,
+  "runs": [
+    {
+      "run_index": 0,
+      "led_count": 20,
+      "sections": [ { "id": "s1", "led_count": 20 } ]
+    }
+  ]
+}

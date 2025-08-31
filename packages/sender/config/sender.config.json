@@ -1,7 +1,7 @@
 {
   "sides": {
-    "left":  { "ip": "10.10.0.2", "portBase": 49600, "layout": "./config/left.json" },
-    "right": { "ip": "10.10.0.3", "portBase": 49610, "layout": "./config/right.json" }
+    "left": "./left.json",
+    "right": "./right.json"
   },
   "renderer": {
     "cmd": "npm",
