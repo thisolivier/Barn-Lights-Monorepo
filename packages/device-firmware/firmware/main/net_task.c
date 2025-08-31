@@ -60,10 +60,12 @@ _Static_assert(STATIC_GW_ADDR0 <= 255 && STATIC_GW_ADDR1 <= 255 &&
 #define RMII_MDC_GPIO 23
 #define RMII_MDIO_GPIO 18
 #define RMII_REF_CLK_GPIO 0
+#define RMII_RESET_GPIO 5
 
 _Static_assert(RMII_MDC_GPIO >= 0 && RMII_MDC_GPIO <= 39, "RMII_MDC_GPIO out of range");
 _Static_assert(RMII_MDIO_GPIO >= 0 && RMII_MDIO_GPIO <= 39, "RMII_MDIO_GPIO out of range");
 _Static_assert(RMII_REF_CLK_GPIO >= 0 && RMII_REF_CLK_GPIO <= 39, "RMII_REF_CLK_GPIO out of range");
+_Static_assert(RMII_RESET_GPIO >= 0 && RMII_RESET_GPIO <= 39, "RMII_RESET_GPIO out of range");
 
 static EventGroupHandle_t network_event_group;
 static const char *LOG_TAG = "net_task";
@@ -79,12 +81,12 @@ static void network_task(void *param)
     eth_mac_config_t mac_config = ETH_MAC_DEFAULT_CONFIG();
     eth_phy_config_t phy_config = ETH_PHY_DEFAULT_CONFIG();
     phy_config.phy_addr = 0;
-    phy_config.reset_gpio_num = -1;
+    phy_config.reset_gpio_num = RMII_RESET_GPIO;
 
     eth_esp32_emac_config_t emac_config = ETH_ESP32_EMAC_DEFAULT_CONFIG();
     emac_config.smi_gpio.mdc_num = RMII_MDC_GPIO;
     emac_config.smi_gpio.mdio_num = RMII_MDIO_GPIO;
-    emac_config.clock_config.rmii.clock_mode = EMAC_CLK_OUT;
+    emac_config.clock_config.rmii.clock_mode = EMAC_CLK_EXT_IN;
     emac_config.clock_config.rmii.clock_gpio = RMII_REF_CLK_GPIO;
 
     esp_eth_mac_t *mac = esp_eth_mac_new_esp32(&emac_config, &mac_config);
@@ -92,7 +94,15 @@ static void network_task(void *param)
 
     esp_eth_config_t eth_config = ETH_DEFAULT_CONFIG(mac, phy);
     esp_eth_handle_t eth_handle = NULL;
-    ESP_ERROR_CHECK(esp_eth_driver_install(&eth_config, &eth_handle));
+    esp_err_t driver_install_status = esp_eth_driver_install(&eth_config, &eth_handle);
+    if (driver_install_status != ESP_OK) {
+        ESP_LOGE(LOG_TAG, "esp_eth_driver_install failed: %s", esp_err_to_name(driver_install_status));
+        esp_netif_destroy(netif);
+        esp_eth_mac_free(mac);
+        esp_eth_phy_free(phy);
+        vTaskDelete(NULL);
+        return;
+    }
     ESP_ERROR_CHECK(esp_netif_attach(netif, esp_eth_new_netif_glue(eth_handle)));
 
     esp_netif_ip_info_t ip_info;
