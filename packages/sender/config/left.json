@@ -4,6 +4,8 @@
   "static_ip": [10, 10, 0, 2],
   "static_netmask": [255, 255, 255, 0],
   "static_gateway": [10, 10, 0, 1],
+  "port_base": 49600,
+  "gateway_telemetry_port": 49700,
   "runs": [
     {
       "run_index": 0,
