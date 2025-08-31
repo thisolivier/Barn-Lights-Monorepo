@@ -34,3 +34,12 @@ target_include_directories(test_status_task PRIVATE ../include ../main)
 target_compile_definitions(test_status_task PRIVATE UNIT_TEST)
 target_link_libraries(test_status_task unity)
 
+add_executable(test_startup_sequence
+    test_startup_sequence.c
+    ../main/startup_sequence.c
+)
+
+target_include_directories(test_startup_sequence PRIVATE ../include ../main)
+target_compile_definitions(test_startup_sequence PRIVATE UNIT_TEST)
+target_link_libraries(test_startup_sequence unity)
+

@@ -3,6 +3,7 @@
 #include "config_autogen.h"
 #include "rx_task.h"
 #include "status_task.h"
+#include "startup_sequence.h"
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -50,10 +51,6 @@ _Static_assert(RUN1_GPIO >= 0 && RUN1_GPIO <= 39, "RUN1_GPIO out of range");
 #if RUN_COUNT > 2
 _Static_assert(RUN2_GPIO >= 0 && RUN2_GPIO <= 39, "RUN2_GPIO out of range");
 #endif
-
-#define STARTUP_RED 218
-#define STARTUP_GREEN 170
-#define STARTUP_BLUE 52
 
 static rmt_symbol_word_t *rmt_items[RUN_COUNT];
 static size_t rmt_item_count[RUN_COUNT];
@@ -133,33 +130,30 @@ static void send_black(void)
     }
 }
 
-static void startup_sequence(void)
+static void flash_run(unsigned int run_index,
+                      uint8_t red, uint8_t green, uint8_t blue)
 {
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    for (unsigned int run_index = 0; run_index < RUN_COUNT; ++run_index) {
-        size_t led_count = LED_COUNT[run_index];
-        size_t byte_count = led_count * 3;
-        uint8_t *rgb_buffer = (uint8_t *)malloc(byte_count);
-        for (unsigned int led_index = 0; led_index < led_count; ++led_index) {
-            rgb_buffer[led_index * 3] = STARTUP_RED;
-            rgb_buffer[led_index * 3 + 1] = STARTUP_GREEN;
-            rgb_buffer[led_index * 3 + 2] = STARTUP_BLUE;
-        }
-        encode_run(run_index, rgb_buffer);
-        free(rgb_buffer);
-        for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-            ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run], copy_encoder,
-                                         rmt_items[run],
-                                         sizeof(rmt_symbol_word_t) * rmt_item_count[run],
-                                         &TRANSMIT_CONFIG));
-        }
-        ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
-        for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-            ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        send_black();
+    size_t led_count = LED_COUNT[run_index];
+    size_t byte_count = led_count * 3;
+    uint8_t *rgb_buffer = (uint8_t *)malloc(byte_count);
+    for (unsigned int led = 0; led < led_count; ++led) {
+        rgb_buffer[led * 3] = red;
+        rgb_buffer[led * 3 + 1] = green;
+        rgb_buffer[led * 3 + 2] = blue;
     }
+    encode_run(run_index, rgb_buffer);
+    free(rgb_buffer);
+    ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run_index], copy_encoder,
+                                 rmt_items[run_index],
+                                 sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
+                                 &TRANSMIT_CONFIG));
+    ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
+    ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run_index], pdMS_TO_TICKS(1)));
+}
+
+static void delay_ms(uint32_t ms)
+{
+    vTaskDelay(pdMS_TO_TICKS(ms));
 }
 
 static void driver_task(void *arg)
@@ -189,7 +183,7 @@ static void driver_task(void *arg)
     ESP_ERROR_CHECK(rmt_new_sync_manager(&sync_config, &sync_manager));
 
     send_black();
-    startup_sequence();
+    startup_sequence(RUN_COUNT, flash_run, send_black, delay_ms);
 
     uint32_t last_frame_id = 0;
 
