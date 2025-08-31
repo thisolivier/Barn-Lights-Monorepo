@@ -7,6 +7,7 @@
 #include "esp_eth_phy.h"
 #include "esp_netif.h"
 #include "esp_log.h"
+#include "driver/gpio.h"
 #include "lwip/ip4_addr.h"
 #include "config_autogen.h"
 
@@ -63,11 +64,13 @@ _Static_assert(STATIC_GW_ADDR0 <= 255 && STATIC_GW_ADDR1 <= 255 &&
 #define RMII_MDIO_GPIO 18
 #define RMII_REF_CLK_GPIO 0
 #define RMII_RESET_GPIO 5
+#define RMII_POWER_GPIO 16
 
 _Static_assert(RMII_MDC_GPIO >= 0 && RMII_MDC_GPIO <= 39, "RMII_MDC_GPIO out of range");
 _Static_assert(RMII_MDIO_GPIO >= 0 && RMII_MDIO_GPIO <= 39, "RMII_MDIO_GPIO out of range");
 _Static_assert(RMII_REF_CLK_GPIO >= 0 && RMII_REF_CLK_GPIO <= 39, "RMII_REF_CLK_GPIO out of range");
 _Static_assert(RMII_RESET_GPIO >= 0 && RMII_RESET_GPIO <= 39, "RMII_RESET_GPIO out of range");
+_Static_assert(RMII_POWER_GPIO >= 0 && RMII_POWER_GPIO <= 39, "RMII_POWER_GPIO out of range");
 
 static EventGroupHandle_t network_event_group;
 static const char *LOG_TAG = "net_task";
@@ -93,6 +96,11 @@ static void network_task(void *param)
 
     esp_eth_mac_t *mac = esp_eth_mac_new_esp32(&emac_config, &mac_config);
     esp_eth_phy_t *phy = esp_eth_phy_new_lan87xx(&phy_config);
+
+    gpio_reset_pin(RMII_POWER_GPIO);
+    ESP_ERROR_CHECK(gpio_set_direction(RMII_POWER_GPIO, GPIO_MODE_OUTPUT));
+    ESP_ERROR_CHECK(gpio_set_level(RMII_POWER_GPIO, 1));
+    vTaskDelay(pdMS_TO_TICKS(10));
 
     esp_eth_config_t eth_config = ETH_DEFAULT_CONFIG(mac, phy);
     esp_eth_handle_t eth_handle = NULL;

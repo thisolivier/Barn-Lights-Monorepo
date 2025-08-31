@@ -1,6 +1,6 @@
 # Network Task
 
-Initialises the ESP32 Ethernet interface using a LAN87xx series PHY. The task configures the RMII pins via `smi_gpio`, installs the EMAC driver and assigns a static IP address using values generated in `config_autogen.h`.
+Initialises the ESP32 Ethernet interface using a LAN87xx series PHY. The task configures the RMII pins via `smi_gpio`, powers the PHY by driving `RMII_POWER_GPIO` high, installs the EMAC driver and assigns a static IP address using values generated in `config_autogen.h`.
 
 If driver installation fails, the task logs the error, frees any partially initialised resources and exits without setting `NETWORK_READY_BIT`, allowing the system to continue running without networking.
 
