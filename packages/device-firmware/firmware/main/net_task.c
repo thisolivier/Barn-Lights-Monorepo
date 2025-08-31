@@ -5,7 +5,6 @@
 #include "esp_eth.h"
 #include "esp_eth_mac.h"
 #include "esp_eth_phy.h"
-#include "esp_idf_version.h"
 #include "esp_netif.h"
 #include "esp_log.h"
 #include "lwip/ip4_addr.h"
@@ -101,13 +100,8 @@ static void network_task(void *param)
     if (driver_install_status != ESP_OK) {
         ESP_LOGE(LOG_TAG, "esp_eth_driver_install failed: %s", esp_err_to_name(driver_install_status));
         esp_netif_destroy(netif);
-#if ESP_IDF_VERSION_MAJOR >= 5
-        esp_eth_mac_del(mac);
-        esp_eth_phy_del(phy);
-#else
-        esp_eth_mac_free(mac);
-        esp_eth_phy_free(phy);
-#endif
+        mac->del(mac);
+        phy->del(phy);
         vTaskDelete(NULL);
         return;
     }
