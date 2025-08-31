@@ -2,7 +2,7 @@
 
 #define SIDE_ID 0
 #define RUN_COUNT 3
-#define TOTAL_LED_COUNT 1200
+#define TOTAL_LED_COUNT 20
 #define STATIC_IP_ADDR0 10
 #define STATIC_IP_ADDR1 10
 #define STATIC_IP_ADDR2 0

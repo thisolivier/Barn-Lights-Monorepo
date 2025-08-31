@@ -31,14 +31,24 @@ For ESP-IDF unit tests and more details on the testing strategy, see
 ### Build firmware (requires ESP-IDF):
 
 1. Generate the layout config (see tools/readme.md)
-2. Setup your ESP-IDF environment (see esp-idf.md)
+2. Setup your ESP-IDF environment (see esp-idf.md). 
+3. Activate ESP-IDF and test it's in your session path:
+```
+. ~/esp/esp-idf/export.sh
+idf.py --version
+```
 3. Run the command below
 
 ```
 cd firmware
+idf.py fullclean
 idf.py set-target esp32
 idf.py build
 ```
+
+### Flash the ESP32 device
+
+See 'flash-guide.md'
 
 ### Convenience scripts
 
