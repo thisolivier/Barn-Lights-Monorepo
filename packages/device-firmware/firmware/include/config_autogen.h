@@ -1,7 +1,7 @@
 #pragma once
 
 #define SIDE_ID 0
-#define RUN_COUNT 3
+#define RUN_COUNT 1
 #define TOTAL_LED_COUNT 20
 #define STATIC_IP_ADDR0 10
 #define STATIC_IP_ADDR1 10
@@ -16,4 +16,4 @@
 #define STATIC_GW_ADDR2 0
 #define STATIC_GW_ADDR3 1
 
-static const unsigned int LED_COUNT[RUN_COUNT] = {400, 400, 400};
+static const unsigned int LED_COUNT[RUN_COUNT] = {20};
