@@ -9,7 +9,6 @@
 #include "freertos/task.h"
 #include "driver/rmt_tx.h"
 #include "driver/rmt_encoder.h"
-#include "esp_log.h"
 #include "soc/soc_caps.h"
 
 #include <stdlib.h>
@@ -56,7 +55,6 @@ static rmt_symbol_word_t *rmt_items[RUN_COUNT];
 static size_t rmt_item_count[RUN_COUNT];
 static rmt_channel_handle_t rmt_channels[RUN_COUNT];
 static rmt_encoder_handle_t copy_encoder;
-static rmt_sync_manager_handle_t sync_manager;
 static const rmt_transmit_config_t TRANSMIT_CONFIG = {
     .loop_count = 0,
 };
@@ -96,20 +94,17 @@ static void send_frame(int slot_index)
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
         const uint8_t *buffer = rx_task_get_run_buffer(slot_index, run);
         encode_run(run, buffer); // fills rmt_items[run] / rmt_item_count[run]
-        ESP_ERROR_CHECK(rmt_transmit(
-            rmt_channels[run],            // v2 handle
-            copy_encoder,                 // encoder
-            rmt_items[run],               // encoded symbols
-            sizeof(rmt_symbol_word_t) * rmt_item_count[run],
-            &TRANSMIT_CONFIG));           // includes sync config if applicable
     }
     rx_task_unlock();
 
-    // Release the barrier so all channels start together
-    ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
-
-    // Wait until each channel finishes (v2 wait)
+    // Transmit each run sequentially
     for (unsigned int run = 0; run < RUN_COUNT; ++run) {
+        ESP_ERROR_CHECK(rmt_transmit(
+            rmt_channels[run],
+            copy_encoder,
+            rmt_items[run],
+            sizeof(rmt_symbol_word_t) * rmt_item_count[run],
+            &TRANSMIT_CONFIG));
         ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
     }
 }
@@ -123,9 +118,6 @@ static void send_black(void)
                                      rmt_items[run],
                                      sizeof(rmt_symbol_word_t) * rmt_item_count[run],
                                      &TRANSMIT_CONFIG));
-    }
-    ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
-    for (unsigned int run = 0; run < RUN_COUNT; ++run) {
         ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
     }
 }
@@ -147,7 +139,6 @@ static void flash_run(unsigned int run_index,
                                  rmt_items[run_index],
                                  sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
                                  &TRANSMIT_CONFIG));
-    ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
     ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run_index], pdMS_TO_TICKS(1)));
 }
 
@@ -175,12 +166,6 @@ static void driver_task(void *arg)
         rmt_items[run] = (rmt_symbol_word_t *)malloc(sizeof(rmt_symbol_word_t) * rmt_item_count[run]);
         memset(rmt_items[run], 0, sizeof(rmt_symbol_word_t) * rmt_item_count[run]);
     }
-
-    rmt_sync_manager_config_t sync_config = {
-        .tx_channel_array = rmt_channels,
-        .array_size = RUN_COUNT,
-    };
-    ESP_ERROR_CHECK(rmt_new_sync_manager(&sync_config, &sync_manager));
 
     send_black();
     startup_sequence(RUN_COUNT, flash_run, send_black, delay_ms);
