@@ -3,6 +3,8 @@
 #include "freertos/task.h"
 #include "esp_event.h"
 #include "esp_eth.h"
+#include "esp_eth_mac.h"
+#include "esp_eth_phy.h"
 #include "esp_netif.h"
 #include "esp_log.h"
 #include "lwip/ip4_addr.h"
