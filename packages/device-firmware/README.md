@@ -68,3 +68,27 @@ To build the application and generate configuration, run:
 ```
 
 ## Debugging
+
+### Find out ESP32 port
+1. Unplug the adapter.
+2. In Terminal:
+```
+ls -1 /dev/tty.* /dev/cu.* > /tmp/ports_before.txt
+```
+3. Plug in the adapter, wait 3–5 s, then:
+```
+ls -1 /dev/tty.* /dev/cu.* > /tmp/ports_after.txt
+diff /tmp/ports_before.txt /tmp/ports_after.txt
+```
+
+### Check ESP connection
+```
+python -m esptool --chip esp32 -p /dev/cu.YOURPORT -b 115200 read_mac
+```
+With your port, that would look something like 
+```
+python -m esptool --chip esp32 -p /dev/cu.usbserial-0001 -b 115200 read_mac
+```
+
+idf.py -p /dev/cu.usbserial-0001 monitor
+idf.py -p /dev/cu.usbserial-0001 --monitor-baud 115200 monitor
