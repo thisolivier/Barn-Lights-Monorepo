@@ -5,6 +5,9 @@ import subprocess
 import sys
 
 
+SIDE_MAPPING = {"left": 0, "right": 1}
+
+
 def run_and_read(layout: str, tmp_dir: Path) -> str:
     repo_root = Path(__file__).resolve().parents[2]
     output_path = tmp_dir / "config_autogen.h"
@@ -34,27 +37,39 @@ def run_gen_config(
     )
 
 
+def assert_header_matches_layout(layout_file: str, tmp_dir: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[2]
+    layout_path = repo_root / layout_file
+    layout_data = json.loads(layout_path.read_text())
+
+    header_text = run_and_read(layout_file, tmp_dir)
+
+    side_identifier = SIDE_MAPPING[layout_data["side"].lower()]
+    assert f"#define SIDE_ID {side_identifier}" in header_text
+
+    run_count = len(layout_data["runs"])
+    assert f"#define RUN_COUNT {run_count}" in header_text
+
+    total_led_count = layout_data["total_leds"]
+    assert f"#define TOTAL_LED_COUNT {total_led_count}" in header_text
+
+    expected_led_counts = "{" + ", ".join(str(run["led_count"]) for run in layout_data["runs"]) + "}"
+    assert expected_led_counts in header_text
+
+    for index, value in enumerate(layout_data["static_ip"]):
+        assert f"#define STATIC_IP_ADDR{index} {value}" in header_text
+    for index, value in enumerate(layout_data["static_netmask"]):
+        assert f"#define STATIC_NETMASK_ADDR{index} {value}" in header_text
+    for index, value in enumerate(layout_data["static_gateway"]):
+        assert f"#define STATIC_GW_ADDR{index} {value}" in header_text
+
+
 def test_left_layout_generates_expected_header(tmp_path):
-    header_text = run_and_read("left.json", tmp_path)
-    assert "#define SIDE_ID 0" in header_text
-    assert "#define RUN_COUNT 3" in header_text
-    assert "#define TOTAL_LED_COUNT 1200" in header_text
-    assert "{400, 400, 400}" in header_text
-    assert "#define STATIC_IP_ADDR0 10" in header_text
-    assert "#define STATIC_IP_ADDR3 2" in header_text
-    assert "#define STATIC_NETMASK_ADDR0 255" in header_text
-    assert "#define STATIC_GW_ADDR3 1" in header_text
+    assert_header_matches_layout("left.json", tmp_path)
 
 
 def test_right_layout_generates_expected_header(tmp_path):
-    header_text = run_and_read("right.json", tmp_path)
-    assert "#define SIDE_ID 1" in header_text
-    assert "#define RUN_COUNT 3" in header_text
-    assert "#define TOTAL_LED_COUNT 1500" in header_text
-    assert "{500, 500, 500}" in header_text
-    assert "#define STATIC_IP_ADDR3 3" in header_text
-    assert "#define STATIC_NETMASK_ADDR1 255" in header_text
-    assert "#define STATIC_GW_ADDR0 10" in header_text
+    assert_header_matches_layout("right.json", tmp_path)
 
 
 def test_missing_side_field_results_in_error(tmp_path):
