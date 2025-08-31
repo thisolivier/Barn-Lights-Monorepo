@@ -51,6 +51,10 @@ _Static_assert(RUN1_GPIO >= 0 && RUN1_GPIO <= 39, "RUN1_GPIO out of range");
 _Static_assert(RUN2_GPIO >= 0 && RUN2_GPIO <= 39, "RUN2_GPIO out of range");
 #endif
 
+#define STARTUP_RED 218
+#define STARTUP_GREEN 170
+#define STARTUP_BLUE 52
+
 static rmt_symbol_word_t *rmt_items[RUN_COUNT];
 static size_t rmt_item_count[RUN_COUNT];
 static rmt_channel_handle_t rmt_channels[RUN_COUNT];
@@ -129,6 +133,35 @@ static void send_black(void)
     }
 }
 
+static void startup_sequence(void)
+{
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    for (unsigned int run_index = 0; run_index < RUN_COUNT; ++run_index) {
+        size_t led_count = LED_COUNT[run_index];
+        size_t byte_count = led_count * 3;
+        uint8_t *rgb_buffer = (uint8_t *)malloc(byte_count);
+        for (unsigned int led_index = 0; led_index < led_count; ++led_index) {
+            rgb_buffer[led_index * 3] = STARTUP_RED;
+            rgb_buffer[led_index * 3 + 1] = STARTUP_GREEN;
+            rgb_buffer[led_index * 3 + 2] = STARTUP_BLUE;
+        }
+        encode_run(run_index, rgb_buffer);
+        free(rgb_buffer);
+        for (unsigned int run = 0; run < RUN_COUNT; ++run) {
+            ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run], copy_encoder,
+                                         rmt_items[run],
+                                         sizeof(rmt_symbol_word_t) * rmt_item_count[run],
+                                         &TRANSMIT_CONFIG));
+        }
+        ESP_ERROR_CHECK(rmt_sync_reset(sync_manager));
+        for (unsigned int run = 0; run < RUN_COUNT; ++run) {
+            ESP_ERROR_CHECK(rmt_tx_wait_all_done(rmt_channels[run], pdMS_TO_TICKS(1)));
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
+        send_black();
+    }
+}
+
 static void driver_task(void *arg)
 {
     rmt_copy_encoder_config_t copy_config = {};
@@ -156,10 +189,9 @@ static void driver_task(void *arg)
     ESP_ERROR_CHECK(rmt_new_sync_manager(&sync_config, &sync_manager));
 
     send_black();
+    startup_sequence();
 
-    TickType_t start_tick = xTaskGetTickCount();
     uint32_t last_frame_id = 0;
-    bool first_frame_sent = false;
 
     for (;;) {
         int selected_slot = -1;
@@ -168,14 +200,14 @@ static void driver_task(void *arg)
         for (int slot = 0; slot < 2; ++slot) {
             uint32_t frame_id = rx_task_get_frame_id(slot);
             if (frame_is_newer(frame_id, selected_id)) {
-                bool complete = true;
+                bool frame_complete = true;
                 for (unsigned int run = 0; run < RUN_COUNT; ++run) {
                     if (!rx_task_run_received(slot, run)) {
-                        complete = false;
+                        frame_complete = false;
                         break;
                     }
                 }
-                if (complete) {
+                if (frame_complete) {
                     selected_slot = slot;
                     selected_id = frame_id;
                 }
@@ -183,17 +215,10 @@ static void driver_task(void *arg)
         }
         rx_task_unlock();
 
-        TickType_t now = xTaskGetTickCount();
-        bool blackout_elapsed = (now - start_tick) >= pdMS_TO_TICKS(1000);
-        if (selected_slot >= 0 && blackout_elapsed) {
+        if (selected_slot >= 0) {
             send_frame(selected_slot);
             status_task_increment_applied();
             last_frame_id = selected_id;
-            first_frame_sent = true;
-        }
-
-        if (!first_frame_sent && blackout_elapsed && selected_slot < 0) {
-            send_black();
         }
 
         vTaskDelay(pdMS_TO_TICKS(1));
