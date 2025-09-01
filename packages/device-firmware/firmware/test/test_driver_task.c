@@ -1,15 +1,60 @@
 #include "unity.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 typedef int esp_err_t;
 #define ESP_OK 0
 #define ESP_ERR_TIMEOUT 0x105
 
 typedef void *rmt_channel_handle_t;
+typedef void *rmt_encoder_handle_t;
 typedef int TickType_t;
 
 #define pdMS_TO_TICKS(ms) (ms)
+
+typedef struct {
+    uint32_t duration0;
+    uint32_t level0;
+    uint32_t duration1;
+    uint32_t level1;
+} rmt_symbol_word_t;
+
+typedef struct {
+    int loop_count;
+} rmt_transmit_config_t;
+
+#define RUN_COUNT 1
+static const unsigned int LED_COUNT[RUN_COUNT] = {2};
+
+#define RMT_T0H_TICKS 16
+#define RMT_T0L_TICKS 34
+#define RMT_T1H_TICKS 32
+#define RMT_T1L_TICKS 18
+
+static rmt_symbol_word_t *rmt_items[RUN_COUNT];
+static size_t rmt_item_count[RUN_COUNT];
+static rmt_channel_handle_t rmt_channels[RUN_COUNT];
+static rmt_encoder_handle_t copy_encoder;
+static const rmt_transmit_config_t TRANSMIT_CONFIG = {0};
+
+static const rmt_symbol_word_t *last_transmit_src;
+static size_t last_transmit_size;
+static esp_err_t rmt_transmit(rmt_channel_handle_t channel, rmt_encoder_handle_t encoder,
+                              const void *src, size_t size,
+                              const rmt_transmit_config_t *config) {
+    (void)channel;
+    (void)encoder;
+    (void)config;
+    last_transmit_src = (const rmt_symbol_word_t *)src;
+    last_transmit_size = size;
+    return ESP_OK;
+}
+
+static void ets_delay_us(uint32_t microseconds) {
+    (void)microseconds;
+}
 
 static int delay_calls;
 static void vTaskDelay(TickType_t ticks) {
@@ -45,6 +90,46 @@ static esp_err_t wait_all_done_retry(rmt_channel_handle_t channel) {
     return ESP_ERR_TIMEOUT;
 }
 
+static inline void encode_run(unsigned int run_index, const uint8_t *rgb_data)
+{
+    rmt_symbol_word_t *items = rmt_items[run_index];
+    size_t item_index = 0;
+    for (unsigned int led_index = 0; led_index < LED_COUNT[run_index]; ++led_index) {
+        uint8_t red = rgb_data[led_index * 3];
+        uint8_t green = rgb_data[led_index * 3 + 1];
+        uint8_t blue = rgb_data[led_index * 3 + 2];
+        uint8_t grb[3] = {green, red, blue};
+        for (int color_index = 0; color_index < 3; ++color_index) {
+            uint8_t value = grb[color_index];
+            for (int bit_index = 7; bit_index >= 0; --bit_index) {
+                bool bit_set = value & (1 << bit_index);
+                items[item_index].duration0 = bit_set ? RMT_T1H_TICKS : RMT_T0H_TICKS;
+                items[item_index].level0 = 1;
+                items[item_index].duration1 = bit_set ? RMT_T1L_TICKS : RMT_T0L_TICKS;
+                items[item_index].level1 = 0;
+                ++item_index;
+            }
+        }
+    }
+}
+
+static void send_black(void)
+{
+    for (unsigned int run_index = 0; run_index < RUN_COUNT; ++run_index) {
+        size_t led_count = LED_COUNT[run_index];
+        size_t byte_count = led_count * 3;
+        uint8_t *zero_buffer = (uint8_t *)calloc(byte_count, 1);
+        encode_run(run_index, zero_buffer);
+        free(zero_buffer);
+        rmt_transmit(rmt_channels[run_index], copy_encoder,
+                     rmt_items[run_index],
+                     sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
+                     &TRANSMIT_CONFIG);
+        wait_all_done_retry(rmt_channels[run_index]);
+        ets_delay_us(60);
+    }
+}
+
 void setUp(void) {}
 void tearDown(void) {}
 
@@ -68,9 +153,34 @@ void test_retry_warns_after_exhaustion(void) {
     TEST_ASSERT_TRUE(warning_logged);
 }
 
+void test_send_black_matches_zero_frame(void) {
+    rmt_item_count[0] = LED_COUNT[0] * 24;
+    rmt_symbol_word_t *expected_items =
+        (rmt_symbol_word_t *)malloc(sizeof(rmt_symbol_word_t) * rmt_item_count[0]);
+    rmt_items[0] = expected_items;
+    size_t byte_count = LED_COUNT[0] * 3;
+    uint8_t *zero_buffer = (uint8_t *)calloc(byte_count, 1);
+    encode_run(0, zero_buffer);
+    free(zero_buffer);
+    rmt_symbol_word_t *output_items =
+        (rmt_symbol_word_t *)malloc(sizeof(rmt_symbol_word_t) * rmt_item_count[0]);
+    rmt_items[0] = output_items;
+    wait_failures = 0;
+    warning_logged = false;
+    delay_calls = 0;
+    send_black();
+    TEST_ASSERT_EQUAL_MEMORY(expected_items, output_items,
+                             sizeof(rmt_symbol_word_t) * rmt_item_count[0]);
+    TEST_ASSERT_EQUAL(sizeof(rmt_symbol_word_t) * rmt_item_count[0], last_transmit_size);
+    TEST_ASSERT_EQUAL_PTR(output_items, last_transmit_src);
+    free(expected_items);
+    free(output_items);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_retry_eventually_succeeds);
     RUN_TEST(test_retry_warns_after_exhaustion);
+    RUN_TEST(test_send_black_matches_zero_frame);
     return UNITY_END();
 }
