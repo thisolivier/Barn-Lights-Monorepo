@@ -10,6 +10,7 @@
 #include "driver/rmt_tx.h"
 #include "driver/rmt_encoder.h"
 #include "soc/soc_caps.h"
+#include "esp_log.h"
 
 #include <stdlib.h>
 #include <string.h>
