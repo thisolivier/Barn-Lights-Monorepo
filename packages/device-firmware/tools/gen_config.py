@@ -24,6 +24,11 @@ def generate_header(layout_data: dict) -> str:
 
     run_count = len(layout_data.get("runs", []))
     led_counts = [run.get("led_count", 0) for run in layout_data.get("runs", [])]
+    if run_count > 4:
+        raise ValueError("run_count exceeds 4")
+    for count in led_counts:
+        if count > 400:
+            raise ValueError("led_count exceeds 400")
     total_leds = layout_data.get("total_leds", 0)
 
     static_ip = extract_octets(layout_data, "static_ip")
@@ -52,11 +57,18 @@ def generate_header(layout_data: dict) -> str:
         header_lines.append(f"#define STATIC_NETMASK_ADDR{index} {value}")
     for index, value in enumerate(static_gateway):
         header_lines.append(f"#define STATIC_GW_ADDR{index} {value}")
-
+    header_lines.append("")
+    header_lines.append("_Static_assert(RUN_COUNT <= 4, \"RUN_COUNT exceeds 4\");")
+    for index, count in enumerate(led_counts):
+        header_lines.append(
+            f"_Static_assert({count} <= 400, \"LED_COUNT[{index}] exceeds 400\");"
+        )
     header_lines.extend(
         [
             "",
-            "static const unsigned int LED_COUNT[RUN_COUNT] = {" + ", ".join(str(count) for count in led_counts) + "};",
+            "static const unsigned int LED_COUNT[RUN_COUNT] = {"
+            + ", ".join(str(count) for count in led_counts)
+            + "};",
             "",
         ]
     )

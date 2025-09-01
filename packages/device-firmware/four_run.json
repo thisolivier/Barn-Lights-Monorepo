@@ -1,0 +1,16 @@
+{
+  "side": "left",
+  "total_leds": 1600,
+  "static_ip": [10, 10, 0, 4],
+  "static_netmask": [255, 255, 255, 0],
+  "static_gateway": [10, 10, 0, 1],
+  "port_base": 49620,
+  "gateway_telemetry_port": 49700,
+  "runs": [
+    { "run_index": 0, "led_count": 400, "sections": [{ "id": "r0", "led_count": 400 }] },
+    { "run_index": 1, "led_count": 400, "sections": [{ "id": "r1", "led_count": 400 }] },
+    { "run_index": 2, "led_count": 400, "sections": [{ "id": "r2", "led_count": 400 }] },
+    { "run_index": 3, "led_count": 400, "sections": [{ "id": "r3", "led_count": 400 }] }
+  ],
+  "sampling": { "space": "normalized", "width": 4.0, "height": 1.0 }
+}

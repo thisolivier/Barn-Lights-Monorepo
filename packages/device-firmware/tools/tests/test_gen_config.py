@@ -78,6 +78,10 @@ def test_right_layout_generates_expected_header(tmp_path):
     assert_header_matches_layout("right.json", tmp_path)
 
 
+def test_four_run_layout_generates_expected_header(tmp_path):
+    assert_header_matches_layout("four_run.json", tmp_path)
+
+
 def test_missing_side_field_results_in_error(tmp_path):
     repo_root = Path(__file__).resolve().parents[2]
     malformed_layout_path = tmp_path / "missing_side.json"
