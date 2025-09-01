@@ -18,3 +18,4 @@ Integration and unit tests for the Barn Lights UDP Sender. The tests run with No
 - `integration.test.mjs` runs a mock renderer in a loop and validates the full pipeline through UDP transmission.
 - `layout.test.mjs` checks layout validation.
 - `renderer-process.test.mjs` exercises renderer spawning and NDJSON ingestion.
+- `telemetry-errors.test.mjs` verifies throttled error reporting.
