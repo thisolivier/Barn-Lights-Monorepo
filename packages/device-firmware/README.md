@@ -67,6 +67,12 @@ To build the application and generate configuration, run:
 ./build_app.sh
 ```
 
+## Connecting Lights
+
+* Run 0 → GPIO 12
+* Run 1 → GPIO 13
+* Run 2 → GPIO 14
+
 ## Debugging
 
 ### Find out ESP32 port
@@ -82,6 +88,7 @@ diff /tmp/ports_before.txt /tmp/ports_after.txt
 ```
 
 ### Check ESP connection
+To check if your device is reachable on network:
 ```
 python -m esptool --chip esp32 -p /dev/cu.YOURPORT -b 115200 read_mac
 ```
@@ -90,5 +97,15 @@ With your port, that would look something like
 python -m esptool --chip esp32 -p /dev/cu.usbserial-0001 -b 115200 read_mac
 ```
 
-idf.py -p /dev/cu.usbserial-0001 monitor
-idf.py -p /dev/cu.usbserial-0001 --monitor-baud 115200 monitor
+To open a serial monitor using your serial conversion device (the thing you flashed the ESP32 with):
+```
+idf.py -p /dev/cu.usbserial-0001 --baud 115200 monitor
+```
+`ctrl+t x` to exit
+
+(Mac is 34:ab:95:7e:96:38)
+
+### Mintoring telemetry
+```
+nc -ul 49700
+```
