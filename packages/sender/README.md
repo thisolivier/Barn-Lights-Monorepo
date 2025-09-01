@@ -44,8 +44,9 @@ Use `Ctrl+C` to stop the sender and demo renderer.
 ## UDP Data Format
 
 Each frame is broken into runs and transmitted to the controllers as UDP datagrams.
-For a given side the destination IP is specified in `sender.config.json` and each run
-is sent to `portBase + run_index`.
+For a given side the layout file defines both the destination IP (`static_ip`) and
+the UDP base port (`port_base`). `sender.config.json` only lists paths to these layout
+files, and each run is sent to `portBase + run_index`.
 
 The UDP payload layout is:
 
