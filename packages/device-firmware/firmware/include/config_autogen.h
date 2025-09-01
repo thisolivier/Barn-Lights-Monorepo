@@ -18,4 +18,7 @@
 #define STATIC_GW_ADDR2 0
 #define STATIC_GW_ADDR3 1
 
+_Static_assert(RUN_COUNT <= 4, "RUN_COUNT exceeds 4");
+_Static_assert(20 <= 400, "LED_COUNT[0] exceeds 400");
+
 static const unsigned int LED_COUNT[RUN_COUNT] = {20};

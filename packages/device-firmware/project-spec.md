@@ -8,7 +8,7 @@ This document defines the firmware for the WT32-ETH01 (ESP32 + LAN8720 RMII). It
 
 ### In-scope (v1.1)
 - Static IP Ethernet bring-up (RMII, LAN8720).
-- UDP receiver on `PORT_BASE + run_index` for run 0..N (N ≤ 3).
+- UDP receiver on `PORT_BASE + run_index` for run 0..N (N ≤ 4).
 - Frame assembly by `frame_id`; apply only last complete frame; otherwise hold last applied frame.
 - WS281x (WS2815) output via RMT:
   - **Runs driven in parallel** (each on its own RMT channel) to achieve ≥30 FPS.
@@ -31,9 +31,10 @@ To avoid RMII bus conflicts and boot-strap pitfalls:
 
 - RMII pins: GPIO0, 16, 17, 19, 21, 22, 25, 26, 27. Avoid using these.
 - Default LED data pins (safe choices):
-  - RUN0: GPIO18  
-  - RUN1: GPIO23  
-  - RUN2: GPIO13  
+  - RUN0: GPIO18
+  - RUN1: GPIO23
+  - RUN2: GPIO13
+  - RUN3: GPIO15
 
 GPIO0, 1, 2 are avoided (RMII clock/strap, UART0, boot strap). Alternate pins are compile-time configurable if needed.
 
@@ -67,8 +68,8 @@ GPIO0, 1, 2 are avoided (RMII clock/strap, UART0, boot strap). Alternate pins ar
   "ip": "10.10.0.2",
   "uptime_ms": 123456,
   "link": true,
-  "runs": 3,
-  "leds": [400,400,400],
+  "runs": 4,
+  "leds": [400,400,400,400],
   "rx_frames": 59, // since the last heartbeat
   "complete": 55, // since the last heartbeat
   "applied": 54, // since the last heartbeat
@@ -125,8 +126,8 @@ GPIO0, 1, 2 are avoided (RMII clock/strap, UART0, boot strap). Alternate pins ar
 - 400-LED run: ~12.3 ms.  
 - 500-LED run: ~15.3 ms.  
 - **Serialized (not acceptable):**
-  - Left (3×400) → ~37 ms → ~27 FPS.  
-  - Right (3×500) → ~46 ms → ~22 FPS.  
+  - Left (4×400) → ~49 ms → ~20 FPS.
+  - Right (4×500) → ~61 ms → ~16 FPS.
 - **Parallel (chosen):**
   - All runs in parallel → bounded by longest run (~15.3 ms) → ≥60 FPS headroom.  
 
@@ -172,9 +173,9 @@ GPIO0, 1, 2 are avoided (RMII clock/strap, UART0, boot strap). Alternate pins ar
 | PORT_BASE     | device.json        | 49600         |
 | STATUS_PORT   | device.json        | 49700         |
 | SENDER_IP     | device.json        | "10.10.0.1"   |
-| RUN_COUNT     | generated          | 3             |
-| LED_COUNT[]   | generated          | [400,400,400] |
-| GPIO_DATA[]   | device.json        | [18,23,13]    |
+| RUN_COUNT     | generated          | 4             |
+| LED_COUNT[]   | generated          | [400,400,400,400] |
+| GPIO_DATA[]   | device.json        | [18,23,13,15] |
 
 
 

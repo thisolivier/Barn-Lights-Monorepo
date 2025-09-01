@@ -7,6 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+_Static_assert(RUN_COUNT <= 4, "RUN_COUNT exceeds supported maximum (4)");
+
 #ifndef UNIT_TEST
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
