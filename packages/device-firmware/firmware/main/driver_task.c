@@ -150,7 +150,7 @@ static void send_black(void)
                                      sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
                                      &TRANSMIT_CONFIG));
         wait_all_done_retry(rmt_channels[run_index]);
-        ets_delay_us(60);
+        esp_rom_delay_us(60);
     }
 }
 
