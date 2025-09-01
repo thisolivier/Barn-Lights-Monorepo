@@ -69,8 +69,8 @@ export async function main(argv = process.argv) {
     const rp = new RendererProcess(config, logger);
     const assembler = new Assembler(config, logger, mailbox);
     assembler.bindFrameEmitter(rp);
-    const sender = new UdpSender(config, mailbox, logger);
     const telemetry = new Telemetry(config, mailbox, logger);
+    const sender = new UdpSender(config, mailbox, telemetry, logger);
     telemetry.bindRenderer(rp);
     telemetry.bindAssembler(assembler);
 

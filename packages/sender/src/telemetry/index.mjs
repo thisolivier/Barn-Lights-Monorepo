@@ -15,6 +15,7 @@ export class Telemetry {
     this.logger = logger;
     this.intervalHandle = null;
     this.sides = {};
+    this.errorCounts = new Map();
 
     const sides = runtimeConfig.sides || {};
     for (const [sideName, sideConfig] of Object.entries(sides)) {
@@ -72,6 +73,16 @@ export class Telemetry {
       sideState.frames_built += 1;
       sideState.last_frame_id = frame.frame_id;
     });
+  }
+
+  /**
+   * Record an error message for throttled reporting.
+   * @param {string|Error} err
+   */
+  recordError(err) {
+    const message = typeof err === 'string' ? err : err?.message || String(err);
+    const prev = this.errorCounts.get(message) || 0;
+    this.errorCounts.set(message, prev + 1);
   }
 
   /** Start periodic telemetry output. */
@@ -163,6 +174,13 @@ export class Telemetry {
     console.log(line(header));
     for (const row of rows) {
       console.log(line(row));
+    }
+
+    if (this.errorCounts.size > 0) {
+      for (const [msg, count] of this.errorCounts.entries()) {
+        this.logger.error(`${msg} (${count}x)`);
+      }
+      this.errorCounts.clear();
     }
   }
 }

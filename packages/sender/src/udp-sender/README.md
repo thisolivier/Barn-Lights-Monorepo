@@ -8,10 +8,12 @@ packet for each run within a frame.
 
 ```js
 import { Mailbox } from '../mailbox/index.ts';
+import { Telemetry } from '../telemetry/index.mjs';
 import { UdpSender } from './index.mjs';
 
 const mailbox = new Mailbox();
-const sender = new UdpSender(runtimeConfig, mailbox);
+const telemetry = new Telemetry(runtimeConfig, mailbox);
+const sender = new UdpSender(runtimeConfig, mailbox, telemetry);
 sender.start();
 
 // later when shutting down
@@ -20,4 +22,5 @@ sender.stop();
 
 `UdpSender` calls `mailbox.take(side)` which atomically retrieves the latest
 assembled frame. The mailbox updates telemetry counters (`frames_sent`) when
-frames are consumed.
+frames are consumed. When UDP send errors occur they are passed to the telemetry
+instance which aggregates and prints them below each report.

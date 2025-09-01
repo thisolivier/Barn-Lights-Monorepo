@@ -7,11 +7,13 @@ export class UdpSender {
   /**
    * @param {object} runtimeConfig - Loaded sender configuration
    * @param {Mailbox} mailbox - Mailbox instance for retrieving frames
+   * @param {Telemetry} [telemetry] - Telemetry instance for recording errors
    * @param {{error:Function, warn:Function, info:Function, debug:Function}} [logger=console]
    */
-  constructor(runtimeConfig, mailbox, logger = console) {
+  constructor(runtimeConfig, mailbox, telemetry, logger = console) {
     this.config = runtimeConfig;
     this.mailbox = mailbox;
+    this.telemetry = telemetry;
     this.logger = logger;
     this.sockets = {};
     this.timers = {};
@@ -61,9 +63,12 @@ export class UdpSender {
         sideConfig.ip,
         (err) => {
           if (err) {
-            this.logger.error(
-              `UDP send error for side ${sideName}: ${err.message}`,
-            );
+            const msg = `UDP send error for side ${sideName}: ${err.message}`;
+            if (this.telemetry && typeof this.telemetry.recordError === 'function') {
+              this.telemetry.recordError(msg);
+            } else {
+              this.logger.error(msg);
+            }
           }
         },
       );
