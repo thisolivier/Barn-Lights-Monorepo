@@ -26,7 +26,7 @@ typedef struct {
 } rmt_transmit_config_t;
 
 #define RUN_COUNT 1
-static const unsigned int LED_COUNT[RUN_COUNT] = {2};
+static const unsigned int LED_COUNT[RUN_COUNT] = {3};
 
 #define RMT_T0H_TICKS 16
 #define RMT_T0L_TICKS 34
@@ -177,10 +177,40 @@ void test_send_black_matches_zero_frame(void) {
     free(output_items);
 }
 
+void test_long_frame_transmitted_completely(void) {
+    rmt_item_count[0] = LED_COUNT[0] * 24;
+    rmt_symbol_word_t *frame_items =
+        (rmt_symbol_word_t *)malloc(sizeof(rmt_symbol_word_t) * rmt_item_count[0]);
+    rmt_items[0] = frame_items;
+    size_t byte_count = LED_COUNT[0] * 3;
+    uint8_t *pattern_buffer = (uint8_t *)malloc(byte_count);
+    for (size_t byte_index = 0; byte_index < byte_count; ++byte_index) {
+        pattern_buffer[byte_index] = (uint8_t)byte_index;
+    }
+    encode_run(0, pattern_buffer);
+    free(pattern_buffer);
+    last_transmit_src = NULL;
+    last_transmit_size = 0;
+    rmt_transmit(rmt_channels[0], copy_encoder, rmt_items[0],
+                 sizeof(rmt_symbol_word_t) * rmt_item_count[0],
+                 &TRANSMIT_CONFIG);
+    TEST_ASSERT_TRUE(rmt_item_count[0] > 64);
+    TEST_ASSERT_EQUAL(sizeof(rmt_symbol_word_t) * rmt_item_count[0],
+                      last_transmit_size);
+    TEST_ASSERT_EQUAL_PTR(rmt_items[0], last_transmit_src);
+    rmt_symbol_word_t tail_symbol = rmt_items[0][rmt_item_count[0] - 1];
+    TEST_ASSERT_EQUAL_UINT32(RMT_T0H_TICKS, tail_symbol.duration0);
+    TEST_ASSERT_EQUAL_UINT32(1, tail_symbol.level0);
+    TEST_ASSERT_EQUAL_UINT32(RMT_T0L_TICKS, tail_symbol.duration1);
+    TEST_ASSERT_EQUAL_UINT32(0, tail_symbol.level1);
+    free(frame_items);
+}
+
 int main(void) {
     UNITY_BEGIN();
     RUN_TEST(test_retry_eventually_succeeds);
     RUN_TEST(test_retry_warns_after_exhaustion);
     RUN_TEST(test_send_black_matches_zero_frame);
+    RUN_TEST(test_long_frame_transmitted_completely);
     return UNITY_END();
 }
