@@ -15,6 +15,13 @@ telemetry.start();
 
 Call `stop()` during shutdown to flush the final report.
 
+To throttle repeated errors, call `recordError()` whenever an error occurs. The
+messages are deduplicated and printed with counts below each report.
+
+```javascript
+telemetry.recordError('UDP send error for side left: EHOSTUNREACH');
+```
+
 ## Counters
 
 Per side counters maintained and reported:
