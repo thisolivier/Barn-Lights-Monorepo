@@ -1,6 +1,6 @@
 # Telemetry
 
-The telemetry module gathers runtime statistics from the renderer, assembler and UDP sender.  It listens for events to count frames and periodically prints a summary table.
+The telemetry module gathers runtime statistics from the renderer, assembler and UDP sender. It listens for events to count frames and periodically prints a summary table with per-interval counts.
 
 ## Usage
 
@@ -24,7 +24,7 @@ telemetry.recordError('UDP send error for side left: EHOSTUNREACH');
 
 ## Counters
 
-Per side counters maintained and reported:
+Per side counters maintained and reported (values since the previous report):
 
 - `frames_ingested` – frames received from the renderer.
 - `frames_built` – frames successfully assembled.

@@ -38,7 +38,10 @@ export class Telemetry {
         last_send_ts: null,
         runs: runStats,
         run_packet_sizes: runPacketSizes,
+        prev_frames_ingested: 0,
+        prev_frames_built: 0,
         prev_frames_sent: 0,
+        prev_frames_dropped_overwrite: 0,
         last_build_warn: 0,
         last_overwrite_warn: 0,
       };
@@ -115,9 +118,15 @@ export class Telemetry {
 
     for (const [sideName, state] of Object.entries(this.sides)) {
       const stats = this.mailbox.stats(sideName);
+      const deltaFramesIngested =
+        state.frames_ingested - state.prev_frames_ingested;
+      const deltaFramesBuilt =
+        state.frames_built - state.prev_frames_built;
       const deltaFramesSent = stats.frames_sent - state.prev_frames_sent;
+      const deltaFramesDroppedOverwrite =
+        stats.frames_dropped_overwrite - state.prev_frames_dropped_overwrite;
       state.frames_sent = stats.frames_sent;
-      state.frames_dropped_overwrite = stats.frames_dropped_overwrite;
+      state.frames_dropped_overwrite = deltaFramesDroppedOverwrite;
       if (deltaFramesSent > 0) {
         state.last_send_ts = now;
       }
@@ -133,30 +142,41 @@ export class Telemetry {
       }
       state.pps = packets / intervalSeconds;
       state.bytes_per_sec = bytes / intervalSeconds;
-      state.frames_dropped_build = state.frames_ingested - state.frames_built;
+      const deltaFramesDroppedBuild =
+        deltaFramesIngested - deltaFramesBuilt;
+      state.frames_dropped_build = deltaFramesDroppedBuild;
 
-      if (state.frames_dropped_build > 0 && now - state.last_build_warn > 5000) {
+      if (
+        deltaFramesDroppedBuild > 0 &&
+        now - state.last_build_warn > 5000
+      ) {
         this.logger.warn(
-          `${sideName} dropped ${state.frames_dropped_build} frame(s) during build`,
+          `${sideName} dropped ${deltaFramesDroppedBuild} frame(s) during build`,
         );
         state.last_build_warn = now;
       }
-      if (state.frames_dropped_overwrite > 0 && now - state.last_overwrite_warn > 5000) {
+      if (
+        deltaFramesDroppedOverwrite > 0 &&
+        now - state.last_overwrite_warn > 5000
+      ) {
         this.logger.warn(
-          `${sideName} dropped ${state.frames_dropped_overwrite} frame(s) due to overwrite`,
+          `${sideName} dropped ${deltaFramesDroppedOverwrite} frame(s) due to overwrite`,
         );
         state.last_overwrite_warn = now;
       }
 
+      state.prev_frames_ingested = state.frames_ingested;
+      state.prev_frames_built = state.frames_built;
       state.prev_frames_sent = stats.frames_sent;
+      state.prev_frames_dropped_overwrite = stats.frames_dropped_overwrite;
 
       rows.push([
         sideName,
-        state.frames_ingested,
-        state.frames_built,
-        state.frames_sent,
-        state.frames_dropped_build,
-        state.frames_dropped_overwrite,
+        deltaFramesIngested,
+        deltaFramesBuilt,
+        deltaFramesSent,
+        deltaFramesDroppedBuild,
+        deltaFramesDroppedOverwrite,
         state.pps.toFixed(1),
         state.bytes_per_sec.toFixed(1),
         state.last_frame_id ?? '',
