@@ -10,6 +10,8 @@
 #include "driver/rmt_tx.h"
 #include "driver/rmt_encoder.h"
 #include "soc/soc_caps.h"
+#include "esp_log.h"
+#include "esp_rom_sys.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -137,13 +139,18 @@ static void send_frame(int slot_index)
 
 static void send_black(void)
 {
-    for (unsigned int run = 0; run < RUN_COUNT; ++run) {
-        memset(rmt_items[run], 0, sizeof(rmt_symbol_word_t) * rmt_item_count[run]);
-        ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run], copy_encoder,
-                                     rmt_items[run],
-                                     sizeof(rmt_symbol_word_t) * rmt_item_count[run],
+    for (unsigned int run_index = 0; run_index < RUN_COUNT; ++run_index) {
+        size_t led_count = LED_COUNT[run_index];
+        size_t byte_count = led_count * 3;
+        uint8_t *zero_buffer = (uint8_t *)calloc(byte_count, 1);
+        encode_run(run_index, zero_buffer);
+        free(zero_buffer);
+        ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run_index], copy_encoder,
+                                     rmt_items[run_index],
+                                     sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
                                      &TRANSMIT_CONFIG));
-        wait_all_done_retry(rmt_channels[run]);
+        wait_all_done_retry(rmt_channels[run_index]);
+        ets_delay_us(60);
     }
 }
 
