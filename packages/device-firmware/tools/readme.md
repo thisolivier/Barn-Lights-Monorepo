@@ -37,3 +37,18 @@ python tools/heartbeat_monitor.py --port 49700
 ```
 
 The port defaults to `49700`, so the flag is optional.
+
+## Additional scripts
+
+The `build_app.sh` script generates configuration using `gen_config.py` and
+builds the firmware:
+
+```
+./tools/build_app.sh
+```
+
+The `run_all_tests.sh` script executes the Python and host test suites:
+
+```
+./tools/run_all_tests.sh
+```
