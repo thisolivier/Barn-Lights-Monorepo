@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Generate configuration
-python tools/gen_config.py --layout left.json
+python tools/gen_config.py --layout config/left.json
 
 # Build firmware
 pushd firmware >/dev/null

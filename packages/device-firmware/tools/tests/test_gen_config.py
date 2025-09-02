@@ -12,7 +12,14 @@ def run_and_read(layout: str, tmp_dir: Path) -> str:
     repo_root = Path(__file__).resolve().parents[2]
     output_path = tmp_dir / "config_autogen.h"
     subprocess.run(
-        ["python", "tools/gen_config.py", "--layout", str(repo_root / layout), "--output", str(output_path)],
+        [
+            "python",
+            "tools/gen_config.py",
+            "--layout",
+            str(repo_root / layout),
+            "--output",
+            str(output_path),
+        ],
         check=True,
         cwd=repo_root,
     )
@@ -71,21 +78,21 @@ def assert_header_matches_layout(layout_file: str, tmp_dir: Path) -> None:
 
 
 def test_left_layout_generates_expected_header(tmp_path):
-    assert_header_matches_layout("left.json", tmp_path)
+    assert_header_matches_layout("config/left.json", tmp_path)
 
 
 def test_right_layout_generates_expected_header(tmp_path):
-    assert_header_matches_layout("right.json", tmp_path)
+    assert_header_matches_layout("config/right.json", tmp_path)
 
 
 def test_four_run_layout_generates_expected_header(tmp_path):
-    assert_header_matches_layout("four_run.json", tmp_path)
+    assert_header_matches_layout("config/four_run.json", tmp_path)
 
 
 def test_missing_side_field_results_in_error(tmp_path):
     repo_root = Path(__file__).resolve().parents[2]
     malformed_layout_path = tmp_path / "missing_side.json"
-    layout_data = json.loads((repo_root / "left.json").read_text())
+    layout_data = json.loads((repo_root / "config" / "left.json").read_text())
     layout_data.pop("side")
     malformed_layout_path.write_text(json.dumps(layout_data))
 
@@ -97,7 +104,7 @@ def test_missing_side_field_results_in_error(tmp_path):
 def test_missing_port_base_results_in_error(tmp_path):
     repo_root = Path(__file__).resolve().parents[2]
     malformed_layout_path = tmp_path / "missing_port_base.json"
-    layout_data = json.loads((repo_root / "left.json").read_text())
+    layout_data = json.loads((repo_root / "config" / "left.json").read_text())
     layout_data.pop("port_base")
     malformed_layout_path.write_text(json.dumps(layout_data))
 
@@ -109,7 +116,7 @@ def test_missing_port_base_results_in_error(tmp_path):
 def test_missing_gateway_port_results_in_error(tmp_path):
     repo_root = Path(__file__).resolve().parents[2]
     malformed_layout_path = tmp_path / "missing_gateway_port.json"
-    layout_data = json.loads((repo_root / "left.json").read_text())
+    layout_data = json.loads((repo_root / "config" / "left.json").read_text())
     layout_data.pop("gateway_telemetry_port")
     malformed_layout_path.write_text(json.dumps(layout_data))
 
