@@ -38,7 +38,7 @@ cmake --build firmware/test/build
 To execute all test suites sequentially, run:
 
 ```
-./run_all_tests.sh
+./tools/run_all_tests.sh
 ```
 
 ## Deploying Code
@@ -73,7 +73,7 @@ See [flash guide](docs/flash-guide.md)
 To build the application and generate configuration, run:
 
 ```
-./build_app.sh
+./tools/build_app.sh
 ```
 
 ## Connecting Lights
