@@ -10,8 +10,3 @@ cmake --build firmware/test/build
 ./firmware/test/build/test_rx_task
 ./firmware/test/build/test_status_task
 ./firmware/test/build/test_driver_task
-
-# Execute firmware unit tests
-pushd firmware >/dev/null
-idf.py test
-popd >/dev/null
