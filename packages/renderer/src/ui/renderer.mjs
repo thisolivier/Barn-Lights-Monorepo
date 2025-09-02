@@ -1,5 +1,6 @@
 import { sliceSection, clamp01 } from "../effects/modifiers.mjs";
 import { renderFrames } from "../render-scene.mjs";
+import { tickReboot } from "./reboot.mjs";
 
 export function drawSceneToCanvas(ctx, sceneF32, sceneW, sceneH){
   const img = ctx.createImageData(sceneW, sceneH);
@@ -57,5 +58,6 @@ export function frame(
   if (layoutLeft) drawSectionsToCanvas(ctxL, leftFrame, layoutLeft, sceneW, sceneH);
   drawSceneToCanvas(ctxR, rightFrame, sceneW, sceneH);
   if (layoutRight) drawSectionsToCanvas(ctxR, rightFrame, layoutRight, sceneW, sceneH);
+  tickReboot(win.performance.now());
   win.requestAnimationFrame(() => frame(win, ctxL, ctxR, leftFrame, rightFrame, P, layoutLeft, layoutRight, sceneW, sceneH));
 }

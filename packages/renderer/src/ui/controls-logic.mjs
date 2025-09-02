@@ -4,6 +4,7 @@ import { renderControls } from './subviews/index.mjs';
 import { rgbToHex } from './subviews/utils.mjs';
 import { initSpeedSlider } from './subviews/speedSlider.mjs';
 import { refreshPresetPanel } from './presets.mjs';
+import { requestReboot } from './reboot.mjs';
 
 // Function used to send parameter patches back to the engine
 let sendFn = null;
@@ -186,6 +187,11 @@ export function initUI(win, doc, P, send){
     renderMode.value = P.renderMode;
     renderMode.onchange = () => { P.renderMode = renderMode.value; send({ renderMode: renderMode.value }); };
   }
+
+  const rebootLeft = doc.getElementById('rebootLeft');
+  if (rebootLeft) rebootLeft.onclick = () => requestReboot('left');
+  const rebootRight = doc.getElementById('rebootRight');
+  if (rebootRight) rebootRight.onclick = () => requestReboot('right');
   
   const updateAngles = () => {
     if (pitchDeg && doc.activeElement !== pitchDeg) pitchDeg.value = Math.abs(P.post.pitch || 0).toFixed(1);
