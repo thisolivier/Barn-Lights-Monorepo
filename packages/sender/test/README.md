@@ -7,6 +7,7 @@ Integration and unit tests for the Barn Lights UDP Sender. The tests run with No
 - `renderer_crash.mjs` simulates a renderer that exits with an error.
 - `renderer_loop.mjs` continuously streams frames from `config/input-sample.txt` (or a provided path) for integration testing.
 - `renderer_preamble.mjs` prints startup messages before emitting the first frame to test preamble handling.
+- `renderer_reboot.mjs` emits a reboot control frame after an initial timestamped frame.
 - `decode-sample-frame.mjs` decodes the first sample frame into a run buffer for assertions.
 - `adapt-sample.mjs` rewrites renderer samples so that section lengths match the current layout configuration.
 
@@ -19,3 +20,4 @@ Integration and unit tests for the Barn Lights UDP Sender. The tests run with No
 - `layout.test.mjs` checks layout validation.
 - `renderer-process.test.mjs` exercises renderer spawning and NDJSON ingestion.
 - `telemetry-errors.test.mjs` verifies throttled error reporting.
+- `udp-sender.test.mjs` checks reboot signal transmission.
