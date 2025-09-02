@@ -14,7 +14,7 @@ This directory contains the ESP-IDF based firmware for the Barn Lights system.
 ## Building
 
 First ensure you have generated your config using `./tools/gen_config.py` (see tools/readme.md).
-Ensure ESP-IDF is installed and in your PATH (see `./ESP-IDF.md`)
+Ensure ESP-IDF is installed and in your PATH (see [`../docs/ESP-IDF.md`](../docs/ESP-IDF.md))
 Navigate to this directory, then run:
 
 ```
