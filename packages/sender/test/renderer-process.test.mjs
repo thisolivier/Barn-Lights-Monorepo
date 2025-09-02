@@ -79,3 +79,21 @@ test('emits error when renderer crashes', async () => {
   assert(err instanceof Error);
 });
 
+test('emits reboot events for special frames', async () => {
+  const runtimeConfig = {
+    renderer: {
+      cmd: process.execPath,
+      args: [path.join(__dirname, 'fixtures', 'renderer_reboot.mjs')],
+    },
+  };
+  const logs = [];
+  const logger = { error: (msg) => logs.push(msg), warn() {}, info() {}, debug() {} };
+  const rp = new RendererProcess(runtimeConfig, logger);
+  const receivedSides = [];
+  rp.on('Reboot', (sideName) => receivedSides.push(sideName));
+  const child = rp.start();
+  await new Promise((resolve) => child.on('close', resolve));
+  assert.deepEqual(receivedSides, ['left']);
+  assert.strictEqual(logs.length, 0);
+});
+

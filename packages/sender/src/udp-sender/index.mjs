@@ -43,6 +43,30 @@ export class UdpSender {
   }
 
   /**
+   * Send a single reboot signal to the controller for the given side.
+   * @param {"left"|"right"} sideName
+   */
+  sendRebootSignal(sideName) {
+    const sideConfig = this.config.sides?.[sideName];
+    const socket = this.sockets[sideName];
+    if (!sideConfig || !socket) {
+      return;
+    }
+    const rebootPort = sideConfig.portBase + 100;
+    const message = Buffer.alloc(1);
+    socket.send(message, rebootPort, sideConfig.ip, (err) => {
+      if (err) {
+        const msg = `UDP reboot send error for side ${sideName}: ${err.message}`;
+        if (this.telemetry && typeof this.telemetry.recordError === 'function') {
+          this.telemetry.recordError(msg);
+        } else {
+          this.logger.error(msg);
+        }
+      }
+    });
+  }
+
+  /**
    * Check the mailbox for a frame and send packets for each run.
    * @param {"left"|"right"} sideName
    * @param {object} sideConfig

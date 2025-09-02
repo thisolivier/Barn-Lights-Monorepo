@@ -79,6 +79,10 @@ export async function main(argv = process.argv) {
     telemetry.bindRenderer(rp);
     telemetry.bindAssembler(assembler);
 
+    rp.on('Reboot', (sideName) => {
+      sender.sendRebootSignal(sideName);
+    });
+
     rp.on('error', (err) => {
       logger.error(err.message);
       sender.stop();
