@@ -17,13 +17,13 @@ python -m pip install -r tools/requirements.txt
 Generate configuration from a layout file:
 
 ```
-python tools/gen_config.py --layout left.json
+python tools/gen_config.py --layout config/left.json
 ```
 
 Specify a custom output path if needed:
 
 ```
-python tools/gen_config.py --layout right.json --output /tmp/config.h
+python tools/gen_config.py --layout config/right.json --output /tmp/config.h
 ```
 
 The script will exit with an error when the layout file is malformed or missing
