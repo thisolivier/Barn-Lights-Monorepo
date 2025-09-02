@@ -6,7 +6,7 @@ script_directory="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repository_root="$(cd "${script_directory}/.." && pwd)"
 
 # Generate configuration
-python "${repository_root}/tools/gen_config.py" --layout "${repository_root}/left.json"
+python "${repository_root}/tools/gen_config.py" --layout "${repository_root}/config/left.json"
 
 # Build firmware
 pushd "${repository_root}/firmware" >/dev/null
