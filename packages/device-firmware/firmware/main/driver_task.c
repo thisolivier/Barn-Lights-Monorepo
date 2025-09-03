@@ -140,38 +140,59 @@ static void send_frame(int slot_index)
 static void send_black(void)
 {
     for (unsigned int run_index = 0; run_index < RUN_COUNT; ++run_index) {
-        size_t led_count = LED_COUNT[run_index];
-        size_t byte_count = led_count * 3;
-        uint8_t *zero_buffer = (uint8_t *)calloc(byte_count, 1);
-        encode_run(run_index, zero_buffer);
-        free(zero_buffer);
         ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run_index], copy_encoder,
                                      rmt_items[run_index],
-                                     sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
+                                     sizeof(rmt_symbol_word_t) *
+                                         rmt_item_count[run_index],
                                      &TRANSMIT_CONFIG));
         wait_all_done_retry(rmt_channels[run_index]);
         esp_rom_delay_us(60);
     }
 }
 
-static void flash_run(unsigned int run_index,
-                      uint8_t red, uint8_t green, uint8_t blue)
+static void encode_single_led(rmt_symbol_word_t *items,
+                              uint8_t red,
+                              uint8_t green,
+                              uint8_t blue)
 {
-    size_t led_count = LED_COUNT[run_index];
-    size_t byte_count = led_count * 3;
-    uint8_t *rgb_buffer = (uint8_t *)malloc(byte_count);
-    for (unsigned int led = 0; led < led_count; ++led) {
-        rgb_buffer[led * 3] = red;
-        rgb_buffer[led * 3 + 1] = green;
-        rgb_buffer[led * 3 + 2] = blue;
+    uint8_t grb[3] = {green, red, blue};
+    for (int color = 0; color < 3; ++color) {
+        uint8_t value = grb[color];
+        for (int bit = 7; bit >= 0; --bit) {
+            bool bit_set = value & (1 << bit);
+            items->duration0 = bit_set ? RMT_T1H_TICKS : RMT_T0H_TICKS;
+            items->level0 = 1;
+            items->duration1 = bit_set ? RMT_T1L_TICKS : RMT_T0L_TICKS;
+            items->level1 = 0;
+            ++items;
+        }
     }
-    encode_run(run_index, rgb_buffer);
-    free(rgb_buffer);
+}
+
+static void flash_run(unsigned int run_index,
+                      uint8_t red,
+                      uint8_t green,
+                      uint8_t blue)
+{
+    const unsigned int FLASH_PIXEL_COUNT = 8;
+    unsigned int pixel_count = FLASH_PIXEL_COUNT;
+    if (pixel_count > LED_COUNT[run_index]) {
+        pixel_count = LED_COUNT[run_index];
+    }
+
+    rmt_symbol_word_t *items = rmt_items[run_index];
+    for (unsigned int led = 0; led < pixel_count; ++led) {
+        encode_single_led(items + led * 24, red, green, blue);
+    }
+
     ESP_ERROR_CHECK(rmt_transmit(rmt_channels[run_index], copy_encoder,
                                  rmt_items[run_index],
-                                 sizeof(rmt_symbol_word_t) * rmt_item_count[run_index],
+                                 sizeof(rmt_symbol_word_t) *
+                                     rmt_item_count[run_index],
                                  &TRANSMIT_CONFIG));
     wait_all_done_retry(rmt_channels[run_index]);
+
+    memset(items, 0, sizeof(rmt_symbol_word_t) * pixel_count * 24);
 }
 
 static void delay_ms(uint32_t ms)
