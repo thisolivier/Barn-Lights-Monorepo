@@ -1,6 +1,6 @@
 {
   "side": "left",
-  "total_leds": 20,
+  "total_leds": 1041,
   "static_ip": [10, 10, 0, 2],
   "static_netmask": [255, 255, 255, 0],
   "static_gateway": [10, 10, 0, 1],
@@ -9,12 +9,30 @@
   "runs": [
     {
       "run_index": 0,
-      "led_count": 20,
+      "led_count": 362,
       "sections": [
-        { "id": "row_A1", "led_count": 10, "y": 0, "x0": 0.0, "x1": 1 },
-        { "id": "row_A2", "led_count": 10, "y": 1, "x0": 1,  "x1": 2 }
+        { "id": "b6", "led_count": 124, "y": 0.8, "x0": 1, "x1": 2.05 },
+        { "id": "b7", "led_count": 128, "y": 0.6, "x0": 2.05,  "x1": 0.85 },
+        { "id": "b8", "led_count": 110, "y": 0.5, "x0": 0,  "x1": 0.9 }
+      ]
+    },
+    {
+      "run_index": 1,
+      "led_count": 300,
+      "sections": [
+        { "id": "b3", "led_count": 161, "y": 0.8, "x0": 3.3, "x1": 4.85 },
+        { "id": "b2", "led_count": 139, "y": 0.7, "x0": 4.9,  "x1": 6.1 }
+      ]
+    },
+    {
+      "run_index": 2,
+      "led_count": 379,
+      "sections": [
+        { "id": "b5", "led_count": 173, "y": 0.7, "x0": 2.6, "x1": 4.25 },
+        { "id": "b4", "led_count": 85, "y": 0.6, "x0": 3.6,  "x1": 4.85 },
+        { "id": "b1", "led_count": 121, "y": 0.6, "x0": 5.7,  "x1": 7 }
       ]
     }
   ],
-  "sampling": { "space": "normalized", "width": 2.0, "height": 1.0 }
+  "sampling": { "space": "normalized", "width": 7.0, "height": 1.0 }
 }
