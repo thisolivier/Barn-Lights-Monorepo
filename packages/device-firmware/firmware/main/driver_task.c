@@ -238,6 +238,6 @@ static void driver_task(void *arg)
 
 void driver_task_start(void)
 {
-    xTaskCreate(driver_task, "driver_task", 4096, NULL, 5, NULL);
+    xTaskCreatePinnedToCore(driver_task, "driver_task", 4096, NULL, 5, NULL, 1);
 }
 
