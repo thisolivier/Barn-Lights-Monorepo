@@ -63,6 +63,12 @@ Offset  Size  Description
 - Controllers should only display a frame after receiving all runs for a side with
   the same `frame_id`; otherwise the last complete frame should remain visible.
 
+### Special Control Frames
+
+The renderer may emit a line such as `{ "reboot": true, "side": "left" }` to
+request that a controller reboot. When received, the sender transmits a single
+byte via UDP to `port_base + 100` for the specified side.
+
 ## Exit Codes
 
 - `0` Normal shutdown.

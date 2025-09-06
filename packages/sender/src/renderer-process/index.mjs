@@ -61,6 +61,13 @@ export class RendererProcess extends EventEmitter {
         this.logger.error(`Failed to parse NDJSON line: ${line}`);
         return;
       }
+      if (parsed.reboot === true && parsed.side) {
+        // Special control frame requesting a controller reboot. Emit a
+        // dedicated event so higher layers can react without trying to
+        // assemble the frame as RGB data.
+        this.emit('Reboot', parsed.side);
+        return;
+      }
       if (parsed.format !== 'rgb8') {
         // The renderer might emit other formats, but for now we only
         // understand "rgb8" frames.

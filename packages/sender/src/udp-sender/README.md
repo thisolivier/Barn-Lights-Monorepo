@@ -4,6 +4,9 @@ Fetches frames from the [Mailbox](../mailbox) and sends them to each side's
 controller over UDP. One loop runs per side, polling the mailbox and emitting a
 packet for each run within a frame.
 
+The sender exposes `sendRebootSignal(side)` for emitting a single byte to
+`portBase + 100` when a renderer requests a controller reboot.
+
 ## Usage
 
 ```js
