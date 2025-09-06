@@ -24,6 +24,12 @@ export function colorStopsWidget(key, schema, values, send){
     send({ [key]: stops });
   }
 
-  gp.on('change', () => sync());
+  // Listen to handler events as Grapick's aggregated change event
+  // is not always fired on color updates.
+  const updateStops = () => sync();
+  gp.on('handler:color:change', updateStops);
+  gp.on('handler:position:change', updateStops);
+  gp.on('handler:add', updateStops);
+  gp.on('handler:remove', updateStops);
   return label;
 }

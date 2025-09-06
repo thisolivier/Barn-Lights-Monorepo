@@ -8,7 +8,7 @@ Dynamic UI widgets for effect parameters.
 - `button.mjs` – sends a boolean toggle on click.
 - `enum.mjs` – dropdown selector.
 - `color.mjs` – RGB color picker.
-- `colorStops.mjs` – wraps the Grapick gradient picker for draggable color/position stops.
+- `colorStops.mjs` – wraps the Grapick gradient picker for draggable color/position stops and syncs on handler events.
 
 The `gradient` effect uses the `colorStops` widget to define its color palette.
 

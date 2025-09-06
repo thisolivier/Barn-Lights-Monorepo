@@ -1,0 +1,37 @@
+{
+  "effect": "diagonalStripes",
+  "fpsCap": 39,
+  "renderMode": "mirror",
+  "post": {
+    "brightness": 0.69,
+    "tint": [
+      1,
+      1,
+      1
+    ],
+    "gamma": 0.5,
+    "strobeHz": 0,
+    "strobeDuty": 0.5,
+    "strobeLow": 0,
+    "pitchSpeed": 0,
+    "yawSpeed": 1.2131596631049868,
+    "pitch": 75.69845154314454,
+    "yaw": 215.24281964047043
+  },
+  "effects": {
+    "diagonalStripes": {
+      "colorA": [
+        1,
+        0.25098039215686274,
+        1
+      ],
+      "colorB": [
+        1,
+        0.5764705882352941,
+        0
+      ],
+      "width": 0.04,
+      "angle": 41
+    }
+  }
+}

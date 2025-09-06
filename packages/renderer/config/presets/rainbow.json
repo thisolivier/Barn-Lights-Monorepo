@@ -1,7 +1,23 @@
 {
-  "fpsCap": 60,
   "effect": "gradient",
+  "fpsCap": 39,
   "renderMode": "duplicate",
+  "post": {
+    "brightness": 0.71,
+    "tint": [
+      1,
+      1,
+      1
+    ],
+    "gamma": 1,
+    "strobeHz": 0,
+    "strobeDuty": 0.5,
+    "strobeLow": 0,
+    "pitchSpeed": -100.61813186813184,
+    "yawSpeed": 0,
+    "pitch": 47.84190104175991,
+    "yaw": 0
+  },
   "effects": {
     "gradient": {
       "stops": [
@@ -65,21 +81,5 @@
       "gradPhase": 0,
       "reverse": false
     }
-  },
-  "post": {
-    "brightness": 1,
-    "tint": [
-      1,
-      1,
-      1
-    ],
-    "gamma": 1,
-    "strobeHz": 0,
-    "strobeDuty": 0.5,
-    "strobeLow": 0,
-    "pitchSpeed": 249.14148351648348,
-    "yawSpeed": 0,
-    "pitch": 324.8878432707367,
-    "yaw": 0
   }
 }

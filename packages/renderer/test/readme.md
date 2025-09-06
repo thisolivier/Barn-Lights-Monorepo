@@ -10,6 +10,8 @@ Automated checks for BarnLights Playbox:
 - `web.test.mjs` – loads the browser preview and fails on console errors.
 - `renderFrames.test.mjs` – verifies duplicate, extended, and mirror frame-splitting modes.
 - `gradient.test.mjs` – confirms the gradient effect can reverse direction.
+- `colorStopsWidget.test.mjs` – ensures the gradient picker emits stop updates.
+- `gradientStopsRenderer.test.mjs` – checks the renderer applies updated gradient colors.
 
 The engine exports a `start` function and is invoked via `bin/engine.mjs`, which also launches the HTTP server. Web server and engine can be invoked independently for testing.
 
