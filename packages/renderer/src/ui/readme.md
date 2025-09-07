@@ -3,7 +3,7 @@
 Browser interface providing a live preview above a panel of controls.
 
 
-- `index.html` – UI control layout and visual effect preview.
+- `index.html` – UI control layout and visual effect preview. The "General" panel includes checkboxes to persist brightness, gamma, FPS cap and render mode when switching effects or presets.
 - `main.mjs` – entry point for JS logic, wiring modules together, exposes a 'run' function.
 - `connection.mjs` – WebSocket setup and message handling.
 - `controls-logic.mjs` – wires DOM controls to params and renders effect-specific widgets.

@@ -15,6 +15,14 @@ let currentEffectValues = null;
 let updatePitch = null;
 let updateYaw = null;
 
+// Track persistent general settings when checkboxes are enabled
+const persisted = {
+  brightness: null,
+  gamma: null,
+  fpsCap: null,
+  renderMode: null,
+};
+
 /**
  * Render parameter widgets for the active effect and keep them in sync
  * with the current parameter values.
@@ -81,6 +89,22 @@ function applyPost(doc, P){
 
 /** Apply the entire parameter state to the UI inputs. */
 export function applyUI(doc, P){
+  if (persisted.fpsCap !== null && P.fpsCap !== persisted.fpsCap) {
+    P.fpsCap = persisted.fpsCap;
+    if (sendFn) sendFn({ fpsCap: P.fpsCap });
+  }
+  if (persisted.renderMode !== null && P.renderMode !== persisted.renderMode) {
+    P.renderMode = persisted.renderMode;
+    if (sendFn) sendFn({ renderMode: P.renderMode });
+  }
+  if (persisted.brightness !== null && P.post.brightness !== persisted.brightness) {
+    P.post.brightness = persisted.brightness;
+    if (sendFn) sendFn({ brightness: P.post.brightness });
+  }
+  if (persisted.gamma !== null && P.post.gamma !== persisted.gamma) {
+    P.post.gamma = persisted.gamma;
+    if (sendFn) sendFn({ gamma: P.post.gamma });
+  }
   const effect = doc.getElementById('effect');
   if (effect && effect.value !== P.effect) effect.value = P.effect;
   applyFpsCap(doc,P);
@@ -112,6 +136,7 @@ export function initUI(win, doc, P, send){
 
   const fps = doc.getElementById('fpsCap');
   const fpsV = doc.getElementById('fpsCap_v');
+  const persistFps = doc.getElementById('persistFpsCap');
   if (fps) {
     fps.value = P.fpsCap;
     if (fpsV) fpsV.textContent = P.fpsCap;
@@ -119,7 +144,14 @@ export function initUI(win, doc, P, send){
       const v = parseFloat(fps.value);
       P.fpsCap = v;
       if (fpsV) fpsV.textContent = v;
+      if (persisted.fpsCap !== null) persisted.fpsCap = v;
       send({ fpsCap: v });
+    };
+  }
+  if (persistFps) {
+    persistFps.checked = persisted.fpsCap !== null;
+    persistFps.onchange = () => {
+      persisted.fpsCap = persistFps.checked ? P.fpsCap : null;
     };
   }
   for (const [key,val] of Object.entries(P.post)){
@@ -133,7 +165,14 @@ export function initUI(win, doc, P, send){
     } else {
       el.value = val;
       if (span) span.textContent = val;
-      el.oninput = () => { const v = parseFloat(el.value); P.post[key] = v; if (span) span.textContent = v; send({ [key]: v }); };
+      el.oninput = () => {
+        const v = parseFloat(el.value);
+        P.post[key] = v;
+        if (span) span.textContent = v;
+        if (key === 'brightness' && persisted.brightness !== null) persisted.brightness = v;
+        if (key === 'gamma' && persisted.gamma !== null) persisted.gamma = v;
+        send({ [key]: v });
+      };
     }
   }
   ['tintR','tintG','tintB'].forEach((id,i)=>{
@@ -185,9 +224,35 @@ export function initUI(win, doc, P, send){
   }
 
   const renderMode = doc.getElementById('renderMode');
+  const persistRender = doc.getElementById('persistRenderMode');
   if (renderMode){
     renderMode.value = P.renderMode;
-    renderMode.onchange = () => { P.renderMode = renderMode.value; send({ renderMode: renderMode.value }); };
+    renderMode.onchange = () => {
+      P.renderMode = renderMode.value;
+      if (persisted.renderMode !== null) persisted.renderMode = P.renderMode;
+      send({ renderMode: renderMode.value });
+    };
+  }
+  if (persistRender){
+    persistRender.checked = persisted.renderMode !== null;
+    persistRender.onchange = () => {
+      persisted.renderMode = persistRender.checked ? P.renderMode : null;
+    };
+  }
+
+  const persistBrightness = doc.getElementById('persistBrightness');
+  if (persistBrightness){
+    persistBrightness.checked = persisted.brightness !== null;
+    persistBrightness.onchange = () => {
+      persisted.brightness = persistBrightness.checked ? P.post.brightness : null;
+    };
+  }
+  const persistGamma = doc.getElementById('persistGamma');
+  if (persistGamma){
+    persistGamma.checked = persisted.gamma !== null;
+    persistGamma.onchange = () => {
+      persisted.gamma = persistGamma.checked ? P.post.gamma : null;
+    };
   }
 
   const rebootLeft = doc.getElementById('rebootLeft');
