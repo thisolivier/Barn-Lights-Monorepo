@@ -10,6 +10,7 @@ import { requestReboot } from './reboot.mjs';
 let sendFn = null;
 // Track which effect's controls are currently displayed
 let currentEffectId = null;
+let currentEffectValues = null;
 // Callbacks returned by speed sliders to update their UI position
 let updatePitch = null;
 let updateYaw = null;
@@ -24,10 +25,11 @@ function renderEffectControls(doc, P){
   const effect = effects[P.effect] || effects['gradient'];
   const schema = effect.paramSchema || {};
   const values = P.effects[effect.id] = P.effects[effect.id] || {};
-  if (currentEffectId !== effect.id){
+  if (currentEffectId !== effect.id || currentEffectValues !== values){
     container.innerHTML = '';
     container.appendChild(renderControls(schema, values, (patch)=> sendFn(patch)));
     currentEffectId = effect.id;
+    currentEffectValues = values;
   }
   for (const input of container.querySelectorAll('[data-key]')){
     const key = input.dataset.key;

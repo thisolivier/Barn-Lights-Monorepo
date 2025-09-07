@@ -48,11 +48,17 @@ export const layoutLeft  = await loadLayout("left");
 export const layoutRight = await loadLayout("right");
 
 const postKeys = new Set(Object.keys(params.post));
+// Map parameter keys to their owning effect when unique
 const effectParamMap = {};
+const effectParamCounts = {};
 for (const eff of Object.values(effects)) {
   for (const key of Object.keys(eff.defaultParams || {})) {
-    effectParamMap[key] = eff.id;
+    effectParamCounts[key] = (effectParamCounts[key] || 0) + 1;
+    if (!effectParamMap[key]) effectParamMap[key] = eff.id;
   }
+}
+for (const [key, count] of Object.entries(effectParamCounts)) {
+  if (count > 1) effectParamMap[key] = null;
 }
 
 export function updateParams(patch){
@@ -65,6 +71,9 @@ export function updateParams(patch){
       const id = effectParamMap[key];
       params.effects[id] = params.effects[id] || {};
       params.effects[id][key] = value;
+    } else if (params.effects[params.effect] && Object.prototype.hasOwnProperty.call(params.effects[params.effect], key)) {
+      // Ambiguous parameter name, apply to current effect
+      params.effects[params.effect][key] = value;
     } else {
       params[key] = value;
     }

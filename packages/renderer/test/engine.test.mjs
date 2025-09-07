@@ -5,6 +5,7 @@ import { once } from 'events';
 import { createInterface } from 'readline';
 import { readFile } from 'fs/promises';
 import { fileURLToPath } from 'url';
+import { params, updateParams } from '../src/engine.mjs';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
@@ -55,5 +56,36 @@ test('output matches configuration section lengths', async () => {
   }
   for (const [id, len] of Object.entries(rightSections)) {
     assert.equal(rightOut[id].length, len);
+  }
+});
+
+test('updateParams routes shared keys to active effect', () => {
+  const originalGradient = params.effects.gradient.stops;
+  const originalNoise = params.effects.noise.stops;
+  try {
+    params.effect = 'gradient';
+    params.effects.gradient.stops = [
+      { pos: 0, color: [0,0,0] },
+      { pos: 1, color: [0,0,0] }
+    ];
+    params.effects.noise.stops = [
+      { pos: 0, color: [1,1,1] },
+      { pos: 1, color: [1,1,1] }
+    ];
+    updateParams({ stops: [
+      { pos: 0, color: [1,0,0] },
+      { pos: 1, color: [0,1,0] }
+    ] });
+    assert.deepEqual(params.effects.gradient.stops, [
+      { pos: 0, color: [1,0,0] },
+      { pos: 1, color: [0,1,0] }
+    ]);
+    assert.deepEqual(params.effects.noise.stops, [
+      { pos: 0, color: [1,1,1] },
+      { pos: 1, color: [1,1,1] }
+    ]);
+  } finally {
+    params.effects.gradient.stops = originalGradient;
+    params.effects.noise.stops = originalNoise;
   }
 });
