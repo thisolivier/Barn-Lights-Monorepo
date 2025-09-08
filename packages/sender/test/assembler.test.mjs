@@ -45,6 +45,45 @@ test('assembles run buffers and emits FrameAssembled', () => {
   );
 });
 
+test('flips section data when x1 is less than x0', () => {
+  const frameEmitter = new EventEmitter();
+  const layout = {
+    side: 'left',
+    total_leds: 2,
+    runs: [
+      {
+        run_index: 0,
+        led_count: 2,
+        sections: [
+          { id: 'rev', led_count: 2, x0: 1, x1: 0 },
+        ],
+      },
+    ],
+  };
+  const runtimeConfig = { sides: { left: layout } };
+  const assembler = new Assembler(runtimeConfig, console);
+  assembler.bindFrameEmitter(frameEmitter);
+
+  const assembledFrames = [];
+  assembler.on('FrameAssembled', (assembled) => assembledFrames.push(assembled));
+
+  const frame = {
+    frame: 1,
+    sides: {
+      left: {
+        rev: { length: 2, rgb_b64: Buffer.from([1,2,3,4,5,6]).toString('base64') },
+      },
+    },
+  };
+  frameEmitter.emit('FrameIngest', frame);
+
+  assert.strictEqual(assembledFrames.length, 1);
+  assert.deepStrictEqual(
+    Array.from(assembledFrames[0].runs[0].data),
+    [4,5,6,1,2,3],
+  );
+});
+
 test('drops side when sections are missing or mismatched', () => {
   const frameEmitter = new EventEmitter();
   const layout = {

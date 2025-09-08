@@ -76,7 +76,32 @@ export class Assembler extends EventEmitter {
             break;
           }
 
-          runBuffer.set(decodedSection, bufferOffset);
+          const startX =
+            typeof sectionConfig.x0 === 'number'
+              ? sectionConfig.x0
+              : sectionConfig.x1;
+          const endX =
+            typeof sectionConfig.x2 === 'number'
+              ? sectionConfig.x2
+              : sectionConfig.x1;
+          const needsFlip =
+            typeof startX === 'number' &&
+            typeof endX === 'number' &&
+            endX < startX;
+
+          if (needsFlip) {
+            const flipped = new Uint8Array(expectedBytes);
+            for (
+              let source = 0, dest = expectedBytes - 3;
+              source < expectedBytes;
+              source += 3, dest -= 3
+            ) {
+              flipped.set(decodedSection.subarray(source, source + 3), dest);
+            }
+            runBuffer.set(flipped, bufferOffset);
+          } else {
+            runBuffer.set(decodedSection, bufferOffset);
+          }
           bufferOffset += expectedBytes;
         }
 

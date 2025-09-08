@@ -36,9 +36,17 @@ function adaptLine(line, layout) {
   const sideFrame = frame.sides[layout.side];
   for (const runConfig of layout.runs) {
     for (const sectionConfig of runConfig.sections) {
-      const sectionFrame = sideFrame[sectionConfig.id];
-      if (!sectionFrame) continue;
+      let sectionFrame = sideFrame[sectionConfig.id];
       const expectedBytes = sectionConfig.led_count * 3;
+      if (!sectionFrame) {
+        const zeroBuffer = Buffer.alloc(expectedBytes);
+        sectionFrame = {
+          length: sectionConfig.led_count,
+          rgb_b64: zeroBuffer.toString('base64'),
+        };
+        sideFrame[sectionConfig.id] = sectionFrame;
+        continue;
+      }
       const rgbBuffer = Buffer.from(sectionFrame.rgb_b64, 'base64');
       if (rgbBuffer.length !== expectedBytes) {
         const adjustedBuffer = Buffer.alloc(expectedBytes);
