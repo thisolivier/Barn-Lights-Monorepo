@@ -22,7 +22,26 @@ export function decodeSampleFrame(layoutPath, samplePath = path.join(__dirname, 
   let offset = 0;
   for (const section of runConfig.sections) {
     const sectionFrame = frameSide[section.id];
-    const decoded = Buffer.from(sectionFrame.rgb_b64, 'base64');
+    let decoded = Buffer.from(sectionFrame.rgb_b64, 'base64');
+    const startX =
+      typeof section.x0 === 'number' ? section.x0 : section.x1;
+    const endX =
+      typeof section.x2 === 'number' ? section.x2 : section.x1;
+    if (
+      typeof startX === 'number' &&
+      typeof endX === 'number' &&
+      endX < startX
+    ) {
+      const flipped = Buffer.alloc(decoded.length);
+      for (
+        let source = 0, dest = decoded.length - 3;
+        source < decoded.length;
+        source += 3, dest -= 3
+      ) {
+        decoded.copy(flipped, dest, source, source + 3);
+      }
+      decoded = flipped;
+    }
     buffer.set(decoded, offset);
     offset += decoded.length;
   }
