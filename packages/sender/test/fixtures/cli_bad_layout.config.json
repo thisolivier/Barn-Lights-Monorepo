@@ -1,0 +1,8 @@
+{
+  "sides": {
+    "left": "./layout_duplicate_run.json",
+    "right": "./layout_duplicate_run.json"
+  },
+  "renderer": { "cmd": "node", "args": ["test/fixtures/renderer_stream.mjs"], "cwd": "." },
+  "telemetry": { "interval_ms": 1000, "log_level": "info" }
+}

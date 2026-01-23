@@ -1,0 +1,15 @@
+{
+  "sides": {
+    "left": "./left.json",
+    "right": "./right.json"
+  },
+  "renderer": {
+    "cmd": "npm",
+    "args": ["start"],
+    "cwd": "../renderer"
+  },
+  "telemetry": {
+    "interval_ms": 1000,
+    "log_level": "info"
+  }
+}

@@ -1,0 +1,162 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { EventEmitter } from 'events';
+import { Assembler } from '../src/assembler/index.mjs';
+
+test('assembles run buffers and emits FrameAssembled', () => {
+  const frameEmitter = new EventEmitter();
+  const layout = {
+    side: 'left',
+    total_leds: 3,
+    runs: [
+      {
+        run_index: 0,
+        led_count: 3,
+        sections: [
+          { id: 'row_A1', led_count: 2 },
+          { id: 'row_A2', led_count: 1 },
+        ],
+      },
+    ],
+  };
+  const runtimeConfig = { sides: { left: layout } };
+  const assembler = new Assembler(runtimeConfig, console);
+  assembler.bindFrameEmitter(frameEmitter);
+
+  const assembledFrames = [];
+  assembler.on('FrameAssembled', (assembled) => assembledFrames.push(assembled));
+
+  const frame = {
+    frame: 7,
+    sides: {
+      left: {
+        row_A1: { length: 2, rgb_b64: Buffer.from([1,2,3,4,5,6]).toString('base64') },
+        row_A2: { length: 1, rgb_b64: Buffer.from([7,8,9]).toString('base64') },
+      },
+    },
+  };
+  frameEmitter.emit('FrameIngest', frame);
+
+  assert.strictEqual(assembledFrames.length, 1);
+  assert.strictEqual(assembledFrames[0].frame_id, 7);
+  assert.deepStrictEqual(
+    Array.from(assembledFrames[0].runs[0].data),
+    [1,2,3,4,5,6,7,8,9],
+  );
+});
+
+test('flips section data when x1 is less than x0', () => {
+  const frameEmitter = new EventEmitter();
+  const layout = {
+    side: 'left',
+    total_leds: 2,
+    runs: [
+      {
+        run_index: 0,
+        led_count: 2,
+        sections: [
+          { id: 'rev', led_count: 2, x0: 1, x1: 0 },
+        ],
+      },
+    ],
+  };
+  const runtimeConfig = { sides: { left: layout } };
+  const assembler = new Assembler(runtimeConfig, console);
+  assembler.bindFrameEmitter(frameEmitter);
+
+  const assembledFrames = [];
+  assembler.on('FrameAssembled', (assembled) => assembledFrames.push(assembled));
+
+  const frame = {
+    frame: 1,
+    sides: {
+      left: {
+        rev: { length: 2, rgb_b64: Buffer.from([1,2,3,4,5,6]).toString('base64') },
+      },
+    },
+  };
+  frameEmitter.emit('FrameIngest', frame);
+
+  assert.strictEqual(assembledFrames.length, 1);
+  assert.deepStrictEqual(
+    Array.from(assembledFrames[0].runs[0].data),
+    [4,5,6,1,2,3],
+  );
+});
+
+test('drops side when sections are missing or mismatched', () => {
+  const frameEmitter = new EventEmitter();
+  const layout = {
+    side: 'left',
+    total_leds: 3,
+    runs: [
+      {
+        run_index: 0,
+        led_count: 3,
+        sections: [
+          { id: 'row_A1', led_count: 2 },
+          { id: 'row_A2', led_count: 1 },
+        ],
+      },
+    ],
+  };
+  const loggerMessages = [];
+  const logger = {
+    error: (msg) => loggerMessages.push(msg),
+    warn() {},
+    info() {},
+    debug() {},
+  };
+  const runtimeConfig = { sides: { left: layout } };
+  const assembler = new Assembler(runtimeConfig, logger);
+  assembler.bindFrameEmitter(frameEmitter);
+
+  const assembledFrames = [];
+  assembler.on('FrameAssembled', (assembled) => assembledFrames.push(assembled));
+
+  // Missing second section
+  frameEmitter.emit('FrameIngest', {
+    frame: 1,
+    sides: { left: { row_A1: { length: 2, rgb_b64: Buffer.from([1,2,3,4,5,6]).toString('base64') } } },
+  });
+
+  // Length mismatch
+  frameEmitter.emit('FrameIngest', {
+    frame: 2,
+    sides: {
+      left: {
+        row_A1: { length: 2, rgb_b64: Buffer.from([1,2,3]).toString('base64') },
+        row_A2: { length: 1, rgb_b64: Buffer.from([4,5,6]).toString('base64') },
+      },
+    },
+  });
+
+  assert.strictEqual(assembledFrames.length, 0);
+  assert(loggerMessages.some((m) => m.includes('Missing section')));
+  assert(loggerMessages.some((m) => m.includes('length mismatch')));
+});
+
+test('throws when side config lacks a runs array', () => {
+  const malformedSideConfig = {
+    side: 'left',
+    total_leds: 3,
+  };
+  const runtimeConfig = { sides: { left: malformedSideConfig } };
+  assert.throws(
+    () => new Assembler(runtimeConfig, console),
+    /left.*runs array/i,
+  );
+});
+
+test('throws when run configuration is not an array', () => {
+  const malformedSideConfig = {
+    side: 'left',
+    total_leds: 3,
+    runs: { not: 'an array' },
+  };
+  const runtimeConfig = { sides: { left: malformedSideConfig } };
+  assert.throws(
+    () => new Assembler(runtimeConfig, console),
+    /left.*runs array/i,
+  );
+});

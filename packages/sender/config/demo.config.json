@@ -1,0 +1,14 @@
+{
+  "sides": {
+    "left": "./left.json",
+    "right": "./right.json"
+  },
+  "renderer": {
+    "cmd": "node",
+    "args": ["./bin/demo-renderer.mjs", "--fps", "30"]
+  },
+  "telemetry": {
+    "interval_ms": 1000,
+    "log_level": "info"
+  }
+}
