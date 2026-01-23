@@ -78,15 +78,15 @@ def assert_header_matches_layout(layout_file: str, tmp_dir: Path) -> None:
 
 
 def test_left_layout_generates_expected_header(tmp_path):
-    assert_header_matches_layout("config/left.json", tmp_path)
+    assert_header_matches_layout("../../config/left.json", tmp_path)
 
 
 def test_right_layout_generates_expected_header(tmp_path):
-    assert_header_matches_layout("config/right.json", tmp_path)
+    assert_header_matches_layout("../../config/right.json", tmp_path)
 
 
 def test_four_run_layout_generates_expected_header(tmp_path):
-    assert_header_matches_layout("config/four_run.json", tmp_path)
+    assert_header_matches_layout("../../config/four_run.json", tmp_path)
 
 
 def test_missing_side_field_results_in_error(tmp_path):

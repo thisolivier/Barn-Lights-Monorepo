@@ -47,7 +47,7 @@ To execute all test suites sequentially, run:
 
 1. Generate the layout config (here's the sample for the left side, see tools/readme.md)
 ```
-python tools/gen_config.py --layout config/left.json
+python tools/gen_config.py --layout ../../config/left.json
 ```
 2. Set up your ESP-IDF environment (see [ESP-IDF setup](docs/ESP-IDF.md)).
 3. Activate ESP-IDF and test it's in your session path:

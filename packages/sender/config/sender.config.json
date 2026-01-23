@@ -1,7 +1,7 @@
 {
   "sides": {
-    "left": "./left.json",
-    "right": "./right.json"
+    "left": "../../../config/left.json",
+    "right": "../../../config/right.json"
   },
   "renderer": {
     "cmd": "npm",
