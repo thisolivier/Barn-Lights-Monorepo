@@ -36,7 +36,8 @@ const server = http.createServer(async (req, res) => {
     return streamFile(p, "text/javascript", res);
   }
   if (u.pathname.startsWith("/vendor/")) {
-    const p = path.join(__dirname, "../node_modules", u.pathname.slice(8));
+    // In monorepo, node_modules is at the root level
+    const p = path.join(__dirname, "../../../node_modules", u.pathname.slice(8));
     const ext = path.extname(p);
     const mime = ext === ".css" ? "text/css" : "text/javascript";
     return streamFile(p, mime, res);
