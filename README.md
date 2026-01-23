@@ -1,0 +1,195 @@
+# LED Lights Monorepo
+
+A unified monorepo for LED lighting system with visual effects rendering, UDP packet transmission, and ESP32 device firmware.
+
+## Quick Start
+
+```bash
+# First-time setup
+npm run setup
+
+# Start all services
+npm start
+
+# View logs
+npm run logs
+
+# Check status
+npm run status
+
+# Stop all services
+npm stop
+```
+
+The WebUI will be available at [http://localhost:8080](http://localhost:8080)
+
+## Architecture
+
+This monorepo contains three main packages:
+
+### 📦 packages/renderer
+Visual effects engine that generates RGB frame data at 60 FPS.
+- WebUI for real-time control
+- Effect library (gradients, plasma, fire, etc.)
+- Scene transformation pipeline
+- Built with Node.js + React
+
+### 📦 packages/sender
+UDP packet sender that receives frames from renderer and transmits to controllers.
+- Frame assembly and validation
+- UDP transmission to multiple controllers
+- Telemetry and monitoring
+- Process management for renderer
+
+### 📦 packages/device-firmware
+ESP32 firmware for LED controllers (C/ESP-IDF).
+- UDP packet reception
+- WS2812B LED driving via RMT
+- Status monitoring and heartbeat
+- Optimized for low latency
+
+## Configuration
+
+Master configuration files are in `/config/`:
+- `left.json` - Left wall LED layout
+- `right.json` - Right wall LED layout
+- `left-small.json` - Small test configuration
+
+All packages reference these config files automatically. No manual copying needed.
+
+## Development
+
+### Running Tests
+
+```bash
+# All tests
+npm test
+
+# Individual packages
+npm run test:renderer
+npm run test:sender
+npm run test:firmware
+```
+
+### Working with Individual Packages
+
+```bash
+# Renderer
+cd packages/renderer
+npm install
+npm test
+npm start
+
+# Sender
+cd packages/sender
+npm install
+npm test
+npm start
+
+# Firmware (requires ESP-IDF)
+cd packages/device-firmware
+./tools/build_app.sh
+./tools/run_all_tests.sh
+```
+
+### Service Management
+
+```bash
+# Start services
+npm start
+
+# Restart specific service
+pm2 restart renderer
+pm2 restart sender
+
+# View specific service logs
+pm2 logs renderer
+pm2 logs sender
+
+# Stop all services
+npm stop
+
+# Health check
+bash scripts/health-check.sh
+```
+
+## Network Configuration
+
+The system communicates with LED controllers over UDP:
+- **Left controller**: 10.10.0.2:5555
+- **Right controller**: 10.10.0.3:5555
+
+Ensure your network is configured correctly and controllers are accessible.
+
+## System Requirements
+
+- **Node.js**: >= 20.0.0
+- **PM2**: Installed automatically
+- **ESP-IDF**: Optional, for firmware development
+- **Platform**: macOS, Linux (native), or Windows (WSL)
+
+## Project Structure
+
+```
+led-lights/
+├── config/                  # Master configuration files
+│   ├── left.json
+│   ├── right.json
+│   └── left-small.json
+├── packages/
+│   ├── renderer/           # Visual effects engine
+│   ├── sender/             # UDP packet sender
+│   └── device-firmware/    # ESP32 firmware
+├── scripts/                # Setup and utility scripts
+│   ├── setup.sh
+│   ├── test-all.sh
+│   └── health-check.sh
+├── logs/                   # PM2 logs (gitignored)
+├── package.json            # Root workspace config
+└── ecosystem.config.js     # PM2 configuration
+```
+
+## Troubleshooting
+
+### Services won't start
+```bash
+# Check what's running
+npm run status
+
+# View logs for errors
+npm run logs
+
+# Restart everything
+npm restart
+```
+
+### WebUI not accessible
+- Check if renderer is running: `pm2 status`
+- Verify port 8080 is not in use: `lsof -i :8080`
+- Check renderer logs: `pm2 logs renderer`
+
+### UDP packets not reaching controllers
+- Ping controllers: `ping 10.10.0.2`
+- Run health check: `bash scripts/health-check.sh`
+- Verify network configuration matches `/config/*.json`
+
+### Tests failing
+- Ensure dependencies are installed: `npm install`
+- Check Node.js version: `node -v` (should be >= 20)
+- Run individual test suites to isolate issues
+
+## Documentation
+
+- [Renderer Documentation](./packages/renderer/README.md)
+- [Sender Documentation](./packages/sender/README.md)
+- [Firmware Documentation](./packages/device-firmware/README.md)
+- [UDP Data Format](./packages/device-firmware/docs/udp-data-format.md)
+- [Project Specification](./packages/device-firmware/docs/project-spec.md)
+
+## Contributing
+
+See [AGENTS.md](./AGENTS.md) for development guidelines and best practices.
+
+## License
+
+MIT

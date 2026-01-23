@@ -1,0 +1,39 @@
+{
+  "name": "led-lights",
+  "version": "1.0.0",
+  "description": "LED Lights monorepo - visual effects renderer, UDP sender, and device firmware",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/renderer",
+    "packages/sender"
+  ],
+  "scripts": {
+    "start": "pm2 start ecosystem.config.js",
+    "stop": "pm2 stop ecosystem.config.js",
+    "restart": "pm2 restart ecosystem.config.js",
+    "logs": "pm2 logs",
+    "status": "pm2 status",
+    "test": "npm run test --workspaces --if-present",
+    "test:renderer": "npm run test -w packages/renderer",
+    "test:sender": "npm run test -w packages/sender",
+    "test:firmware": "cd packages/device-firmware && ./tools/run_all_tests.sh",
+    "setup": "bash scripts/setup.sh"
+  },
+  "devDependencies": {
+    "pm2": "^5.4.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "keywords": [
+    "led",
+    "lights",
+    "effects",
+    "udp",
+    "firmware",
+    "esp32"
+  ],
+  "author": "Olivier Larose",
+  "license": "MIT"
+}

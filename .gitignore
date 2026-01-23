@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# PM2
+.pm2/
+logs/
+pids/
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Build outputs
+dist/
+build/
+*.o
+*.bin
+*.elf
+
+# Firmware specific
+packages/device-firmware/firmware/build/
+packages/device-firmware/firmware/sdkconfig
+packages/device-firmware/firmware/sdkconfig.old
+packages/device-firmware/.pio/
+packages/device-firmware/.vscode/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
