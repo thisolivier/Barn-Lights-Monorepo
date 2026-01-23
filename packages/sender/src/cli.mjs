@@ -50,6 +50,16 @@ export async function main(argv = process.argv) {
     logger.info(`Loaded configuration from ${configPath}`);
 
     const baseDir = path.dirname(configPath);
+
+    // Resolve renderer cwd relative to config file location
+    if (config.renderer?.cwd && !path.isAbsolute(config.renderer.cwd)) {
+      let rendererCwd = path.resolve(baseDir, config.renderer.cwd);
+      if (!fs.existsSync(rendererCwd)) {
+        rendererCwd = path.resolve(process.cwd(), config.renderer.cwd);
+      }
+      config.renderer.cwd = rendererCwd;
+    }
+
     if (config.sides) {
       for (const [side, layoutRel] of Object.entries(config.sides)) {
         let layoutPath = path.resolve(baseDir, layoutRel);
