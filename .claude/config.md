@@ -1,20 +1,5 @@
 # Claude Configuration for LED Lights Monorepo
 
-## Environment Setup
-
-### Node.js Path Loading
-Before running any Node.js or npm commands, execute `node --version` once to load Node.js into the zsh PATH. This is required because Node.js is installed via nvm or similar version managers on this system.
-
-Example:
-```bash
-# First, load node into path
-node --version
-
-# Then run npm commands
-npm install
-npm start
-```
-
 ## Project Structure
 This is a monorepo with three packages:
 - `packages/renderer` - Visual effects engine (Node.js + React)
