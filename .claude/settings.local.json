@@ -9,7 +9,19 @@
       "Bash(node bin/lights-sender.mjs:*)",
       "Bash(node bin/engine.mjs:*)",
       "Bash(npm test)",
-      "Bash(npx pm2:*)"
+      "Bash(npx pm2:*)",
+      "Bash(tree:*)",
+      "Bash(node --test:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run test:*)",
+      "Bash(npm run build:ui:*)",
+      "Bash(node packages/telemetry/bin/telemetry.mjs:*)",
+      "Bash(node -e:*)",
+      "Bash(lsof:*)",
+      "Bash(echo:*)",
+      "Bash(ls:*)",
+      "Bash(pkill:*)",
+      "Bash(xargs:*)"
     ]
   }
 }
