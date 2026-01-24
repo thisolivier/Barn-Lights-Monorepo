@@ -19,7 +19,7 @@ async function waitForServer(url, retries = 100){
 }
 
 test('loading preset updates preview gradient', async () => {
-  const proc = spawn('node', ['bin/engine.mjs'], { cwd: ROOT, stdio:['ignore','ignore','pipe'] });
+  const proc = spawn('node', ['bin/engine.mjs', '--config-dir', '../../config'], { cwd: ROOT, stdio:['ignore','ignore','pipe'] });
   let browser;
   try {
     await waitForServer('http://127.0.0.1:8080');

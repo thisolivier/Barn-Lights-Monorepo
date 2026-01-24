@@ -4,8 +4,8 @@
     "right": "../../../config/right.json"
   },
   "renderer": {
-    "cmd": "npm",
-    "args": ["start"],
+    "cmd": "node",
+    "args": ["bin/engine.mjs", "--config-dir", "../../config"],
     "cwd": "../renderer"
   },
   "telemetry": {

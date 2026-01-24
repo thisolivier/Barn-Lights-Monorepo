@@ -39,8 +39,11 @@ function createLogger(level) {
 export async function main(argv = process.argv) {
   try {
     const parsed = parseArgs(argv.slice(2));
-    const configPath =
-      parsed.config || path.resolve(process.cwd(), './config/sender.config.json');
+    if (!parsed.config) {
+      console.error('Error: --config <path> is required');
+      process.exit(1);
+    }
+    const configPath = parsed.config;
     const config = loadConfig(configPath);
     const logLevel = parsed.logLevel || config.telemetry.log_level || 'info';
     if (!validateLogLevel(logLevel)) {

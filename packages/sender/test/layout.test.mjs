@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test('loads valid layout files', () => {
-  const layoutPath = path.join(__dirname, '..', 'config', 'left.json');
+  const layoutPath = path.join(__dirname, '..', '..', '..', 'config', 'left.json');
   const layout = loadLayout(layoutPath);
   // primary keys
   assert.strictEqual(typeof layout.side, 'string');

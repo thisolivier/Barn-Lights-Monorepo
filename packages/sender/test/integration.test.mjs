@@ -13,7 +13,7 @@ import { createAdaptedSampleFile } from './fixtures/adapt-sample.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const layoutPath = path.join(__dirname, '..', 'config', 'left.json');
+const layoutPath = path.join(__dirname, '..', '..', '..', 'config', 'left.json');
 const leftLayout = JSON.parse(fs.readFileSync(layoutPath, 'utf8'));
 const adaptedSamplePath = createAdaptedSampleFile(layoutPath);
 

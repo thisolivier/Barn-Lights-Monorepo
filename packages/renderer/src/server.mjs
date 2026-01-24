@@ -4,7 +4,7 @@ import { createReadStream } from "fs";
 import path from "path";
 import url from "url";
 
-import { params, updateParams, layoutLeft, layoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
+import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
 import { savePreset, loadPreset, listPresets } from "./config-store.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
@@ -47,8 +47,8 @@ const server = http.createServer(async (req, res) => {
     const p = path.join(__dirname, u.pathname.slice(1));
     return streamFile(p, "text/javascript", res);
   }
-  if (u.pathname === "/layout/left") return sendJson(layoutLeft, res);
-  if (u.pathname === "/layout/right") return sendJson(layoutRight, res);
+  if (u.pathname === "/layout/left") return sendJson(getLayoutLeft(), res);
+  if (u.pathname === "/layout/right") return sendJson(getLayoutRight(), res);
   if (u.pathname === "/presets") return sendJson(await listPresets(), res);
   if (u.pathname.startsWith("/preset/save/")) {
     const name = u.pathname.slice("/preset/save/".length);

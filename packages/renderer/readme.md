@@ -14,9 +14,24 @@ Minimal Node + browser setup that:
 3. Execute the commands (node v20-22 required)
 ```bash
 npm install
-npm start
+node bin/engine.mjs --config-dir ../../config
 ```
 4.  Go to `localhost:8080` in your browser
+
+## Configuration
+
+The renderer requires a `--config-dir` flag specifying the directory containing LED layout configs (`left.json` and `right.json`).
+
+```bash
+node bin/engine.mjs --config-dir <path>
+```
+
+**From monorepo root**: The path is relative to the renderer package directory:
+```bash
+node bin/engine.mjs --config-dir ../../config
+```
+
+**Standalone mode**: Place your `left.json` and `right.json` layout files in a directory and pass its path.
 
 ## Running tests
 ```bash

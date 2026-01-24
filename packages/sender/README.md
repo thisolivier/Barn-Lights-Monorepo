@@ -9,15 +9,25 @@ them over UDP until a shutdown signal is received.
 Run the executable script with Node:
 
 ```bash
-node bin/lights-sender.mjs [--config <path>] [--log-level <level>]
+node bin/lights-sender.mjs --config <path> [--log-level <level>]
 ```
 
 If you install the package globally or invoke it with `npx`, you can run `lights-sender` directly.
 
 Options:
 
-- `--config <path>` Path to `sender.config.json`. Defaults to `./config/sender.config.json`.
+- `--config <path>` **(required)** Path to `sender.config.json`.
 - `--log-level <level>` One of `error`, `warn`, `info`, or `debug`. Overrides the log level from the config file.
+
+## Configuration
+
+The `--config` flag is required and must point to a sender config file.
+
+```bash
+node bin/lights-sender.mjs --config ./config/sender.config.json
+```
+
+The sender config file (`sender.config.json`) contains paths to the LED layout JSON files. These paths are resolved relative to the config file location.
 
 The process continues running until it receives `SIGINT` or `SIGTERM`, at which point
 the renderer and UDP sender shut down cleanly.

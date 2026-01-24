@@ -19,7 +19,7 @@ async function waitForServer(url, retries = 100){
 }
 
 test('web view loads with no console errors', async () => {
-  const proc = spawn('node', ['bin/engine.mjs'], {
+  const proc = spawn('node', ['bin/engine.mjs', '--config-dir', '../../config'], {
     cwd: ROOT,
     stdio: ['ignore', 'ignore', 'pipe']
   });

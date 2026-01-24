@@ -10,7 +10,7 @@ import { params, updateParams } from '../src/engine.mjs';
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 async function getFrame(){
-  const proc = spawn('node', ['bin/engine.mjs'], { cwd: ROOT });
+  const proc = spawn('node', ['bin/engine.mjs', '--config-dir', '../../config'], { cwd: ROOT });
   const rl = createInterface({ input: proc.stdout });
   let jsonLine = null;
   for await (const line of rl) {
@@ -40,8 +40,8 @@ test('emits valid JSON structured output', async () => {
 
 test('output matches configuration section lengths', async () => {
   const frame = await getFrame();
-  const leftCfg = JSON.parse(await readFile(new URL('../config/left.json', import.meta.url)));
-  const rightCfg = JSON.parse(await readFile(new URL('../config/right.json', import.meta.url)));
+  const leftCfg = JSON.parse(await readFile(new URL('../../../config/left.json', import.meta.url)));
+  const rightCfg = JSON.parse(await readFile(new URL('../../../config/right.json', import.meta.url)));
   const leftSections = collectSections(leftCfg);
   const rightSections = collectSections(rightCfg);
 

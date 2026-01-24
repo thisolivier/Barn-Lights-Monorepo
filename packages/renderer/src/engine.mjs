@@ -9,7 +9,9 @@ import { renderFrames, SCENE_W, SCENE_H } from "./render-scene.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-const CONFIG_DIR = path.join(ROOT, "config");
+
+let CONFIG_DIR;
+let layoutLeft, layoutRight;
 
 export { SCENE_W, SCENE_H };
 
@@ -38,14 +40,15 @@ for (const eff of Object.values(effects)) {
 }
 
 // ------- load layouts -------
-export async function loadLayout(name){
+async function loadLayout(name){
   const raw = await fs.readFile(path.join(CONFIG_DIR, `${name}.json`), "utf8");
   const j = JSON.parse(raw);
   if (!j?.sampling?.width || !j?.sampling?.height) throw new Error(`${name}.json missing sampling.width/height`);
   return j;
 }
-export const layoutLeft  = await loadLayout("left");
-export const layoutRight = await loadLayout("right");
+
+export function getLayoutLeft() { return layoutLeft; }
+export function getLayoutRight() { return layoutRight; }
 
 const postKeys = new Set(Object.keys(params.post));
 // Map parameter keys to their owning effect when unique
@@ -138,7 +141,16 @@ function tick(){
 }
 
 // start: initialize counters and kick off the main loop
-export function start(){
+export async function start(configDir){
+  if (!configDir) {
+    throw new Error('configDir is required');
+  }
+  CONFIG_DIR = path.resolve(ROOT, configDir);
+
+  // Load layouts at startup
+  layoutLeft = await loadLayout("left");
+  layoutRight = await loadLayout("right");
+
   last = process.hrtime.bigint();
   acc = 0;
   frame = 0;

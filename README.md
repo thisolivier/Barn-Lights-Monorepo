@@ -55,7 +55,32 @@ Master configuration files are in `/config/`:
 - `right.json` - Right wall LED layout
 - `left-small.json` - Small test configuration
 
-All packages reference these config files automatically. No manual copying needed.
+### Config Management Strategy
+
+All packages require explicit configuration paths via CLI flags (no environment variables):
+
+| Package | Config Method | Required Flag |
+|---------|---------------|---------------|
+| `renderer` | CLI flag | `--config-dir <path>` |
+| `sender` | CLI flag | `--config <path>` |
+| `device-firmware` | Build-time env var | `LED_CONFIG=<path>` |
+
+The monorepo's `npm start` command runs the sender via PM2, which spawns and manages the renderer as a child process.
+
+### Building Firmware
+
+Build firmware with specific configs using make targets or npm scripts:
+
+```bash
+# Using make
+make build-firmware-left
+make build-firmware-right
+make build-firmware-all
+
+# Using npm
+npm run build:firmware:left
+npm run build:firmware:right
+```
 
 ## Development
 
