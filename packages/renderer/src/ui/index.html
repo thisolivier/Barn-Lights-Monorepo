@@ -1,119 +1,36 @@
 <!doctype html>
-<meta charset="utf-8" />
-<title>BarnLights Playbox</title>
-<style>
-  :root { --gap: 20px; }
-  body { font: 14px system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; color:#111; }
-  h1 { margin: 0 0 8px; font-size: 20px; }
-  .row { display:flex; flex-direction:column; gap: var(--gap); align-items:flex-start; margin: 6px 0; }
-  label { display:flex; align-items:center; gap:8px; min-width: 220px; }
-  input[type="range"] { width: 180px; }
-  select { padding: 4px 6px; }
-  fieldset { border:1px solid #ccc; padding:10px 14px; margin:0; }
-  legend { padding:0 6px; font-weight:bold; }
-  .desc { font-size:12px; color:#555; }
-  .barn { display:flex; gap: 32px; perspective: 900px; margin:16px auto; justify-content:center; }
-  canvas { width: 512px; height: 128px; image-rendering: pixelated; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.25); background:#000; }
-  #left { transform: rotateY(15deg) skewY(-2deg); }
-  #right{ transform: rotateY(-15deg) skewY(2deg);  }
-  .panel { display:flex; flex-direction:row; gap:var(--gap); align-items:flex-start; flex-wrap:wrap; }
-  .presetRow { display:flex; flex-direction:row; gap:10px; overflow-x:auto; }
-  .presetItem { display:flex; flex-direction:column; align-items:center; cursor:pointer; }
-  .presetItem img { width:96px; height:48px; object-fit:cover; border:1px solid #ccc; border-radius:4px; }
-  .hslider { width:180px; height:20px; position:relative; border:1px solid #ccc; border-radius:10px; background:#f3f3f3; touch-action:none; }
-  .hslider .handle { position:absolute; width:12px; height:12px; border-radius:50%; background:#666; top:50%; transform:translate(-50%,-50%); left:50%; }
-</style>
-
-<link rel="stylesheet" href="/vendor/grapick/dist/grapick.min.css">
-<script src="/vendor/grapick/dist/grapick.min.js"></script>
-
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>BarnLights Playbox</title>
+  <style>
+    :root { --gap: 20px; }
+    body { font: 14px system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 20px; color:#111; }
+    h1 { margin: 0 0 8px; font-size: 20px; }
+    .row { display:flex; flex-direction:column; gap: var(--gap); align-items:flex-start; margin: 6px 0; }
+    label { display:flex; align-items:center; gap:8px; min-width: 220px; }
+    input[type="range"] { width: 180px; }
+    select { padding: 4px 6px; }
+    fieldset { border:1px solid #ccc; padding:10px 14px; margin:0; }
+    legend { padding:0 6px; font-weight:bold; }
+    .desc { font-size:12px; color:#555; }
+    .barn { display:flex; gap: 32px; perspective: 900px; margin:16px auto; justify-content:center; }
+    canvas { width: 512px; height: 128px; image-rendering: pixelated; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.25); background:#000; }
+    #left { transform: rotateY(15deg) skewY(-2deg); }
+    #right{ transform: rotateY(-15deg) skewY(2deg);  }
+    .panel { display:flex; flex-direction:row; gap:var(--gap); align-items:flex-start; flex-wrap:wrap; }
+    .presetRow { display:flex; flex-direction:row; gap:10px; overflow-x:auto; }
+    .presetItem { display:flex; flex-direction:column; align-items:center; cursor:pointer; }
+    .presetItem img { width:96px; height:48px; object-fit:cover; border:1px solid #ccc; border-radius:4px; }
+    .hslider { width:180px; height:20px; position:relative; border:1px solid #ccc; border-radius:10px; background:#f3f3f3; touch-action:none; }
+    .hslider .handle { position:absolute; width:12px; height:12px; border-radius:50%; background:#666; top:50%; transform:translate(-50%,-50%); left:50%; }
+  </style>
+  <link rel="stylesheet" href="/vendor/grapick/dist/grapick.min.css">
+  <script src="/vendor/grapick/dist/grapick.min.js"></script>
+</head>
+<body>
   <h1>BarnLights Playbox</h1>
   <div id="status"></div>
-<div class="barn">
-  <canvas id="left"  width="512" height="128"></canvas>
-  <canvas id="right" width="512" height="128"></canvas>
-</div>
-<div class="panel">
-  <fieldset>
-    <legend>Presets</legend>
-    <div class="row">
-      <div id="presetList" class="presetRow"></div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <input id="presetName" placeholder="name">
-        <button id="savePreset">Save</button>
-      </div>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Effect</legend>
-    <div class="row">
-      <label>Effect
-        <select id="effect"></select>
-      </label>
-    </div>
-    <div class="row" id="effectControls"></div>
-  </fieldset>
-
-    <fieldset>
-      <legend>General</legend>
-      <div class="row">
-        <label><input id="persistBrightness" type="checkbox">Brightness <input id="brightness" type="range" min="0" max="1" step="0.01"><span id="brightness_v"></span></label>
-        <label><input id="persistGamma" type="checkbox">Gamma <input id="gamma" type="range" min="0.5" max="3" step="0.01"><span id="gamma_v"></span><small class="desc">brightness curve</small></label>
-        <label><input id="persistFpsCap" type="checkbox">FPS cap <input id="fpsCap" type="range" min="1" max="60" step="1"><span id="fpsCap_v"></span></label>
-        <label><input id="persistRenderMode" type="checkbox">Render mode
-        <select id="renderMode">
-          <option value="duplicate">duplicate</option>
-          <option value="extended">extended</option>
-          <option value="mirror">mirror</option>
-        </select>
-      </label>
-      </div>
-    </fieldset>
-
-  <fieldset>
-    <legend>Orientation</legend>
-    <div class="row">
-      <label>Pitch
-          <div id="pitch" class="hslider"><div class="handle"></div></div>
-          <input id="pitchDeg" type="number" min="0" max="360" step="0.1" style="width:60px">
-        </label>
-        <label>Yaw
-          <div id="yaw" class="hslider"><div class="handle"></div></div>
-          <input id="yawDeg" type="number" min="0" max="360" step="0.1" style="width:60px">
-        </label>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Receivers</legend>
-    <div class="row">
-      <button id="rebootLeft">Reboot Left</button>
-      <button id="rebootRight">Reboot Right</button>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Strobe</legend>
-    <div class="row">
-      <label>Strobe Hz <input id="strobeHz" type="range" min="0" max="20" step="0.1"><span id="strobeHz_v"></span></label>
-      <label>Duty <input id="strobeDuty" type="range" min="0" max="1" step="0.01"><span id="strobeDuty_v"></span><small class="desc">on-time %</small></label>
-      <label>Low <input id="strobeLow" type="range" min="0" max="1" step="0.01"><span id="strobeLow_v"></span><small class="desc">min brightness</small></label>
-    </div>
-  </fieldset>
-
-  <fieldset>
-    <legend>Tint</legend>
-    <div class="row">
-      <label>Tint R <input id="tintR" type="range" min="0" max="1" step="0.01"><span id="tintR_v"></span></label>
-      <label>Tint G <input id="tintG" type="range" min="0" max="1" step="0.01"><span id="tintG_v"></span></label>
-      <label>Tint B <input id="tintB" type="range" min="0" max="1" step="0.01"><span id="tintB_v"></span></label>
-    </div>
-  </fieldset>
-
-</div>
-
-<script type="module">
-  import { run } from './main.mjs';
-  run();
-</script>
+  <div id="root"></div>
+</body>
+</html>
