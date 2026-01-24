@@ -8,6 +8,7 @@
     "test": "node --test --test-concurrency=1"
   },
   "dependencies": {
+    "@led-lights/shared": "*",
     "grapick": "^0.1.13",
     "ws": "^8.18.0"
   },

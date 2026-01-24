@@ -1,0 +1,12 @@
+{
+  "name": "@led-lights/telemetry",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "telemetry": "bin/telemetry.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {}
+}

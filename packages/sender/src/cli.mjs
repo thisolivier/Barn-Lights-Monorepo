@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { createLogger } from '@led-lights/shared/udp-logger';
 import { loadLayout } from './config/load-layout.mjs';
 import { loadConfig, validateLogLevel } from './config/load-config.mjs';
 import { RendererProcess } from './renderer-process/index.mjs';
@@ -21,21 +22,6 @@ function parseArgs(argv) {
   return result;
 }
 
-
-function createLogger(level) {
-  const order = { error: 0, warn: 1, info: 2, debug: 3 };
-  const threshold = order[level];
-  function shouldLog(l) {
-    return order[l] <= threshold;
-  }
-  return {
-    error: (...args) => { if (shouldLog('error')) console.error(...args); },
-    warn: (...args) => { if (shouldLog('warn')) console.warn(...args); },
-    info: (...args) => { if (shouldLog('info')) console.info(...args); },
-    debug: (...args) => { if (shouldLog('debug')) console.debug(...args); },
-  };
-}
-
 export async function main(argv = process.argv) {
   try {
     const parsed = parseArgs(argv.slice(2));
@@ -49,7 +35,12 @@ export async function main(argv = process.argv) {
     if (!validateLogLevel(logLevel)) {
       throw new Error(`Invalid log level: ${logLevel}`);
     }
-    const logger = createLogger(logLevel);
+    const logger = createLogger({
+      component: 'sender',
+      target: { host: '127.0.0.1', port: 49800 },
+      level: logLevel,
+      fallbackToConsole: true
+    });
     logger.info(`Loaded configuration from ${configPath}`);
 
     const baseDir = path.dirname(configPath);
@@ -101,6 +92,7 @@ export async function main(argv = process.argv) {
       sender.stop();
       telemetry.stop();
       rp.stop();
+      logger.close();
       process.exit(2);
     });
 
@@ -112,6 +104,7 @@ export async function main(argv = process.argv) {
       sender.stop();
       telemetry.stop();
       rp.stop();
+      logger.close();
       process.exit(0);
     };
     process.once('SIGINT', shutdown);
