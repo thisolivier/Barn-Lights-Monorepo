@@ -41,7 +41,7 @@ clean:
 	rm -rf logs/*.log
 	rm -rf packages/renderer/dist
 	rm -rf packages/sender/dist
-	rm -rf packages/device-firmware/firmware/build
+	rm -rf packages/device-firmware/.pio/build
 
 # Help
 help:

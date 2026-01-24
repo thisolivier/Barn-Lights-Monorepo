@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git -C /Users/olivier/Sites/led-lights-monorepo log --oneline --all)",
-      "Bash(timeout 3 node:*)"
+      "Bash(timeout 3 node:*)",
+      "Bash(node cli/episodic-memory search:*)"
     ]
   }
 }

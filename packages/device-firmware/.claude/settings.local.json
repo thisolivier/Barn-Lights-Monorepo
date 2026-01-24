@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(source .venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(LED_CONFIG=config/left.json pio run:*)",
+      "Bash(LED_CONFIG=config/right.json pio run:*)",
+      "Bash(ls:*)",
+      "Bash(LED_CONFIG=config/right.json pio test:*)",
+      "Bash(nm:*)"
+    ]
+  }
+}

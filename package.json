@@ -17,7 +17,7 @@
     "test": "npm run test --workspaces --if-present",
     "test:renderer": "npm run test -w packages/renderer",
     "test:sender": "npm run test -w packages/sender",
-    "test:firmware": "cd packages/device-firmware && ./tools/run_all_tests.sh",
+    "test:firmware": "cd packages/device-firmware && LED_CONFIG=config/right.json pio test -e native",
     "setup": "bash scripts/setup.sh"
   },
   "devDependencies": {
