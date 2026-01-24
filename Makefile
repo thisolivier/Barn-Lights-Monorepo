@@ -43,6 +43,15 @@ clean:
 	rm -rf packages/sender/dist
 	rm -rf packages/device-firmware/.pio/build
 
+# Firmware build targets
+build-firmware-left:
+	cd packages/device-firmware && LED_CONFIG=../../config/left.json pio run -e teensy41
+
+build-firmware-right:
+	cd packages/device-firmware && LED_CONFIG=../../config/right.json pio run -e teensy41
+
+build-firmware-all: build-firmware-left build-firmware-right
+
 # Help
 help:
 	@echo "LED Lights Monorepo - Available Commands"

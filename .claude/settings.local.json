@@ -3,7 +3,13 @@
     "allow": [
       "Bash(git -C /Users/olivier/Sites/led-lights-monorepo log --oneline --all)",
       "Bash(timeout 3 node:*)",
-      "Bash(node cli/episodic-memory search:*)"
+      "Bash(node cli/episodic-memory search:*)",
+      "Bash(git worktree:*)",
+      "Bash(npm install)",
+      "Bash(node bin/lights-sender.mjs:*)",
+      "Bash(node bin/engine.mjs:*)",
+      "Bash(npm test)",
+      "Bash(npx pm2:*)"
     ]
   }
 }

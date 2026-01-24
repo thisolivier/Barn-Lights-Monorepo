@@ -18,6 +18,8 @@
     "test:renderer": "npm run test -w packages/renderer",
     "test:sender": "npm run test -w packages/sender",
     "test:firmware": "cd packages/device-firmware && LED_CONFIG=config/right.json pio test -e native",
+    "build:firmware:left": "cd packages/device-firmware && LED_CONFIG=../../config/left.json pio run -e teensy41",
+    "build:firmware:right": "cd packages/device-firmware && LED_CONFIG=../../config/right.json pio run -e teensy41",
     "setup": "bash scripts/setup.sh"
   },
   "devDependencies": {
