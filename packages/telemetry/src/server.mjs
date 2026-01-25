@@ -244,8 +244,12 @@ export async function createServer({ port = 3001, logBuffer, aggregator, onLog, 
     } else if (pathname === '/api/devices') {
       handleApiDevices(res, aggregator);
     } else if (pathname.startsWith('/ui/')) {
-      // Serve other static files from ui directory
+      // Serve static files from ui directory with /ui/ prefix
       const filePath = path.join(uiDir, pathname.slice(4));
+      serveStaticFileWithType(res, filePath);
+    } else if (pathname.match(/^\/(styles\.css|dashboard\.mjs)$/)) {
+      // Serve dashboard assets from ui directory
+      const filePath = path.join(uiDir, pathname.slice(1));
       serveStaticFileWithType(res, filePath);
     } else {
       res.writeHead(404, { 'Content-Type': 'application/json' });
