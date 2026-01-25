@@ -15,6 +15,7 @@ const logger = createLogger({
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const UI_DIR = path.join(__dirname, "ui");
+const UI_DIST_DIR = path.join(UI_DIR, "dist");
 
 function streamFile(p, mime, res){
   const s = createReadStream(p);
@@ -28,7 +29,10 @@ function sendJson(obj, res){
 
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, "http://x/");
-  if (u.pathname === "/") return streamFile(path.join(UI_DIR, "index.html"), "text/html", res);
+  // React bundle - served from webpack dist output
+  if (u.pathname === "/") return streamFile(path.join(UI_DIST_DIR, "index.html"), "text/html", res);
+  if (u.pathname === "/bundle.js") return streamFile(path.join(UI_DIST_DIR, "bundle.js"), "text/javascript", res);
+  // Legacy vanilla JS modules (kept for backward compatibility during migration)
   if (u.pathname === "/preview.mjs") return streamFile(path.join(UI_DIR, "preview.mjs"), "text/javascript", res);
   if (u.pathname === "/main.mjs") return streamFile(path.join(UI_DIR, "main.mjs"), "text/javascript", res);
   if (u.pathname === "/connection.mjs") return streamFile(path.join(UI_DIR, "connection.mjs"), "text/javascript", res);
