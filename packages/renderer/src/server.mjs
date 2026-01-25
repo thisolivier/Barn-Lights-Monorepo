@@ -4,8 +4,14 @@ import { createReadStream } from "fs";
 import path from "path";
 import url from "url";
 
+import { createLogger } from '@led-lights/shared/udp-logger';
 import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
 import { savePreset, loadPreset, listPresets } from "./config-store.mjs";
+
+const logger = createLogger({
+  component: 'renderer.server',
+  target: { host: '127.0.0.1', port: 49800 }
+});
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const UI_DIR = path.join(__dirname, "ui");
@@ -98,7 +104,7 @@ wss.on("connection", ws => {
 
 export function startServer(port = 8080){
   server.listen(port, () => {
-    console.error(`UI: http://localhost:${port}`);
+    logger.info('Server started', { url: `http://localhost:${port}` });
   });
 }
 

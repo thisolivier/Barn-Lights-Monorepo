@@ -1,0 +1,11 @@
+{
+  "name": "@led-lights/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    "./udp-logger": "./src/udp-logger.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
