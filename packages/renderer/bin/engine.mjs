@@ -20,7 +20,7 @@ if (!configDir) {
 
 (async () => {
   const assignedPort = await startServer(port);
-  // Output port info to stderr for test harnesses to detect
-  console.error(`SERVER_PORT=${assignedPort}`);
+  // Output port info to stdout for test harnesses to detect
+  console.log(`SERVER_PORT=${assignedPort}`);
   start(configDir);
 })();

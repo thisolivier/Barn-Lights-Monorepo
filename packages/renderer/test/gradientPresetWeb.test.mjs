@@ -24,13 +24,13 @@ async function startServerOnDynamicPort() {
       cwd: ROOT,
       stdio: ['ignore', 'pipe', 'pipe']
     });
-    let stderr = '';
+    let stdout = '';
     let resolved = false;
 
-    proc.stderr.on('data', chunk => {
-      stderr += chunk.toString();
-      // Look for SERVER_PORT=XXXXX in stderr
-      const match = stderr.match(/SERVER_PORT=(\d+)/);
+    proc.stdout.on('data', chunk => {
+      stdout += chunk.toString();
+      // Look for SERVER_PORT=XXXXX in stdout
+      const match = stdout.match(/SERVER_PORT=(\d+)/);
       if (match && !resolved) {
         resolved = true;
         resolve({ proc, port: parseInt(match[1], 10) });
@@ -42,7 +42,7 @@ async function startServerOnDynamicPort() {
     });
     proc.on('exit', (code) => {
       if (!resolved && code !== null && code !== 0) {
-        reject(new Error(`Process exited with code ${code}: ${stderr}`));
+        reject(new Error(`Process exited with code ${code}: ${stdout}`));
       }
     });
 
