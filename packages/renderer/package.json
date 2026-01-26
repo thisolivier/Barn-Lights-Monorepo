@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node bin/engine.mjs",
-    "test": "node --test --test-concurrency=1",
+    "test": "node --test --test-concurrency=4",
     "build:ui": "webpack"
   },
   "dependencies": {

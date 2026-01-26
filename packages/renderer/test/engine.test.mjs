@@ -60,8 +60,8 @@ test('output matches configuration section lengths', async () => {
 });
 
 test('updateParams routes shared keys to active effect', () => {
-  const originalGradient = params.effects.gradient.stops;
-  const originalNoise = params.effects.noise.stops;
+  // Clone original state to restore after test for isolation
+  const originalParams = structuredClone(params);
   try {
     params.effect = 'gradient';
     params.effects.gradient.stops = [
@@ -85,7 +85,9 @@ test('updateParams routes shared keys to active effect', () => {
       { pos: 1, color: [1,1,1] }
     ]);
   } finally {
-    params.effects.gradient.stops = originalGradient;
-    params.effects.noise.stops = originalNoise;
+    // Restore all params keys from clone
+    Object.keys(originalParams).forEach(key => {
+      params[key] = originalParams[key];
+    });
   }
 });

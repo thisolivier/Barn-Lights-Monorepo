@@ -103,8 +103,12 @@ wss.on("connection", ws => {
 });
 
 export function startServer(port = 8080){
-  server.listen(port, () => {
-    logger.info('Server started', { url: `http://localhost:${port}` });
+  return new Promise((resolve) => {
+    server.listen(port, () => {
+      const assignedPort = server.address().port;
+      logger.info('Server started', { url: `http://localhost:${assignedPort}` });
+      resolve(assignedPort);
+    });
   });
 }
 

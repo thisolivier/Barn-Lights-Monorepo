@@ -7,7 +7,7 @@
   "main": "src/cli.mjs",
   "scripts": {
     "start": "node bin/lights-sender.mjs",
-    "test": "node --test --test-concurrency=1 test/*.test.mjs"
+    "test": "node --test --test-concurrency=4 test/*.test.mjs"
   },
   "bin": {
     "lights-sender": "bin/lights-sender.mjs"
