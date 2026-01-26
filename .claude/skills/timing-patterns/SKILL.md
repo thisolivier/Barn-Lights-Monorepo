@@ -94,7 +94,7 @@ setTimeout(..., 600)
 
 ## Test Timeout Strategy
 
-Phase 1 added explicit timeouts to prevent indefinite hangs:
+Use explicit timeouts to prevent indefinite hangs:
 
 ### Pattern: Promise.race with timeout
 
@@ -120,7 +120,7 @@ export function withTimeout(promise, ms, message = 'Operation timed out') {
 
 ## Dynamic Port Allocation
 
-Phase 2 added dynamic port allocation to enable test parallelism:
+Services use dynamic port allocation to enable test parallelism:
 
 ### Server Side
 
