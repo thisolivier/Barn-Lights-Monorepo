@@ -57,15 +57,3 @@ Each package has its own project specification file. In the event of confusion, 
   sudo apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libcups2t64 libxkbcommon0 \
     libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
   ```
-
-### Package: sender
-(Uses general directives - no additional notes)
-
-### Package: device-firmware
-**Overrides:**
-- Prefer file lengths of less than 150 lines (not 200)
-- Never abbreviate to a single letter or initials
-
-**Additional notes:**
-- Within the docs directory: full spec for incoming UDP data format
-- Within the config directory: JSON specifying the LED setup
