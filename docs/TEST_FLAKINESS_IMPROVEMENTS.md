@@ -192,11 +192,11 @@ try {
 - [ ] Test with `--test-concurrency=4`
 
 ### Phase 3: Puppeteer Improvements
-- [ ] Implement browser pooling across tests
-- [ ] Add explicit timeouts to all `waitForFunction` calls
-- [ ] Add screenshot/debug output on test failure
-- [ ] Investigate `gradientPresetWeb.test.mjs` WebSocket issue
-- [ ] Consider removing 600ms UI delay or making it configurable
+- [x] Implement browser pooling across tests
+- [x] Add explicit timeouts to all `waitForFunction` calls
+- [x] Add screenshot/debug output on test failure
+- [x] Investigate `gradientPresetWeb.test.mjs` WebSocket issue (fixed - test now passes)
+- [x] Consider removing 600ms UI delay or making it configurable (not needed - delay doesn't exist)
 
 ### Phase 4: Claude Tooling (For Timing Delays)
 - [ ] Design skill/task for timing-sensitive test execution

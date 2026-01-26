@@ -1,11 +1,23 @@
-import test from 'node:test';
+import test, { before, after } from 'node:test';
 import assert from 'assert/strict';
 import { spawn } from 'child_process';
 import { once } from 'events';
 import { fileURLToPath } from 'url';
+import { mkdir, writeFile } from 'fs/promises';
 import puppeteer from 'puppeteer';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
+
+// Browser pooling - shared browser instance across tests
+let browser;
+
+before(async () => {
+  browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
+});
+
+after(async () => {
+  if (browser) await browser.close().catch(() => {});
+});
 
 async function waitForServer(url, retries = 100){
   for (let i = 0; i < retries; i++) {
@@ -63,22 +75,53 @@ async function startServerOnDynamicPort() {
   });
 }
 
+// Debug helper: capture diagnostic info on test failure
+async function captureDebugInfo(page, testName) {
+  try {
+    await mkdir('test-failures', { recursive: true });
+    const timestamp = Date.now();
+
+    // Screenshot
+    const screenshotPath = `test-failures/${testName}-${timestamp}.png`;
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.error(`Screenshot saved: ${screenshotPath}`);
+
+    // Console logs
+    const logs = await page.evaluate(() => {
+      return window.__testLogs || [];
+    });
+    if (logs.length > 0) {
+      console.error('Page console logs:', logs);
+    }
+
+    // Page HTML snapshot
+    const html = await page.content();
+    const htmlPath = `test-failures/${testName}-${timestamp}.html`;
+    await writeFile(htmlPath, html);
+    console.error(`HTML snapshot saved: ${htmlPath}`);
+  } catch (debugErr) {
+    console.error('Failed to capture debug info:', debugErr.message);
+  }
+}
+
 test('web view loads with no console errors', async () => {
   const { proc, port } = await startServerOnDynamicPort();
-  let browser;
+  let page;
   try {
     await waitForServer(`http://127.0.0.1:${port}`);
 
-    browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox'] });
-    const page = await browser.newPage();
+    page = await browser.newPage();
     const errors = [];
     page.on('pageerror', err => errors.push(err));
     page.on('console', msg => { if (msg.type() === 'error') errors.push(new Error(msg.text())); });
 
     await page.goto(`http://127.0.0.1:${port}`, { waitUntil: 'networkidle0' });
-    assert.equal(errors.length, 0);
+    assert.equal(errors.length, 0, `Expected no errors but got: ${errors.map(e => e.message).join(', ')}`);
+  } catch (err) {
+    if (page) await captureDebugInfo(page, 'web-view-no-errors');
+    throw err;
   } finally {
-    if (browser) await browser.close().catch(() => {});
+    if (page) await page.close().catch(() => {});
     proc.kill();
     if (proc.exitCode === null) {
       const exitTimeout = new Promise((_, reject) =>
