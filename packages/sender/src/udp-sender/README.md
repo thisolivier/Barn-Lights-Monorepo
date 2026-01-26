@@ -10,7 +10,7 @@ The sender exposes `sendRebootSignal(side)` for emitting a single byte to
 ## Usage
 
 ```js
-import { Mailbox } from '../mailbox/index.ts';
+import { Mailbox } from '../mailbox/index.mjs';
 import { Telemetry } from '../telemetry/index.mjs';
 import { UdpSender } from './index.mjs';
 

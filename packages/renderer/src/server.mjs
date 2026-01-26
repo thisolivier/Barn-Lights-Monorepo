@@ -32,13 +32,9 @@ const server = http.createServer(async (req, res) => {
   // React bundle - served from webpack dist output
   if (u.pathname === "/") return streamFile(path.join(UI_DIST_DIR, "index.html"), "text/html", res);
   if (u.pathname === "/bundle.js") return streamFile(path.join(UI_DIST_DIR, "bundle.js"), "text/javascript", res);
-  // Legacy vanilla JS modules (kept for backward compatibility during migration)
-  if (u.pathname === "/preview.mjs") return streamFile(path.join(UI_DIR, "preview.mjs"), "text/javascript", res);
-  if (u.pathname === "/main.mjs") return streamFile(path.join(UI_DIR, "main.mjs"), "text/javascript", res);
+  // ES modules loaded directly by the React bundle at runtime
   if (u.pathname === "/connection.mjs") return streamFile(path.join(UI_DIR, "connection.mjs"), "text/javascript", res);
-  if (u.pathname === "/controls-logic.mjs") return streamFile(path.join(UI_DIR, "controls-logic.mjs"), "text/javascript", res);
   if (u.pathname === "/presets.mjs") return streamFile(path.join(UI_DIR, "presets.mjs"), "text/javascript", res);
-  if (u.pathname === "/renderer.mjs") return streamFile(path.join(UI_DIR, "renderer.mjs"), "text/javascript", res);
   if (u.pathname === "/reboot.mjs") return streamFile(path.join(UI_DIR, "reboot.mjs"), "text/javascript", res);
   if (u.pathname === "/render-scene.mjs") return streamFile(path.join(__dirname, "render-scene.mjs"), "text/javascript", res);
   if (u.pathname.startsWith("/subviews/")) {
