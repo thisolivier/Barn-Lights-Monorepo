@@ -6,7 +6,7 @@ import url from "url";
 
 import { createLogger } from '@led-lights/shared/udp-logger';
 import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
-import { savePreset, loadPreset, listPresets } from "./config-store.mjs";
+import { savePreset, loadPreset, listPresets, deletePreset } from "./config-store.mjs";
 
 const logger = createLogger({
   component: 'renderer.server',
@@ -84,6 +84,16 @@ const server = http.createServer(async (req, res) => {
       return streamFile(p, "image/png", res);
     } catch {
       res.writeHead(404).end("Not found");
+      return;
+    }
+  }
+  if (u.pathname.startsWith("/preset/delete/")) {
+    const name = decodeURIComponent(u.pathname.slice("/preset/delete/".length));
+    try {
+      await deletePreset(name);
+      return sendJson({ ok: true }, res);
+    } catch (err) {
+      res.writeHead(500).end("Delete failed");
       return;
     }
   }

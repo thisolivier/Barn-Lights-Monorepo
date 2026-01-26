@@ -62,3 +62,13 @@ export async function loadPreset(name, targetParams){
 
   return loaded;
 }
+
+export async function deletePreset(name){
+  const presetPath = path.join(PRESET_DIR, `${name}.json`);
+  const imagePath = path.join(PRESET_DIR, `${name}.png`);
+
+  await Promise.all([
+    fs.unlink(presetPath).catch(() => {}),
+    fs.unlink(imagePath).catch(() => {})
+  ]);
+}

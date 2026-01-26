@@ -20,8 +20,16 @@
     #right{ transform: rotateY(-15deg) skewY(2deg);  }
     .panel { display:flex; flex-direction:row; gap:var(--gap); align-items:flex-start; flex-wrap:wrap; }
     .presetRow { display:flex; flex-direction:row; gap:10px; overflow-x:auto; }
-    .presetItem { display:flex; flex-direction:column; align-items:center; cursor:pointer; }
+    .presetItem { display:flex; flex-direction:column; align-items:center; cursor:pointer; position:relative; }
     .presetItem img { width:96px; height:48px; object-fit:cover; border:1px solid #ccc; border-radius:4px; }
+    .presetName { margin-top:4px; }
+    .deleteBtn {
+      position:absolute; top:2px; right:2px; width:20px; height:20px; padding:0;
+      background:rgba(255,255,255,0.9); border:1px solid #999; border-radius:3px;
+      cursor:pointer; font-size:16px; line-height:1; opacity:0; transition:opacity 0.2s;
+    }
+    .presetItem:hover .deleteBtn { opacity:1; }
+    .deleteBtn:hover { background:#ff4444; color:white; border-color:#cc0000; }
     .hslider { width:180px; height:20px; position:relative; border:1px solid #ccc; border-radius:10px; background:#f3f3f3; touch-action:none; }
     .hslider .handle { position:absolute; width:12px; height:12px; border-radius:50%; background:#666; top:50%; transform:translate(-50%,-50%); left:50%; }
   </style>
