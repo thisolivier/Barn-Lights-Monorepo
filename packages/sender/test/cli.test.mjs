@@ -6,9 +6,10 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { withTimeout } from './helpers/timeout.mjs';
+import { spawnCLI } from './helpers/spawn-with-diagnostics.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,16 +21,16 @@ test('CLI exits with code 0 after SIGINT', async () => {
     'fixtures',
     'cli_renderer.config.json',
   );
-  const child = spawn('node', [bin, '--config', configPath], {
-    stdio: 'pipe',
-  });
+  const { child } = spawnCLI(bin, ['--config', configPath]);
 
   await new Promise((resolve) => setTimeout(resolve, 500));
   child.kill('SIGINT');
 
-  const exitCode = await new Promise((resolve) => {
-    child.on('exit', (code) => resolve(code));
-  });
+  const exitCode = await withTimeout(
+    new Promise((resolve) => child.on('exit', (code) => resolve(code))),
+    5000,
+    'Process exit timeout'
+  );
 
   assert.strictEqual(exitCode, 0);
 });

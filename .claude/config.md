@@ -57,3 +57,24 @@ Each package has its own project specification file. In the event of confusion, 
   sudo apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libcups2t64 libxkbcommon0 \
     libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
   ```
+
+### Running Services During Development
+
+When starting servers or services that bind to ports (e.g., the renderer engine):
+- **Always use dynamic port allocation** by specifying port 0, which lets the OS assign an available port
+- This prevents port collisions when multiple agents or tests run in parallel
+- For the renderer engine: use `--port 0` flag and read the assigned port from stdout (`SERVER_PORT=XXXXX`)
+
+Example:
+```bash
+# Instead of hardcoding port 8080:
+node packages/renderer/bin/engine.mjs --port 0
+
+# The engine outputs the assigned port to stdout:
+# SERVER_PORT=54321
+```
+
+When writing tests that spawn servers:
+- Use port 0 for automatic allocation
+- Parse the server output to detect the assigned port
+- Clean up server processes in `finally` blocks to prevent orphaned processes

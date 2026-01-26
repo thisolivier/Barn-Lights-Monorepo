@@ -13,11 +13,26 @@ async function getFrame(){
   const proc = spawn('node', ['bin/engine.mjs', '--config-dir', '../../config'], { cwd: ROOT });
   const rl = createInterface({ input: proc.stdout });
   let jsonLine = null;
-  for await (const line of rl) {
-    if (line.startsWith('{')) { jsonLine = line; break; }
-  }
+
+  // Wrap readline loop with timeout to prevent indefinite hang
+  const readlineTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Readline timeout waiting for JSON frame')), 10000)
+  );
+  const readFirstLine = (async () => {
+    for await (const line of rl) {
+      if (line.startsWith('{')) { jsonLine = line; break; }
+    }
+  })();
+  await Promise.race([readFirstLine, readlineTimeout]);
+
   proc.kill();
-  await once(proc, 'exit');
+
+  // Add timeout to process exit wait
+  const exitTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Process exit timeout')), 5000)
+  );
+  await Promise.race([once(proc, 'exit'), exitTimeout]);
+
   return JSON.parse(jsonLine);
 }
 
@@ -60,8 +75,8 @@ test('output matches configuration section lengths', async () => {
 });
 
 test('updateParams routes shared keys to active effect', () => {
-  const originalGradient = params.effects.gradient.stops;
-  const originalNoise = params.effects.noise.stops;
+  // Clone original state to restore after test for isolation
+  const originalParams = structuredClone(params);
   try {
     params.effect = 'gradient';
     params.effects.gradient.stops = [
@@ -85,7 +100,9 @@ test('updateParams routes shared keys to active effect', () => {
       { pos: 1, color: [1,1,1] }
     ]);
   } finally {
-    params.effects.gradient.stops = originalGradient;
-    params.effects.noise.stops = originalNoise;
+    // Restore all params keys from clone
+    Object.keys(originalParams).forEach(key => {
+      params[key] = originalParams[key];
+    });
   }
 });
