@@ -23,3 +23,37 @@ When asked to work in a new git working tree:
 3. Before using a working tree, check if it's already in use by another session
 4. Use a lock file (e.g., `.claude-session.lock`) in the working tree to indicate active use
 5. Release the lock when the session ends or when switching away from that working tree
+
+## Agent Directives
+
+### General (All Packages)
+- Read 'readme.md' files for the module you are working with
+- Keep code readable by verbose variable names - never abbreviate to a single letter
+- Keep dependencies minimal
+- Prefer simple low-code solutions to complex ones where possible
+- Pro-actively modularize the code
+  - Split groups of functions into separate files with clean interfaces
+  - Prefer file lengths of less than 200 lines (light preference)
+  - Add readme.md files at the root of each module to describe the architecture and subcomponents
+  - Ensure readme files are updated at the end of each task
+
+Your work is deeply appreciated.
+
+### Paths Not to Modify
+Do not modify files managed by package managers:
+- `**/node_modules/` - Node.js dependencies (renderer, sender)
+- `**/managed_components/` - ESP-IDF dependencies (device-firmware)
+- `**/package-lock.json` - Dependency lock files
+
+### Project Specs
+Each package has its own project specification file. In the event of confusion, refer to the relevant project spec for context:
+- **sender**: `packages/sender/projectSpec.md`
+- **device-firmware**: `packages/device-firmware/docs/project-spec.md`
+
+### Package: renderer
+**Additional notes:**
+- Test suite dependency: Puppeteer requires system libraries. If tests fail, install:
+  ```
+  sudo apt-get install -y libatk1.0-0 libatk-bridge2.0-0 libcups2t64 libxkbcommon0 \
+    libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
+  ```
