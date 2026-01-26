@@ -57,12 +57,6 @@ Some physical LED strips are wired "backwards" due to installation constraints o
 
 In this example, the first physical LED (index 0) is at x=2.05, and the last LED is at x=1.0.
 
-### Current Reversed Sections
-
-In `config/left.json`:
-- **b7**: x0=2.05, x1=1.0
-- **b8**: x0=0.9, x1=0.0
-
 ## How Reversal is Handled
 
 The system uses a two-stage approach to handle reversed sections:
@@ -90,40 +84,4 @@ const needsFlip = x1 < x0;
 if (needsFlip) {
   // Reverse RGB triplets: [LED0, LED1, LED2] → [LED2, LED1, LED0]
 }
-```
-
-This converts from visual order to **physical LED order** for transmission.
-
-### Stage 3: Firmware
-
-The firmware receives RGB data in physical order and displays it directly. No reversal logic is needed at this level.
-
-## Data Flow Example
-
-For section b7 (reversed, x0=2.05, x1=1.0) displaying a red→blue gradient:
-
-| Stage | Data Order | Description |
-|-------|------------|-------------|
-| Scene | [red...blue] | Gradient in scene buffer |
-| Renderer output | [blue, mid, red] | Sampled right→left (visual order) |
-| Assembler output | [red, mid, blue] | Flipped to physical LED order |
-| Firmware display | LED0=red, LED1=mid, LED2=blue | Correct visual result |
-
-## Adding New Sections
-
-When adding sections to layout files:
-
-1. **Normal wiring** (LED0 at left): Use `x0 < x1`
-2. **Reversed wiring** (LED0 at right): Use `x0 > x1`
-
-Both x0 and x1 must be within the sampling space bounds (0 to `sampling.width`).
-
-## Validation
-
-The renderer test suite validates that all section coordinates are within bounds, allowing both normal and reversed sections:
-
-```javascript
-const xMin = Math.min(sec.x0, sec.x1);
-const xMax = Math.max(sec.x0, sec.x1);
-assert(xMin >= 0 && xMax <= width);
 ```
