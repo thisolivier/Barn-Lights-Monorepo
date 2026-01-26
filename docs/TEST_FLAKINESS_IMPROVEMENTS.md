@@ -199,9 +199,19 @@ try {
 - [x] Consider removing 600ms UI delay or making it configurable (not needed - delay doesn't exist)
 
 ### Phase 4: Claude Tooling (For Timing Delays)
-- [ ] Design skill/task for timing-sensitive test execution
-- [ ] Implement intelligent retry/wait logic
-- [ ] Document usage patterns
+- [x] Design skill/task for timing-sensitive test execution
+- [x] Implement intelligent retry/wait logic
+- [x] Document usage patterns
+
+**Implemented Skills:**
+- `.claude/skills/test-runner/SKILL.md` - Diagnose and run tests with pre-flight checks
+- `.claude/skills/timing-patterns/SKILL.md` - Reference for timing-sensitive code patterns
+
+**Key capabilities:**
+- Pre-flight checks for UI build, config paths, dependencies
+- Diagnostic steps for timeout failures, server issues, Puppeteer problems
+- Reference documentation for all timing-sensitive code locations
+- Best practices for writing new timing-safe tests
 
 ---
 

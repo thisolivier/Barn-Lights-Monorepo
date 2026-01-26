@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "node bin/engine.mjs",
+    "pretest": "test -f src/ui/dist/index.html || npm run build:ui",
     "test": "node --test --test-concurrency=4",
     "build:ui": "webpack"
   },
