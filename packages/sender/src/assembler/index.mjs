@@ -80,10 +80,7 @@ export class Assembler extends EventEmitter {
             typeof sectionConfig.x0 === 'number'
               ? sectionConfig.x0
               : sectionConfig.x1;
-          const endX =
-            typeof sectionConfig.x2 === 'number'
-              ? sectionConfig.x2
-              : sectionConfig.x1;
+          const endX = sectionConfig.x1;
           const needsFlip =
             typeof startX === 'number' &&
             typeof endX === 'number' &&
