@@ -48,3 +48,7 @@ coverage/
 *.temp
 .cache/
 working-trees/**
+
+# Claude Code logs (session state, not for version control)
+.claude/cleanup-log.jsonl
+.claude/*.log

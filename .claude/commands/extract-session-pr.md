@@ -1,184 +1,167 @@
-# Extract Session Work and Make PR
+---
+description: Extract session work into a PR via git worktree isolation
+allowed-tools: Read, Bash(git:*, gh:*, mkdir:*, cp:*, rm:*, cat:*, date:*, test:*, which:*)
+---
 
-Extract the current session's work into a PR using git worktree isolation, without touching the working directory so other agents can continue working undisturbed.
+<!--
+This command extracts the current session's changes into a PR without
+modifying the working directory, allowing other agents to continue working.
 
-## Instructions
+Usage: /extract-session-pr
+No arguments required - operates on current working directory changes.
+-->
 
-### Step 1: Detect Changes
+## Step 1: Validate Environment
 
-Run git status to see all changes in the working directory:
+Verify this is a git repository and gh CLI is available:
+```bash
+git rev-parse --git-dir && which gh
+```
 
+If not a git repo, stop and explain the command only works in git repositories.
+If gh is not found, stop and direct user to install GitHub CLI: https://cli.github.com/
+
+## Step 2: Detect Changes
+
+Check for changes in the working directory:
 ```bash
 git status --porcelain
 ```
 
-If there are no changes (output is empty), inform the user and stop.
+If output is empty, inform the user there are no changes to extract and stop.
 
-Parse the output to categorize files:
+Categorize the files:
 - `M` or ` M` = modified tracked files
-- `A` or ` A` = added files (staged)
+- `A` or ` A` = staged additions
 - `D` or ` D` = deleted files
-- `??` = untracked files (new files not yet in git)
+- `??` = untracked new files
 - `MM` = modified and staged
 
-### Step 2: Analyze Session Relevance
+## Step 3: Analyze Session Relevance
 
-Review the conversation history and compare it against the detected changes. For each changed file, determine:
-
-1. **Clearly session-related** - Files you created, modified, or discussed in this session
-2. **Potentially unrelated** - Files with changes that don't correspond to any work in this session
-
-**To analyze, examine the diffs:**
+Review the conversation history and examine diffs for each changed file:
 ```bash
 git diff HEAD -- <file>
 ```
 
-**Warning indicators for unrelated changes:**
-- Files you never discussed or touched in this session
-- Changes that don't match any task or request from the conversation
-- Modifications that appear to be from a different feature or bug fix
-- Code patterns or styles inconsistent with this session's work
+Classify each file as:
+1. **Session-related** - Created, modified, or discussed in this session
+2. **Potentially unrelated** - Changes that do not correspond to session work
 
-**If you detect potentially unrelated changes, WARN the user:**
+Warning indicators for unrelated changes:
+- Files never discussed or touched in this session
+- Changes not matching any task from the conversation
+- Modifications from a different feature or bug fix
 
-Present a clear breakdown:
-- List files that ARE related to this session (with brief explanation)
-- List files that appear UNRELATED (with explanation of why)
-- Show the specific hunks/changes that seem out of place
+If potentially unrelated changes detected, use `AskUserQuestion` to present:
+- List of session-related files with explanations
+- List of potentially unrelated files with explanations
+- Options: exclude unrelated files, proceed with all, or abort
 
-**Suggest approaches for splitting the code:**
+Store any user-specified exclusions for Step 6.
 
-1. **Exclude unrelated files** - Proceed with only session-related files. Provide the list of files to exclude and offer to create the PR without them.
+## Step 4: Preview and Confirm
 
-2. **Create separate PRs** - If there are two distinct sets of changes, suggest creating two separate PRs (user would need to run the command twice, once for each set).
-
-3. **Proceed with all changes** - If the user confirms all changes are intentional, continue with everything.
-
-4. **Abort and investigate** - If the situation is unclear, abort so the user can manually review.
-
-Use `AskUserQuestion` to let the user choose how to proceed. If they choose to exclude files, store the exclusion list for use in Step 5.
-
-### Step 3: Show Preview and Confirm
-
-Display the list of changed files to the user (excluding any files the user chose to exclude in Step 2), grouped by type:
+Display the files to be included (respecting exclusions), grouped by:
 - Modified files
 - New/untracked files
 - Deleted files
 
-Use `AskUserQuestion` to ask the user to confirm they want to create a PR with these changes.
+Use `AskUserQuestion` to confirm the user wants to proceed.
 
-### Step 4: Gather PR Details
+## Step 5: Gather PR Details
 
 Use `AskUserQuestion` to collect:
-1. **PR title** - Suggest a default based on the work done in this session
-2. **Base branch** - Default to `main`, but allow user to specify another branch
+1. **PR title** - Suggest a default based on session work
+2. **Base branch** - Default to `main`, allow override
 
-Generate a PR description based on the changes and session context.
+Generate a PR description based on changes and session context.
 
-### Step 5: Generate Patches
+## Step 6: Generate Patches
 
-Generate patches for the changes to include (respecting any exclusions from Step 2):
+Generate patches respecting any exclusions:
 
-**If no files were excluded:**
+For all files:
 ```bash
-# For tracked file changes (both staged and unstaged)
 git diff HEAD > /tmp/session-pr-tracked.patch
-
-# List untracked files for later copying
 git ls-files --others --exclude-standard
 ```
 
-**If files were excluded:**
+For selective files:
 ```bash
-# Generate patch for only the included tracked files
-git diff HEAD -- <file1> <file2> ... > /tmp/session-pr-tracked.patch
-
-# Filter untracked files to only those being included
-git ls-files --others --exclude-standard | grep -E '^(file1|file2|...)$'
+git diff HEAD -- <included-files> > /tmp/session-pr-tracked.patch
 ```
 
-Store the list of untracked files to include - these will need to be copied directly to the worktree.
+Store the list of untracked files to copy.
 
-### Step 6: Create Temporary Worktree
+## Step 7: Create Worktree
 
+Create an isolated worktree from the base branch:
 ```bash
-# Generate unique worktree path
 WORKTREE_ID=$(date +%s)
 WORKTREE_PATH="/tmp/session-pr-$WORKTREE_ID"
-
-# Create worktree from base branch in detached HEAD state
 git worktree add "$WORKTREE_PATH" <base-branch> --detach
 ```
 
-Store the worktree path for later cleanup.
+Store the worktree path for cleanup.
 
-### Step 7: Create Branch in Worktree
+## Step 8: Create Branch
 
-Generate a branch name slug from the PR title (lowercase, hyphens, no special chars):
-
+Generate a slug from the PR title (lowercase, hyphens, no special characters):
 ```bash
 git -C "$WORKTREE_PATH" checkout -b pr/<slug>
 ```
 
-### Step 8: Apply Changes in Worktree
+## Step 9: Apply Changes
 
-**Apply the patch for tracked files:**
+Apply the patch in the worktree:
 ```bash
 git -C "$WORKTREE_PATH" apply /tmp/session-pr-tracked.patch
 ```
 
-**Copy untracked files:**
-For each untracked file from Step 5, copy it from the working directory to the worktree:
+Copy untracked files to the worktree:
 ```bash
-# Create parent directories if needed
 mkdir -p "$WORKTREE_PATH/$(dirname <file>)"
 cp "<file>" "$WORKTREE_PATH/<file>"
 ```
 
-**Handle deleted files:**
-If any files were deleted, they should already be handled by the patch. Verify with:
-```bash
-git -C "$WORKTREE_PATH" status
-```
+If patch fails:
+1. Clean up: `git worktree remove "$WORKTREE_PATH" --force && rm -f /tmp/session-pr-*.patch`
+2. Report the error and stop
 
-**If patch fails to apply:**
-1. Remove the worktree: `git worktree remove "$WORKTREE_PATH" --force`
-2. Clean up temp files: `rm -f /tmp/session-pr-*.patch`
-3. Report the error to the user and stop
+## Step 10: Commit
 
-### Step 9: Commit in Worktree
-
+Stage and commit all changes in the worktree:
 ```bash
 git -C "$WORKTREE_PATH" add -A
 git -C "$WORKTREE_PATH" commit -m "$(cat <<'EOF'
-<commit message based on PR title>
+<commit message from PR title>
 
 Co-Authored-By: Claude <noreply@anthropic.com>
 EOF
 )"
 ```
 
-### Step 10: Push from Worktree
+## Step 11: Push
 
+Push the branch from the worktree:
 ```bash
 git -C "$WORKTREE_PATH" push -u origin pr/<slug>
 ```
 
-**If push fails:**
-- Check for authentication issues
-- Check if branch already exists on remote
-- Report error and offer to retry or abort
+If push fails, report the error (auth issues, branch exists) and offer to retry or abort.
 
-### Step 11: Create Pull Request
+## Step 12: Create PR
 
+Create the pull request:
 ```bash
-gh pr create --repo $(git remote get-url origin | sed 's/.*github.com[:/]\(.*\)\.git/\1/') \
+gh pr create \
   --head pr/<slug> \
   --base <base-branch> \
   --title "<PR title>" \
   --body "$(cat <<'EOF'
 ## Summary
-<bullet points describing the changes>
+<bullet points from session context>
 
 ## Test plan
 <testing checklist>
@@ -188,58 +171,35 @@ EOF
 )"
 ```
 
-Store the PR URL from the output.
+Capture and store the PR URL.
 
-### Step 12: Cleanup
+## Step 13: Cleanup
 
-Always clean up, whether successful or not:
-
-```bash
-# Remove the worktree
-git worktree remove "$WORKTREE_PATH" --force
-
-# Clean up temp files
-rm -f /tmp/session-pr-*.patch
-```
-
-### Step 13: Report Results
-
-Tell the user:
-- The PR URL (as a clickable link)
-- The branch name created
-- Summary of files included
-- Confirmation that the working directory was not modified
-
-## Error Handling
-
-**If not a git repo:**
-```bash
-git rev-parse --git-dir
-```
-If this fails, inform user this command only works in git repositories.
-
-**If GitHub CLI not available:**
-```bash
-which gh
-```
-If not found, tell user to install GitHub CLI: https://cli.github.com/
-
-**If patches fail to apply:**
-- Clean up worktree immediately
-- Show the error message
-- Suggest the user check for conflicts with the base branch
-
-**Always cleanup on failure:**
-Any error after worktree creation must trigger cleanup:
+Always clean up the worktree and temp files:
 ```bash
 git worktree remove "$WORKTREE_PATH" --force 2>/dev/null || true
 rm -f /tmp/session-pr-*.patch
 ```
 
-## Key Principles
+## Step 14: Report Results
 
-- **Working directory untouched** - All operations happen in the temporary worktree
-- **Clean abort on failure** - Always remove worktree and temp files if something goes wrong
-- **No stashing** - Never use git stash; worktree provides complete isolation
-- **Session relevance warning** - Warn user about changes that appear unrelated to the current session, with options to exclude them
-- **User decides** - The user always has final say on what to include; suggestions are advisory only
+Tell the user:
+- The PR URL (clickable link)
+- The branch name created
+- Summary of files included
+- Confirmation that working directory was not modified
+
+## Error Handling
+
+On any failure after worktree creation, always clean up:
+```bash
+git worktree remove "$WORKTREE_PATH" --force 2>/dev/null || true
+rm -f /tmp/session-pr-*.patch
+```
+
+## Key Constraints
+
+- Never modify the working directory - all operations in the worktree
+- Never use git stash - worktree provides isolation
+- Always clean up on failure
+- User decides what to include - suggestions are advisory

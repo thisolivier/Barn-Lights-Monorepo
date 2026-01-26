@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "owner": "pytorch",
+  "repo": "pytorch",
+  "path": ".claude/skills/skill-writer",
+  "branch": "main",
+  "sha": "31bda4e7d81f060e8461e77576bfe942c1e4f618"
+}
