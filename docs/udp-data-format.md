@@ -7,8 +7,8 @@ The UDP payload layout is:
 | Offset |  Size |  Description |
 |--------|-------|--------------|
 | 0      | 4     | session_id (unsigned 32-bit big-endian)|
-| 0      | 4     | frame_id (unsigned 32-bit big-endian)|
-| 4      | N     | RGB data for the run (run_led_count * 3 bytes)|
+| 4      | 4     | frame_id (unsigned 32-bit big-endian)|
+| 8      | N     | RGB data for the run (run_led_count * 3 bytes)|
 
 RGB bytes are in physical LED order with one 8-bit value for each of red, green and blue.
 

@@ -38,7 +38,7 @@
     "effects",
     "udp",
     "firmware",
-    "esp32"
+    "teensy"
   ],
   "author": "Olivier Larose",
   "license": "MIT"
