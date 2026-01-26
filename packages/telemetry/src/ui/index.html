@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LED Lights Telemetry Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>LED Lights Telemetry</h1>
+      <div class="connection-status">
+        <div id="statusIndicator" class="status-indicator"></div>
+        <span id="statusText">Disconnected</span>
+      </div>
+    </header>
+
+    <div id="systemHealth" class="card" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-title">System Health</span>
+        <span id="healthBadge" class="health-badge unknown">Unknown</span>
+      </div>
+      <div class="system-health">
+        <div class="stat-item">
+          <span class="stat-label">Devices Online</span>
+          <span id="devicesOnline" class="stat-value">0 / 0</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Avg Packet Loss</span>
+          <span id="avgPacketLoss" class="stat-value">0%</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Log Buffer</span>
+          <span id="logBufferSize" class="stat-value">0 / 0</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="devicesGrid" class="dashboard-grid">
+      <div class="card no-devices">
+        <p>No devices connected</p>
+      </div>
+    </div>
+
+    <div class="logs-section">
+      <div class="logs-header">
+        <span class="logs-title">Live Logs</span>
+        <div class="logs-filters">
+          <div class="filter-group">
+            <label for="levelFilter">Level</label>
+            <select id="levelFilter">
+              <option value="">All</option>
+              <option value="error">Error</option>
+              <option value="warn">Warn</option>
+              <option value="info">Info</option>
+              <option value="debug">Debug</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="componentFilter">Component</label>
+            <select id="componentFilter">
+              <option value="">All</option>
+            </select>
+          </div>
+          <div class="auto-scroll-toggle">
+            <input type="checkbox" id="autoScroll" checked>
+            <label for="autoScroll">Auto-scroll</label>
+          </div>
+          <button id="clearLogs" class="clear-btn">Clear</button>
+        </div>
+      </div>
+      <div id="logsContainer" class="logs-container"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { init } from './dashboard.mjs';
+    init();
+  </script>
+</body>
+</html>

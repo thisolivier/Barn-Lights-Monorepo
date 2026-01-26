@@ -1,6 +1,6 @@
 # LED Lights Monorepo
 
-A unified monorepo for LED lighting system with visual effects rendering, UDP packet transmission, and ESP32 device firmware.
+A unified monorepo for LED lighting system with visual effects rendering, UDP packet transmission, and Teensy 4.1 device firmware.
 
 ## Quick Start
 
@@ -42,9 +42,9 @@ UDP packet sender that receives frames from renderer and transmits to controller
 - Process management for renderer
 
 ### 📦 packages/device-firmware
-ESP32 firmware for LED controllers (C/ESP-IDF).
+Teensy 4.1 firmware for LED controllers (C/PlatformIO).
 - UDP packet reception
-- WS2812B LED driving via RMT
+- WS2812B LED driving via OctoWS2811
 - Status monitoring and heartbeat
 - Optimized for low latency
 
@@ -111,10 +111,10 @@ npm install
 npm test
 npm start
 
-# Firmware (requires ESP-IDF)
+# Firmware (requires PlatformIO)
 cd packages/device-firmware
-./tools/build_app.sh
-./tools/run_all_tests.sh
+LED_CONFIG=../../config/left.json pio run -e teensy41
+pio test -e native
 ```
 
 ### Service Management
@@ -123,12 +123,10 @@ cd packages/device-firmware
 # Start services
 npm start
 
-# Restart specific service
-pm2 restart renderer
+# Restart the sender (which manages the renderer as a child process)
 pm2 restart sender
 
-# View specific service logs
-pm2 logs renderer
+# View logs (renderer logs are interleaved with sender)
 pm2 logs sender
 
 # Stop all services
@@ -150,7 +148,7 @@ Ensure your network is configured correctly and controllers are accessible.
 
 - **Node.js**: >= 20.0.0
 - **PM2**: Installed automatically
-- **ESP-IDF**: Optional, for firmware development
+- **PlatformIO**: Optional, for firmware development
 - **Platform**: macOS, Linux (native), or Windows (WSL)
 
 ## Project Structure

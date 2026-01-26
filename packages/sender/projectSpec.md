@@ -1,5 +1,5 @@
 # LED Sender / Transport — Project Spec v1
-This spec defines the sender/transport program that consumes your existing renderer (NDJSON over stdout) and streams per-run UDP packets to ESP32-ETH controllers. It is platform-agnostic (Node.js LTS), terminal-first (no Electron, no HTTP UI in v1), and designed for clean separation of repos.
+This spec defines the sender/transport program that consumes your existing renderer (NDJSON over stdout) and streams per-run UDP packets to LED controllers. It is platform-agnostic (Node.js LTS), terminal-first (no Electron, no HTTP UI in v1), and designed for clean separation of repos.
 
 ## 0. Scope & Goals
 In-scope (v1):

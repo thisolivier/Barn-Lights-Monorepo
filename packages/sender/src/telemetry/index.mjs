@@ -105,7 +105,7 @@ export class Telemetry {
       this.intervalHandle = null;
     }
     this.#report();
-    console.log('');
+    this.logger.info('Telemetry stopped');
   }
 
   /** Compute and print current statistics. */
@@ -194,6 +194,21 @@ export class Telemetry {
     console.log(line(header));
     for (const row of rows) {
       console.log(line(row));
+    }
+
+    // Emit structured stats for each side (for telemetry service)
+    for (const [sideName, state] of Object.entries(this.sides)) {
+      this.logger.debug('stats', {
+        side: sideName,
+        frames_ingested: state.frames_ingested,
+        frames_built: state.frames_built,
+        frames_sent: state.frames_sent,
+        frames_dropped_build: state.frames_dropped_build,
+        frames_dropped_overwrite: state.frames_dropped_overwrite,
+        pps: parseFloat(state.pps.toFixed(1)),
+        bytes_per_sec: parseFloat(state.bytes_per_sec.toFixed(1)),
+        last_frame_id: state.last_frame_id,
+      });
     }
 
     if (this.errorCounts.size > 0) {

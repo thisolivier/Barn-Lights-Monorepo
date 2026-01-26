@@ -4,11 +4,18 @@ import { createReadStream } from "fs";
 import path from "path";
 import url from "url";
 
+import { createLogger } from '@led-lights/shared/udp-logger';
 import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
 import { savePreset, loadPreset, listPresets } from "./config-store.mjs";
 
+const logger = createLogger({
+  component: 'renderer.server',
+  target: { host: '127.0.0.1', port: 49800 }
+});
+
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const UI_DIR = path.join(__dirname, "ui");
+const UI_DIST_DIR = path.join(UI_DIR, "dist");
 
 function streamFile(p, mime, res){
   const s = createReadStream(p);
@@ -22,13 +29,12 @@ function sendJson(obj, res){
 
 const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, "http://x/");
-  if (u.pathname === "/") return streamFile(path.join(UI_DIR, "index.html"), "text/html", res);
-  if (u.pathname === "/preview.mjs") return streamFile(path.join(UI_DIR, "preview.mjs"), "text/javascript", res);
-  if (u.pathname === "/main.mjs") return streamFile(path.join(UI_DIR, "main.mjs"), "text/javascript", res);
+  // React bundle - served from webpack dist output
+  if (u.pathname === "/") return streamFile(path.join(UI_DIST_DIR, "index.html"), "text/html", res);
+  if (u.pathname === "/bundle.js") return streamFile(path.join(UI_DIST_DIR, "bundle.js"), "text/javascript", res);
+  // ES modules loaded directly by the React bundle at runtime
   if (u.pathname === "/connection.mjs") return streamFile(path.join(UI_DIR, "connection.mjs"), "text/javascript", res);
-  if (u.pathname === "/controls-logic.mjs") return streamFile(path.join(UI_DIR, "controls-logic.mjs"), "text/javascript", res);
   if (u.pathname === "/presets.mjs") return streamFile(path.join(UI_DIR, "presets.mjs"), "text/javascript", res);
-  if (u.pathname === "/renderer.mjs") return streamFile(path.join(UI_DIR, "renderer.mjs"), "text/javascript", res);
   if (u.pathname === "/reboot.mjs") return streamFile(path.join(UI_DIR, "reboot.mjs"), "text/javascript", res);
   if (u.pathname === "/render-scene.mjs") return streamFile(path.join(__dirname, "render-scene.mjs"), "text/javascript", res);
   if (u.pathname.startsWith("/subviews/")) {
@@ -98,7 +104,7 @@ wss.on("connection", ws => {
 
 export function startServer(port = 8080){
   server.listen(port, () => {
-    console.error(`UI: http://localhost:${port}`);
+    logger.info('Server started', { url: `http://localhost:${port}` });
   });
 }
 

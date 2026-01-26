@@ -12,5 +12,7 @@
   "bin": {
     "lights-sender": "bin/lights-sender.mjs"
   },
-  "dependencies": {}
+  "dependencies": {
+    "@led-lights/shared": "*"
+  }
 }

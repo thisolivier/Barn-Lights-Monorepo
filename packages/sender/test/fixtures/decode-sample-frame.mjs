@@ -25,8 +25,7 @@ export function decodeSampleFrame(layoutPath, samplePath = path.join(__dirname, 
     let decoded = Buffer.from(sectionFrame.rgb_b64, 'base64');
     const startX =
       typeof section.x0 === 'number' ? section.x0 : section.x1;
-    const endX =
-      typeof section.x2 === 'number' ? section.x2 : section.x1;
+    const endX = section.x1;
     if (
       typeof startX === 'number' &&
       typeof endX === 'number' &&

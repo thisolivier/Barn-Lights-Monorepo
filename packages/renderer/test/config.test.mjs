@@ -44,9 +44,13 @@ test('sections stay within normalized sampling space', async () => {
       for (const sec of run.sections) {
         assert(sec.y >= 0 && sec.y <= height,
           `${name} section ${sec.id} y ${sec.y} out of range`);
+        // Sections can be normal (x0 <= x1) or reversed (x0 > x1) for physical wiring
+        // Both x0 and x1 must be within the sampling space bounds
+        const xMin = Math.min(sec.x0, sec.x1);
+        const xMax = Math.max(sec.x0, sec.x1);
         assert(
-          sec.x0 >= 0 && sec.x1 <= width && sec.x0 <= sec.x1,
-          `${name} section ${sec.id} x-range out of ${width}`
+          xMin >= 0 && xMax <= width,
+          `${name} section ${sec.id} x-range [${sec.x0}, ${sec.x1}] out of bounds [0, ${width}]`
         );
       }
     }
