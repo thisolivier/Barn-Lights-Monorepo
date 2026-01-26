@@ -9,17 +9,10 @@ import assert from 'node:assert/strict';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { RendererProcess } from '../src/renderer-process/index.mjs';
+import { withTimeout } from './helpers/timeout.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// Helper to wrap a promise with a timeout to prevent tests from hanging
-function withTimeout(promise, ms, message = 'Operation timed out') {
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error(message)), ms)
-  );
-  return Promise.race([promise, timeout]);
-}
 
 test('ingests NDJSON lines and logs errors', { timeout: 10000 }, async () => {
   const logs = [];

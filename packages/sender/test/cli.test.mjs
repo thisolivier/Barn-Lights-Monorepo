@@ -9,6 +9,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { withTimeout } from './helpers/timeout.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,15 +28,11 @@ test('CLI exits with code 0 after SIGINT', async () => {
   await new Promise((resolve) => setTimeout(resolve, 500));
   child.kill('SIGINT');
 
-  const exitTimeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Process exit timeout')), 5000)
+  const exitCode = await withTimeout(
+    new Promise((resolve) => child.on('exit', (code) => resolve(code))),
+    5000,
+    'Process exit timeout'
   );
-  const exitCode = await Promise.race([
-    new Promise((resolve) => {
-      child.on('exit', (code) => resolve(code));
-    }),
-    exitTimeout
-  ]);
 
   assert.strictEqual(exitCode, 0);
 });
