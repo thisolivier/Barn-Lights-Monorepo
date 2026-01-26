@@ -23,6 +23,12 @@ npm install
 echo "✅ Dependencies installed"
 echo ""
 
+# Build React UI
+echo "🔨 Building React UI..."
+npm run build:ui -w packages/renderer
+echo "✅ React UI built"
+echo ""
+
 # Create logs directory if it doesn't exist
 echo "📁 Setting up logs directory..."
 mkdir -p logs
