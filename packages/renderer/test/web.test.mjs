@@ -9,10 +9,19 @@ const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 async function waitForServer(url, retries = 100){
   for (let i = 0; i < retries; i++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
     try {
-      const res = await fetch(url);
-      if (res.ok) return;
-    } catch {}
+      const res = await fetch(url, { signal: controller.signal });
+      if (res.ok) {
+        clearTimeout(timeoutId);
+        return;
+      }
+    } catch {
+      // ignore fetch errors and retry
+    } finally {
+      clearTimeout(timeoutId);
+    }
     await new Promise(r => setTimeout(r, 100));
   }
   throw new Error('server not responding');
@@ -39,7 +48,10 @@ test('web view loads with no console errors', async () => {
     if (browser) await browser.close().catch(() => {});
     proc.kill();
     if (proc.exitCode === null) {
-      await once(proc, 'exit').catch(() => {});
+      const exitTimeout = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Process exit timeout')), 5000)
+      );
+      await Promise.race([once(proc, 'exit'), exitTimeout]).catch(() => {});
     }
   }
 });

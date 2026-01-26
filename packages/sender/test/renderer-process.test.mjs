@@ -30,7 +30,13 @@ test('ingests NDJSON lines and logs errors', async () => {
 
   // Start the renderer and wait for it to exit so all lines are processed.
   const child = rp.start();
-  await new Promise((resolve) => child.on('close', resolve));
+  const closeTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Process close timeout')), 5000)
+  );
+  await Promise.race([
+    new Promise((resolve) => child.on('close', resolve)),
+    closeTimeout
+  ]);
 
   // Verify that only the valid frame was ingested.
   assert.strictEqual(frames.length, 1, `expected 1 frame, got ${frames.length}`);
@@ -54,7 +60,13 @@ test('ignores output until the first timestamped frame', async () => {
   rendererProcess.on('FrameIngest', (frame) => frames.push(frame));
 
   const child = rendererProcess.start();
-  await new Promise((resolve) => child.on('close', resolve));
+  const closeTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Process close timeout')), 5000)
+  );
+  await Promise.race([
+    new Promise((resolve) => child.on('close', resolve)),
+    closeTimeout
+  ]);
 
   assert.strictEqual(frames.length, 1);
   assert.strictEqual(frames[0].frame, 1);
@@ -72,10 +84,16 @@ test('emits error when renderer crashes', async () => {
 
   // The error event should fire with an Error instance when the renderer exits
   // with a nonzero status code.
-  const err = await new Promise((resolve) => {
-    rp.on('error', resolve);
-    rp.start();
-  });
+  const errorTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Error event timeout')), 5000)
+  );
+  const err = await Promise.race([
+    new Promise((resolve) => {
+      rp.on('error', resolve);
+      rp.start();
+    }),
+    errorTimeout
+  ]);
   assert(err instanceof Error);
 });
 
@@ -92,7 +110,13 @@ test('emits reboot events for special frames', async () => {
   const receivedSides = [];
   rp.on('Reboot', (sideName) => receivedSides.push(sideName));
   const child = rp.start();
-  await new Promise((resolve) => child.on('close', resolve));
+  const closeTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Process close timeout')), 5000)
+  );
+  await Promise.race([
+    new Promise((resolve) => child.on('close', resolve)),
+    closeTimeout
+  ]);
   assert.deepEqual(receivedSides, ['left']);
   assert.strictEqual(logs.length, 0);
 });

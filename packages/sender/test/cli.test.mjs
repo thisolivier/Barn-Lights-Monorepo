@@ -27,9 +27,15 @@ test('CLI exits with code 0 after SIGINT', async () => {
   await new Promise((resolve) => setTimeout(resolve, 500));
   child.kill('SIGINT');
 
-  const exitCode = await new Promise((resolve) => {
-    child.on('exit', (code) => resolve(code));
-  });
+  const exitTimeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Process exit timeout')), 5000)
+  );
+  const exitCode = await Promise.race([
+    new Promise((resolve) => {
+      child.on('exit', (code) => resolve(code));
+    }),
+    exitTimeout
+  ]);
 
   assert.strictEqual(exitCode, 0);
 });
