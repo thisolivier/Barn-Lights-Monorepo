@@ -138,26 +138,6 @@ proc.stdout.on('data', chunk => {
 });
 ```
 
-## Debugging Timing Issues
-
-### Symptom: Test times out
-
-1. Check if child process exited early (exit code in logs)
-2. Verify config file paths resolve correctly
-3. Check if required build artifacts exist (UI dist, etc.)
-
-### Symptom: Flaky pass/fail
-
-1. Look for race conditions in parallel tests
-2. Check for shared resources (ports, files)
-3. Consider running with `--test-concurrency=1`
-
-### Symptom: Process doesn't exit after SIGINT
-
-1. Check all intervals are cleared in stop() methods
-2. Verify sockets are closed
-3. Check readline interfaces are properly closed
-
 ## Best Practices for New Tests
 
 1. **Always use timeouts**: Wrap async operations with timeout protection

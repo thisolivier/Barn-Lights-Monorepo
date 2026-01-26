@@ -1,12 +1,12 @@
 ---
 name: test-runner
-description: Run and debug tests in the LED lights monorepo with intelligent failure diagnosis
+description: Run and debug tests in the LED lights monorepo
 argument-hint: [package-name]
 ---
 
 # Test Runner Skill
 
-This skill helps run tests and diagnose failures in the LED lights monorepo. It handles common issues like missing build artifacts, incorrect paths, and timing-sensitive test patterns.
+Run tests and diagnose failures in the LED lights monorepo.
 
 ## Usage
 
@@ -14,37 +14,6 @@ Invoke with an optional package name:
 - `/test-runner` - Run all tests
 - `/test-runner renderer` - Run renderer package tests
 - `/test-runner sender` - Run sender package tests
-
-## Pre-flight Checks
-
-Before running tests, verify these prerequisites:
-
-### 1. Check React UI Build (renderer package)
-
-The renderer's web tests require the UI to be built:
-
-```bash
-ls packages/renderer/src/ui/dist/index.html 2>/dev/null || echo "UI NOT BUILT"
-```
-
-If missing, build it:
-```bash
-npm run build:ui --workspace=packages/renderer
-```
-
-### 2. Verify Config Paths
-
-Test fixtures reference config files. Verify they exist:
-```bash
-ls config/left.json config/right.json
-```
-
-### 3. Check Node Modules
-
-Ensure dependencies are installed:
-```bash
-test -d node_modules || npm install
-```
 
 ## Running Tests
 
@@ -67,70 +36,59 @@ node --test packages/<package>/test/<file>.test.mjs
 
 ### Timeout Failures
 
-If tests fail with "Process exit timeout" or similar:
+When tests fail with "Process exit timeout":
 
-1. **Check if child process is crashing**:
-   - Look for exit code 2 (renderer error in sender tests)
-   - The renderer fixture might not be found
+1. **Check the diagnostic output** - Tests now log subprocess stderr automatically when processes fail unexpectedly. Look for `[TEST DIAGNOSTIC]` in the output.
 
-2. **Check fixture config paths**:
-   ```bash
-   cat packages/sender/test/fixtures/cli_renderer.config.json
-   ```
-   - `cwd` is resolved relative to config file location
-   - `args` paths are relative to `cwd`
+2. **Common causes:**
+   - Renderer fixture not found (check config paths)
+   - Process hung waiting for input
+   - Signal handler not working
 
-3. **Test manually**:
+3. **Debug manually:**
    ```bash
    cd packages/sender
    node bin/lights-sender.mjs --config test/fixtures/cli_renderer.config.json
    ```
+   Then send SIGINT (Ctrl+C) to verify clean shutdown.
 
-### Server Not Responding
+### Server Not Responding (Renderer Tests)
 
 If web tests fail with "server not responding":
 
-1. **Check if UI is built** (see pre-flight checks)
-
-2. **Check server manually**:
+1. **Check server startup manually:**
    ```bash
    cd packages/renderer
    node bin/engine.mjs --config-dir ../../config --port 0
    ```
-   Look for `SERVER_PORT=XXXXX` in output
+   Look for `SERVER_PORT=XXXXX` in output.
 
-3. **Test HTTP response**:
+2. **Test HTTP response:**
    ```bash
    curl -v http://localhost:<port>/
    ```
 
+3. **Common causes:**
+   - Server crashes after port assignment (check stderr)
+   - Network binding issue
+
 ### Puppeteer Failures
 
-If browser tests fail:
+For browser test debugging:
 
-1. **Check Puppeteer is installed**:
-   ```bash
-   ls node_modules/puppeteer
-   ```
-
-2. **Try headful mode** for debugging:
+1. **Run headful** for visual debugging:
    ```javascript
    browser = await puppeteer.launch({ headless: false });
    ```
 
-## Common Issues and Fixes
-
-| Symptom | Likely Cause | Fix |
-|---------|--------------|-----|
-| "Empty reply from server" | UI not built | `npm run build:ui --workspace=packages/renderer` |
-| "Process exit timeout" | Renderer config path wrong | Check `cwd` and `args` in fixture config |
-| "Cannot find module" | Dependencies missing | `npm install` |
-| Exit code 2 | Renderer crashed | Check renderer fixture exists at resolved path |
+2. **Add screenshot on failure:**
+   ```javascript
+   await page.screenshot({ path: 'debug.png' });
+   ```
 
 ## Test Concurrency
 
-Tests can be run with different concurrency levels:
-- `--test-concurrency=1` - Sequential (slower, more reliable)
+- `--test-concurrency=1` - Sequential (more reliable, slower)
 - `--test-concurrency=4` - Parallel (faster, may reveal race conditions)
 
-Phase 1-3 improvements added timeout protection, so hanging tests will now fail fast rather than blocking indefinitely.
+Tests have timeout protection, so hanging tests fail fast rather than blocking indefinitely.

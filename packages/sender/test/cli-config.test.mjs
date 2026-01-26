@@ -4,8 +4,9 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { spawn, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { withTimeout } from './helpers/timeout.mjs';
+import { spawnCLI } from './helpers/spawn-with-diagnostics.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +25,7 @@ function writeTempConfig(mutator) {
 }
 
 test('CLI accepts a valid configuration', async () => {
-  const child = spawn('node', [binaryPath, '--config', baseConfigPath], { stdio: 'pipe' });
+  const { child } = spawnCLI(binaryPath, ['--config', baseConfigPath]);
   await new Promise((resolve) => setTimeout(resolve, 500));
   child.kill('SIGINT');
   const exitCode = await withTimeout(

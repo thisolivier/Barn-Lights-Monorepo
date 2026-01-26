@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { spawn, spawnSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { withTimeout } from './helpers/timeout.mjs';
+import { spawnCLI } from './helpers/spawn-with-diagnostics.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,7 +13,7 @@ const bin = path.join(__dirname, '..', 'bin', 'lights-sender.mjs');
 
 test('CLI loads valid config and layouts', async () => {
   const configPath = path.join(__dirname, 'fixtures', 'cli_renderer.config.json');
-  const child = spawn('node', [bin, '--config', configPath], { stdio: 'pipe' });
+  const { child } = spawnCLI(bin, ['--config', configPath]);
   await new Promise((resolve) => setTimeout(resolve, 500));
   child.kill('SIGINT');
   const exitCode = await withTimeout(
