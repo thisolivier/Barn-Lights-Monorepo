@@ -1,12 +1,12 @@
 ---
 name: timing-patterns
-description: Reference for timing-sensitive patterns in the LED lights codebase - load this when working with tests, processes, or polling code
+description: Reference for timing-sensitive patterns including polling intervals, timeouts, process startup delays, and frame rate timing in the LED lights codebase. Load this when working with tests, debugging timing issues, writing process management code, or when you see setTimeout, setInterval, polling loops, or startup delays.
 user-invocable: false
 ---
 
-# Timing Patterns in LED Lights Monorepo
+# Timing Patterns Reference
 
-This reference documents the timing-sensitive patterns throughout the codebase. Claude should load this context when working with tests, server code, or debugging timing issues.
+This reference documents timing-sensitive patterns throughout the LED lights codebase. Use this context when working with tests, server code, process management, or debugging timing issues.
 
 ## Architecture Overview
 
@@ -138,7 +138,7 @@ proc.stdout.on('data', chunk => {
 });
 ```
 
-## Best Practices for New Tests
+## Best Practices
 
 1. **Always use timeouts**: Wrap async operations with timeout protection
 2. **Use dynamic ports**: Never hardcode port numbers
