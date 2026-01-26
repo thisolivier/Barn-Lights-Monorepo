@@ -13,7 +13,15 @@ import { RendererProcess } from '../src/renderer-process/index.mjs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-test('ingests NDJSON lines and logs errors', async () => {
+// Helper to wrap a promise with a timeout to prevent tests from hanging
+function withTimeout(promise, ms, message = 'Operation timed out') {
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(message)), ms)
+  );
+  return Promise.race([promise, timeout]);
+}
+
+test('ingests NDJSON lines and logs errors', { timeout: 10000 }, async () => {
   const logs = [];
   // Logger stub records error messages so we can make assertions later.
   const logger = { error: (msg) => logs.push(msg), warn() {}, info() {}, debug() {} };
@@ -30,13 +38,11 @@ test('ingests NDJSON lines and logs errors', async () => {
 
   // Start the renderer and wait for it to exit so all lines are processed.
   const child = rp.start();
-  const closeTimeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Process close timeout')), 5000)
-  );
-  await Promise.race([
+  await withTimeout(
     new Promise((resolve) => child.on('close', resolve)),
-    closeTimeout
-  ]);
+    5000,
+    'Process close timeout'
+  );
 
   // Verify that only the valid frame was ingested.
   assert.strictEqual(frames.length, 1, `expected 1 frame, got ${frames.length}`);
@@ -46,7 +52,7 @@ test('ingests NDJSON lines and logs errors', async () => {
   assert(logs.some((l) => l.includes('Unsupported format')));
 });
 
-test('ignores output until the first timestamped frame', async () => {
+test('ignores output until the first timestamped frame', { timeout: 10000 }, async () => {
   const logs = [];
   const logger = { error: (msg) => logs.push(msg), warn() {}, info() {}, debug() {} };
   const runtimeConfig = {
@@ -60,20 +66,18 @@ test('ignores output until the first timestamped frame', async () => {
   rendererProcess.on('FrameIngest', (frame) => frames.push(frame));
 
   const child = rendererProcess.start();
-  const closeTimeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Process close timeout')), 5000)
-  );
-  await Promise.race([
+  await withTimeout(
     new Promise((resolve) => child.on('close', resolve)),
-    closeTimeout
-  ]);
+    5000,
+    'Process close timeout'
+  );
 
   assert.strictEqual(frames.length, 1);
   assert.strictEqual(frames[0].frame, 1);
   assert.strictEqual(logs.length, 0);
 });
 
-test('emits error when renderer crashes', async () => {
+test('emits error when renderer crashes', { timeout: 10000 }, async () => {
   const runtimeConfig = {
     renderer: {
       cmd: process.execPath,
@@ -84,20 +88,18 @@ test('emits error when renderer crashes', async () => {
 
   // The error event should fire with an Error instance when the renderer exits
   // with a nonzero status code.
-  const errorTimeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Error event timeout')), 5000)
-  );
-  const err = await Promise.race([
+  const err = await withTimeout(
     new Promise((resolve) => {
       rp.on('error', resolve);
       rp.start();
     }),
-    errorTimeout
-  ]);
+    5000,
+    'Error event timeout'
+  );
   assert(err instanceof Error);
 });
 
-test('emits reboot events for special frames', async () => {
+test('emits reboot events for special frames', { timeout: 10000 }, async () => {
   const runtimeConfig = {
     renderer: {
       cmd: process.execPath,
@@ -110,13 +112,11 @@ test('emits reboot events for special frames', async () => {
   const receivedSides = [];
   rp.on('Reboot', (sideName) => receivedSides.push(sideName));
   const child = rp.start();
-  const closeTimeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Process close timeout')), 5000)
-  );
-  await Promise.race([
+  await withTimeout(
     new Promise((resolve) => child.on('close', resolve)),
-    closeTimeout
-  ]);
+    5000,
+    'Process close timeout'
+  );
   assert.deepEqual(receivedSides, ['left']);
   assert.strictEqual(logs.length, 0);
 });

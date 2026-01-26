@@ -17,8 +17,9 @@ async function waitForServer(url, retries = 100){
         clearTimeout(timeoutId);
         return;
       }
-    } catch {
-      // ignore fetch errors and retry
+    } catch (err) {
+      // Log retry attempts so caller knows what's happening
+      console.log(`waitForServer: attempt ${i + 1}/${retries} failed - ${err.name === 'AbortError' ? 'timeout' : err.message}`);
     } finally {
       clearTimeout(timeoutId);
     }
