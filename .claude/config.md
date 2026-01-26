@@ -45,11 +45,6 @@ Do not modify files managed by package managers:
 - `**/managed_components/` - ESP-IDF dependencies (device-firmware)
 - `**/package-lock.json` - Dependency lock files
 
-### Project Specs
-Each package has its own project specification file. In the event of confusion, refer to the relevant project spec for context:
-- **sender**: `packages/sender/projectSpec.md`
-- **device-firmware**: `packages/device-firmware/docs/project-spec.md`
-
 ### Package: renderer
 **Additional notes:**
 - Test suite dependency: Puppeteer requires system libraries. If tests fail, install:
@@ -73,8 +68,3 @@ node packages/renderer/bin/engine.mjs --port 0
 # The engine outputs the assigned port to stdout:
 # SERVER_PORT=54321
 ```
-
-When writing tests that spawn servers:
-- Use port 0 for automatic allocation
-- Parse the server output to detect the assigned port
-- Clean up server processes in `finally` blocks to prevent orphaned processes
