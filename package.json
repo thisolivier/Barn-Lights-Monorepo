@@ -5,6 +5,7 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "packages/audio",
     "packages/renderer",
     "packages/sender",
     "packages/shared",

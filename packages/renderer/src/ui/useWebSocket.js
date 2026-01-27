@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 
-export function useWebSocket(url, { enabled = true, onInit, onParams, onError } = {}) {
+export function useWebSocket(url, { enabled = true, onInit, onParams, onAudio, onError } = {}) {
   const socketRef = useRef(null);
   const [readyState, setReadyState] = useState('closed');
 
   const initCallbackRef = useRef(onInit);
   const paramsCallbackRef = useRef(onParams);
+  const audioCallbackRef = useRef(onAudio);
   const errorCallbackRef = useRef(onError);
 
   useEffect(() => {
@@ -15,6 +16,10 @@ export function useWebSocket(url, { enabled = true, onInit, onParams, onError } 
   useEffect(() => {
     paramsCallbackRef.current = onParams;
   }, [onParams]);
+
+  useEffect(() => {
+    audioCallbackRef.current = onAudio;
+  }, [onAudio]);
 
   useEffect(() => {
     errorCallbackRef.current = onError;
@@ -60,6 +65,7 @@ export function useWebSocket(url, { enabled = true, onInit, onParams, onError } 
         const message = JSON.parse(event.data);
         if (message.type === 'init' && initCallbackRef.current) initCallbackRef.current(message);
         if (message.type === 'params' && paramsCallbackRef.current) paramsCallbackRef.current(message);
+        if (message.type === 'audio' && audioCallbackRef.current) audioCallbackRef.current(message);
       };
     } catch (err) {
       console.error('Failed to create WebSocket', err);
