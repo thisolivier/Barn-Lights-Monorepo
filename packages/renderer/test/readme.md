@@ -13,6 +13,9 @@ Automated checks for BarnLights Playbox:
 - `colorStopsWidget.test.mjs` – ensures the gradient picker emits stop updates.
 - `gradientStopsRenderer.test.mjs` – checks the renderer applies updated gradient colors.
 - `gradientPresetWeb.test.mjs` – verifies loading a preset updates the preview gradient.
+- `audio-state.test.mjs` – tests audio state management (updateAudioState, updateAudioSettings).
+- `audio-post.test.mjs` – tests audio post-processing effects (brightness, horizontalMask, hueShift).
+- `audio-websocket.test.mjs` – tests WebSocket handling of audio messages and broadcasts.
 
 The engine exports a `start` function and is invoked via `bin/engine.mjs`, which also launches the HTTP server. Web server and engine can be invoked independently for testing.
 
