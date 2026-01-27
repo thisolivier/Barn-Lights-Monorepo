@@ -1,0 +1,28 @@
+{
+  "name": "@led-lights/audio",
+  "version": "0.1.0",
+  "description": "Audio capture and feature extraction for LED lights audio reactivity",
+  "type": "module",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch",
+    "pretest": "npm run build",
+    "test": "node --test --test-concurrency=4 test/*.test.mjs"
+  },
+  "dependencies": {
+    "fft.js": "^4.0.4",
+    "naudiodon": "^2.3.4",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

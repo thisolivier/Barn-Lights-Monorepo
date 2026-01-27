@@ -4,6 +4,7 @@ import { WebSocketProvider } from './WebSocketContext.js';
 import { ParamsProvider } from './ParamsContext.js';
 import ControlPanel from './ControlPanel.js';
 import CanvasPreview from './CanvasPreview.js';
+import AudioPanel from './AudioPanel.js';
 
 export default function App({
   runFunction = defaultRun,
@@ -18,6 +19,7 @@ export default function App({
   const [runtime, setRuntime] = useState(null);
   const [layouts, setLayouts] = useState({ left: null, right: null });
   const [scene, setScene] = useState({ width: 0, height: 0 });
+  const [audioState, setAudioState] = useState(null);
 
   const handleReady = useCallback((runtimeValue) => {
     console.log('Runtime initialized');
@@ -47,12 +49,19 @@ export default function App({
     onStatus: () => {}
   };
 
+  // Handle audio state updates from WebSocket
+  const onAudio = useCallback((message) => {
+    if (message.audio) {
+      setAudioState(message.audio);
+    }
+  }, []);
+
   return React.createElement(
     ParamsProviderComponent,
     { send: sendFunction, onReady: handleReady },
     React.createElement(
       WebSocketProviderComponent,
-      { enabled: handlersReady, onInit, onParams, onError: onStatus, setSend: setSendFunction },
+      { enabled: handlersReady, onInit, onParams, onAudio, onError: onStatus, setSend: setSendFunction },
       [ 
         (runtime && layouts.left && layouts.right && scene.width && scene.height
         ? React.createElement(CanvasPreview, {
@@ -66,6 +75,10 @@ export default function App({
         : null), 
         React.createElement(ControlPanel, {
           key: "control"
+        }),
+        React.createElement(AudioPanel, {
+          key: "audio",
+          audioState: audioState
         })
       ]
     )

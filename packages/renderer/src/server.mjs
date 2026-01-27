@@ -7,6 +7,7 @@ import url from "url";
 import { createLogger } from '@led-lights/shared/udp-logger';
 import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
 import { savePreset, loadPreset, listPresets } from "./config-store.mjs";
+import { audioState, updateAudioState, updateAudioSettings } from "./audio-state.mjs";
 
 const logger = createLogger({
   component: 'renderer.server',
@@ -93,10 +94,37 @@ const server = http.createServer(async (req, res) => {
 const wss = new WebSocketServer({ server });
 wss.on("connection", ws => {
   ws.send(JSON.stringify({ type: "init", params, scene: { w: SCENE_W, h: SCENE_H } }));
+  // Send current audio state to new connections
+  ws.send(JSON.stringify({ type: "audio", audio: audioState }));
+
   ws.on("message", msg => {
     try {
-      const patch = JSON.parse(msg.toString());
-      updateParams(patch);
+      const data = JSON.parse(msg.toString());
+
+      // Handle audio feature updates from audio package
+      if (data.type === 'audio') {
+        updateAudioState(data);
+        // Broadcast audio state to all UI clients
+        const audioMsg = JSON.stringify({ type: "audio", audio: audioState });
+        for (const c of wss.clients) {
+          if (c.readyState === 1) c.send(audioMsg);
+        }
+        return;
+      }
+
+      // Handle audio settings updates from UI
+      if (data.type === 'audioSettings') {
+        updateAudioSettings(data.settings);
+        // Broadcast updated settings to all UI clients
+        const audioMsg = JSON.stringify({ type: "audio", audio: audioState });
+        for (const c of wss.clients) {
+          if (c.readyState === 1) c.send(audioMsg);
+        }
+        return;
+      }
+
+      // Handle regular parameter updates (backwards compatible)
+      updateParams(data);
       for (const c of wss.clients) if (c.readyState === 1) c.send(JSON.stringify({ type: "params", params }));
     } catch {}
   });

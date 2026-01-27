@@ -3,8 +3,8 @@ import { useWebSocket } from './useWebSocket.js';
 
 export const WebSocketContext = createContext(null);
 
-export function WebSocketProvider({ children, url = `ws://${globalThis.location.host}`, enabled = true, onInit, onParams, onError, setSend }) {
-  const { readyState, send } = useWebSocket(url, { enabled, onInit, onParams, onError });
+export function WebSocketProvider({ children, url = `ws://${globalThis.location.host}`, enabled = true, onInit, onParams, onAudio, onError, setSend }) {
+  const { readyState, send } = useWebSocket(url, { enabled, onInit, onParams, onAudio, onError });
 
   useEffect(() => {
     if (setSend) setSend(send);
