@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "owner": "anthropics",
+  "repo": "claude-code",
+  "path": "plugins/plugin-dev/skills/command-development",
+  "branch": "main",
+  "sha": "07e593d490ae22688926ffae79f15d85bb961825"
+}
