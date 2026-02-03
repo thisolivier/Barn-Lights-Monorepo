@@ -162,7 +162,7 @@ led-lights/
 ├── packages/
 │   ├── renderer/           # Visual effects engine
 │   ├── sender/             # UDP packet sender
-│   └── device-firmware/    # ESP32 firmware
+│   └── device-firmware/    # Teensy 4.1 firmware
 ├── scripts/                # Setup and utility scripts
 │   ├── setup.sh
 │   ├── test-all.sh

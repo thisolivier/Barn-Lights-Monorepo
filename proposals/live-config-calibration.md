@@ -19,7 +19,7 @@ The system has two categories of parameters:
 1. **Scene Sampling** - LED positions (`x0`, `x1`, `y`) directly determine which scene pixels map to each LED. Changing mid-frame causes color discontinuities.
 2. **NDJSON Contract** - Section IDs are hardwired between renderer and sender.
 3. **UDP Routing** - `run_index` determines port numbers; devices listen on fixed ports.
-4. **Device Firmware** - ESP32 pre-allocates buffers based on LED count at compile time.
+4. **Device Firmware** - Teensy 4.1 pre-allocates buffers based on LED count at compile time.
 
 ### Proposed Solution: Config Hot-Reload with Safe Transition
 
@@ -111,7 +111,7 @@ function handleLayoutTransition(frame) {
 
 | Property | Limitation |
 |----------|-----------|
-| `runs[].led_count` | **Hardware constraint** - ESP32 allocates fixed buffers |
+| `runs[].led_count` | **Hardware constraint** - Teensy 4.1 allocates fixed buffers |
 | `total_leds` | Sum of `led_count`, cannot exceed hardware |
 | `run_index` | Device listens on fixed ports per run |
 | `static_ip`, `port_base` | Network addressing is firmware-configured |
@@ -338,7 +338,7 @@ export const ledCounter = {
 
 | Limitation | Reason | Workaround |
 |------------|--------|------------|
-| **Total LED count per run** | ESP32 firmware pre-allocates fixed buffers at compile time | Must reflash device to change |
+| **Total LED count per run** | Teensy 4.1 firmware pre-allocates fixed buffers at compile time | Must reflash device to change |
 | **Number of runs** | UDP ports are fixed per run_index | Must reflash device |
 | **Run index assignment** | Device expects specific data on specific ports | Reconfigure firmware |
 

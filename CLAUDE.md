@@ -4,7 +4,7 @@
 This is a monorepo with three packages:
 - `packages/renderer` - Visual effects engine (Node.js + React)
 - `packages/sender` - UDP packet sender (Node.js)
-- `packages/device-firmware` - ESP32 firmware (C/ESP-IDF)
+- `packages/device-firmware` - Teensy 4.1 firmware (C/PlatformIO)
 
 ## Configuration Files
 Master configuration files are in `/config/`:
@@ -43,7 +43,7 @@ Your work is deeply appreciated.
 ### Paths Not to Modify
 Do not modify files managed by package managers:
 - `**/node_modules/` - Node.js dependencies (renderer, sender)
-- `**/managed_components/` - ESP-IDF dependencies (device-firmware)
+- `**/.pio/` - PlatformIO build artifacts (device-firmware)
 - `**/package-lock.json` - Dependency lock files
 
 ### Package: renderer
