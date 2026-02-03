@@ -288,6 +288,7 @@ export default function ControlPanel() {
         <div className="row">
           <button onClick={() => requestReboot('left')}>Reboot Left</button>
           <button onClick={() => requestReboot('right')}>Reboot Right</button>
+          <a href="#/calibration" className="calibration-link">Calibration Mode</a>
         </div>
       </fieldset>
 

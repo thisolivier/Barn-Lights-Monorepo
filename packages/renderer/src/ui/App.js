@@ -4,6 +4,7 @@ import { WebSocketProvider } from './WebSocketContext.js';
 import { ParamsProvider } from './ParamsContext.js';
 import ControlPanel from './ControlPanel.js';
 import CanvasPreview from './CanvasPreview.js';
+import CalibrationPage from './CalibrationPage.js';
 
 export default function App({
   runFunction = defaultRun,
@@ -18,6 +19,18 @@ export default function App({
   const [runtime, setRuntime] = useState(null);
   const [layouts, setLayouts] = useState({ left: null, right: null });
   const [scene, setScene] = useState({ width: 0, height: 0 });
+  const [currentPage, setCurrentPage] = useState(() => {
+    return window.location.hash === '#/calibration' ? 'calibration' : 'main';
+  });
+
+  // Handle hash changes for routing
+  useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentPage(window.location.hash === '#/calibration' ? 'calibration' : 'main');
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const handleReady = useCallback((runtimeValue) => {
     console.log('Runtime initialized');
@@ -41,21 +54,52 @@ export default function App({
     }
   }, [runtime, layouts.left, layouts.right, scene.width, scene.height]);
 
+  // Handler for layout updates from WebSocket
+  const handleLayoutUpdate = useCallback((side, layout) => {
+    setLayouts(prev => ({
+      ...prev,
+      [side]: layout
+    }));
+  }, []);
+
   const { onInit, onParams, onStatus } = handlers || {
     onInit: () => {},
     onParams: () => {},
     onStatus: () => {}
   };
 
-  return React.createElement(
-    ParamsProviderComponent,
-    { send: sendFunction, onReady: handleReady },
-    React.createElement(
-      WebSocketProviderComponent,
-      { enabled: handlersReady, onInit, onParams, onError: onStatus, setSend: setSendFunction },
-      [ 
-        (runtime && layouts.left && layouts.right && scene.width && scene.height
+  // Wrap onInit to also handle layout updates
+  const wrappedOnInit = useCallback((message) => {
+    onInit(message);
+  }, [onInit]);
+
+  // Create a message handler that routes layout updates
+  const handleMessage = useCallback((message) => {
+    if (message.type === 'layoutUpdate') {
+      handleLayoutUpdate(message.side, message.layout);
+      return;
+    }
+    if (message.type === 'params') {
+      onParams(message);
+    }
+  }, [onParams, handleLayoutUpdate]);
+
+  const renderContent = () => {
+    if (currentPage === 'calibration') {
+      return React.createElement(CalibrationPage, {
+        layouts,
+        setLayouts,
+        scene,
+        runtime,
+        sendWsMessage: sendFunction
+      });
+    }
+
+    // Main page (default)
+    return [
+      (runtime && layouts.left && layouts.right && scene.width && scene.height
         ? React.createElement(CanvasPreview, {
+            key: "preview",
             getParams: runtime.getParams,
             layoutLeft: layouts.left,
             layoutRight: layouts.right,
@@ -63,12 +107,26 @@ export default function App({
             sceneHeight: scene.height,
             shouldAnimate
           })
-        : null), 
-        React.createElement(ControlPanel, {
-          key: "control"
-        })
-      ]
+        : null),
+      React.createElement(ControlPanel, {
+        key: "control"
+      })
+    ];
+  };
+
+  return React.createElement(
+    ParamsProviderComponent,
+    { send: sendFunction, onReady: handleReady },
+    React.createElement(
+      WebSocketProviderComponent,
+      {
+        enabled: handlersReady,
+        onInit: wrappedOnInit,
+        onParams: handleMessage,
+        onError: onStatus,
+        setSend: setSendFunction
+      },
+      renderContent()
     )
   );
 }
-

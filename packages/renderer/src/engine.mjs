@@ -4,6 +4,7 @@ import path from "path";
 import url from "url";
 
 import { effects } from "./effects/index.mjs";
+import { setLayoutData as setSectionHighlighterLayouts } from "./effects/library/sectionHighlighter.mjs";
 import { sliceSection } from "./effects/modifiers.mjs";
 import { renderFrames, SCENE_W, SCENE_H } from "./render-scene.mjs";
 
@@ -49,6 +50,35 @@ async function loadLayout(name){
 
 export function getLayoutLeft() { return layoutLeft; }
 export function getLayoutRight() { return layoutRight; }
+export function getConfigDir() { return CONFIG_DIR; }
+
+// Update a section's position in-memory
+export function updateSectionPosition(side, sectionId, updates) {
+  const layout = side === 'left' ? layoutLeft : layoutRight;
+  if (!layout) return null;
+
+  for (const run of layout.runs) {
+    const section = run.sections.find(sec => sec.id === sectionId);
+    if (section) {
+      if ('x0' in updates) section.x0 = updates.x0;
+      if ('x1' in updates) section.x1 = updates.x1;
+      if ('y' in updates) section.y = updates.y;
+      // Update section highlighter with new layout data
+      setSectionHighlighterLayouts(layoutLeft, layoutRight);
+      return layout;
+    }
+  }
+  return null;
+}
+
+// Save layout to file
+export async function saveLayout(side) {
+  const layout = side === 'left' ? layoutLeft : layoutRight;
+  if (!layout) throw new Error(`No layout for side: ${side}`);
+
+  const filePath = path.join(CONFIG_DIR, `${side}.json`);
+  await fs.writeFile(filePath, JSON.stringify(layout, null, 2), 'utf8');
+}
 
 const postKeys = new Set(Object.keys(params.post));
 // Map parameter keys to their owning effect when unique
@@ -150,6 +180,9 @@ export async function start(configDir){
   // Load layouts at startup
   layoutLeft = await loadLayout("left");
   layoutRight = await loadLayout("right");
+
+  // Provide layout data to section highlighter effect
+  setSectionHighlighterLayouts(layoutLeft, layoutRight);
 
   last = process.hrtime.bigint();
   acc = 0;
