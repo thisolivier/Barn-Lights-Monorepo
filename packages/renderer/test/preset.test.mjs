@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { savePreset, loadPreset, listPresets } from '../src/config-store.mjs';
+import { savePreset, loadPreset, listPresets, deletePreset } from '../src/config-store.mjs';
 import { unlink, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import url from 'node:url';
@@ -126,4 +126,46 @@ test('saving preset overwrites existing data and images', async () => {
     await unlink(overwritePath).catch(() => {});
     await unlink(overwriteImg).catch(() => {});
   }
+});
+
+test('delete preset removes both json and png', async () => {
+  const testName = uniqueName('delete-test');
+  const presetPath = path.join(presetsDir, `${testName}.json`);
+  const imagePath = path.join(presetsDir, `${testName}.png`);
+
+  try {
+    const png = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQI12P4//8/AwAI/AL+XJ/kAAAAAElFTkSuQmCC',
+      'base64'
+    );
+    await savePreset(testName, sampleParams, png);
+
+    // Verify files exist
+    await stat(presetPath);
+    await stat(imagePath);
+
+    // Delete preset
+    await deletePreset(testName);
+
+    // Verify files are deleted
+    await assert.rejects(stat(presetPath), { code: 'ENOENT' });
+    await assert.rejects(stat(imagePath), { code: 'ENOENT' });
+
+    // Verify not in list
+    const list = await listPresets();
+    assert(!list.includes(testName));
+  } finally {
+    await unlink(presetPath).catch(() => {});
+    await unlink(imagePath).catch(() => {});
+  }
+});
+
+test('delete preset is idempotent', async () => {
+  const testName = uniqueName('idempotent-delete');
+
+  // Delete non-existent preset should succeed
+  await deletePreset(testName);
+  await deletePreset(testName); // Second call should also succeed
+
+  assert(true);
 });

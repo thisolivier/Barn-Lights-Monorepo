@@ -105,6 +105,29 @@ export default function ControlPanel() {
     fetchPresetNames(window).then(setPresetNames).catch(() => {});
   };
 
+  const handlePresetDelete = async (name, event) => {
+    event.stopPropagation(); // Prevent triggering preset load
+
+    if (!window.confirm(`Delete preset '${name}'? This cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/preset/delete/${encodeURIComponent(name)}`, {
+        method: 'POST'
+      });
+
+      if (response.ok) {
+        if (presetInput === name) {
+          setPresetInput('');
+        }
+        fetchPresetNames(window).then(setPresetNames).catch(() => {});
+      }
+    } catch (err) {
+      console.error('Failed to delete preset:', err);
+    }
+  };
+
   const setPostParam = useCallback((key, value) => {
     dispatch({ post: { [key]: value } }, false);
     sendPatch({ [key]: value });
@@ -195,7 +218,14 @@ export default function ControlPanel() {
             {presetNames.map((name) => (
               <div key={name} className="presetItem" onClick={() => handlePresetSelect(name)}>
                 <img src={`/preset/preview/${encodeURIComponent(name)}`} alt={name} />
-                <div>{name}</div>
+                <div className="presetName">{name}</div>
+                <button
+                  className="deleteBtn"
+                  onClick={(e) => handlePresetDelete(name, e)}
+                  aria-label={`Delete ${name}`}
+                >
+                  ×
+                </button>
               </div>
             ))}
           </div>
