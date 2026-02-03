@@ -43,27 +43,30 @@ static void build_packet(uint8_t* buffer, uint16_t session_id, uint32_t frame_id
     }
 }
 
-// Helper to inject a complete frame via HAL
+// Helper to inject a complete frame via HAL (sends packets for ALL runs)
 static void inject_complete_frame(uint16_t session_id, uint32_t frame_id,
                                   uint8_t r, uint8_t g, uint8_t b) {
-    size_t rgb_len = LED_COUNT[0] * 3;
-    size_t packet_len = 6 + rgb_len;
+    // Inject a packet for each run to complete the frame
+    for (int run_index = 0; run_index < RUN_COUNT; run_index++) {
+        size_t rgb_len = LED_COUNT[run_index] * 3;
+        size_t packet_len = 6 + rgb_len;
 
-    uint8_t* packet = new uint8_t[packet_len];
-    uint8_t* rgb = new uint8_t[rgb_len];
+        uint8_t* packet = new uint8_t[packet_len];
+        uint8_t* rgb = new uint8_t[rgb_len];
 
-    // Fill all LEDs with the same color
-    for (size_t i = 0; i < rgb_len; i += 3) {
-        rgb[i] = r;
-        rgb[i + 1] = g;
-        rgb[i + 2] = b;
+        // Fill all LEDs with the same color
+        for (size_t i = 0; i < rgb_len; i += 3) {
+            rgb[i] = r;
+            rgb[i + 1] = g;
+            rgb[i + 2] = b;
+        }
+
+        build_packet(packet, session_id, frame_id, rgb, rgb_len);
+        hal::test::inject_packet(run_index, packet, packet_len);
+
+        delete[] packet;
+        delete[] rgb;
     }
-
-    build_packet(packet, session_id, frame_id, rgb, rgb_len);
-    hal::test::inject_packet(0, packet, packet_len);
-
-    delete[] packet;
-    delete[] rgb;
 }
 
 void setUp(void) {
@@ -242,9 +245,7 @@ void test_heartbeat_after_frames(void) {
     // Complete wakeup sequence first
     complete_wakeup();
 
-    hal::test::set_time(0);
-
-    // Process some frames
+    // Process some frames - advance time past blackout period
     hal::test::advance_time(1100);
 
     inject_complete_frame(1, 1, 255, 0, 0);
@@ -259,16 +260,19 @@ void test_heartbeat_after_frames(void) {
     driver_show_frame(frame);
     led_status_frame_displayed();
 
-    // Trigger heartbeat
-    hal::test::set_time(2100);
+    // Trigger heartbeat (advance by 1000ms from current time)
+    hal::test::advance_time(1000);
     status_poll();
 
     auto& heartbeats = hal::test::get_sent_heartbeats();
     TEST_ASSERT_EQUAL(1, heartbeats.size());
 
-    // Should report 2 frames received and applied
+    // rx_frames counts packets (RUN_COUNT packets per frame, 2 frames)
+    // applied counts complete frames that were displayed (2)
     const std::string& json = heartbeats[0];
-    TEST_ASSERT_NOT_EQUAL(std::string::npos, json.find("\"rx_frames\":2"));
+    char expected_rx[32];
+    snprintf(expected_rx, sizeof(expected_rx), "\"rx_frames\":%d", RUN_COUNT * 2);
+    TEST_ASSERT_NOT_EQUAL(std::string::npos, json.find(expected_rx));
     TEST_ASSERT_NOT_EQUAL(std::string::npos, json.find("\"applied\":2"));
 }
 
