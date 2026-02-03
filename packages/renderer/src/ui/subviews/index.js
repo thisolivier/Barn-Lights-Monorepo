@@ -63,13 +63,20 @@ function ColorControl({ label, value, onChange }) {
 function ColorStopsControl({ label, value = [], onChange }) {
   const containerRef = useRef(null);
   const gradientPickerRef = useRef(null);
+  const onChangeRef = useRef(onChange);
+
+  // Keep onChangeRef always up to date to avoid stale closures
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
   useEffect(() => {
     if (!containerRef.current || !window.Grapick) return;
     const gradientPicker = new window.Grapick({ el: containerRef.current, direction: 'to right' });
     gradientPicker.on('change', () => {
       const handlers = gradientPicker.getHandlers().slice().sort((a, b) => a.position - b.position);
       const stops = handlers.map((handler) => ({ pos: handler.position / 100, color: hexToRgb(handler.color) }));
-      onChange(stops);
+      onChangeRef.current(stops);
     });
     gradientPickerRef.current = gradientPicker;
     return () => {
