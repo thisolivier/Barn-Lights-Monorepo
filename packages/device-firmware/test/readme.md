@@ -28,6 +28,15 @@ Tests the status heartbeat module:
 - Uptime calculation
 - Network status reporting
 
+### test_wakeup.cpp
+Tests the startup wakeup effect:
+- Wakeup not complete initially
+- Each run lit sequentially with warm white at 50% brightness
+- Correct timing (200ms per run, 50ms gap)
+- All LEDs in a run are lit during wakeup
+- Wakeup completion after all runs
+- Poll is no-op after completion
+
 ### test_integration.cpp
 End-to-end integration tests:
 - Complete frame assembly and LED display pipeline
