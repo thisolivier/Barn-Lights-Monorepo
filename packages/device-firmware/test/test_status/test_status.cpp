@@ -157,24 +157,34 @@ static void build_packet(uint8_t* buffer, uint16_t session_id, uint32_t frame_id
     }
 }
 
+// Helper to inject a complete frame (sends packets for ALL runs)
+static void inject_complete_frame(uint16_t session_id, uint32_t frame_id) {
+    for (int run_index = 0; run_index < RUN_COUNT; run_index++) {
+        size_t rgb_len = LED_COUNT[run_index] * 3;
+        size_t packet_len = 6 + rgb_len;
+
+        uint8_t* packet = new uint8_t[packet_len];
+        uint8_t* rgb = new uint8_t[rgb_len];
+        memset(rgb, 0xFF, rgb_len);
+
+        build_packet(packet, session_id, frame_id, rgb, rgb_len);
+        receiver_handle_packet(run_index, packet, packet_len);
+
+        delete[] packet;
+        delete[] rgb;
+    }
+}
+
 // Test: Stats are included in heartbeat
 void test_heartbeat_includes_stats(void) {
     hal::test::set_time(0);
     status_init();
 
-    // Send some packets to generate stats
-    size_t rgb_len = LED_COUNT[0] * 3;
-    size_t packet_len = 6 + rgb_len;
-    uint8_t* packet = new uint8_t[packet_len];
-    uint8_t* rgb = new uint8_t[rgb_len];
-    memset(rgb, 0xFF, rgb_len);
-
-    build_packet(packet, 1, 1, rgb, rgb_len);
-    receiver_handle_packet(0, packet, packet_len);
+    // Send complete frames (packets for all runs) to generate stats
+    inject_complete_frame(1, 1);
     receiver_get_complete_frame();
 
-    build_packet(packet, 1, 2, rgb, rgb_len);
-    receiver_handle_packet(0, packet, packet_len);
+    inject_complete_frame(1, 2);
     receiver_get_complete_frame();
 
     // Send heartbeat
@@ -184,13 +194,13 @@ void test_heartbeat_includes_stats(void) {
     auto& heartbeats = hal::test::get_sent_heartbeats();
     const std::string& json = heartbeats[0];
 
-    // Should report 2 rx_frames, 2 complete, 2 applied
-    TEST_ASSERT_NOT_EQUAL(std::string::npos, json.find("\"rx_frames\":2"));
+    // rx_frames counts packets (RUN_COUNT packets per frame, 2 frames)
+    // complete and applied count complete frames (2)
+    char expected_rx[32];
+    snprintf(expected_rx, sizeof(expected_rx), "\"rx_frames\":%d", RUN_COUNT * 2);
+    TEST_ASSERT_NOT_EQUAL(std::string::npos, json.find(expected_rx));
     TEST_ASSERT_NOT_EQUAL(std::string::npos, json.find("\"complete\":2"));
     TEST_ASSERT_NOT_EQUAL(std::string::npos, json.find("\"applied\":2"));
-
-    delete[] packet;
-    delete[] rgb;
 }
 
 int main(int argc, char** argv) {

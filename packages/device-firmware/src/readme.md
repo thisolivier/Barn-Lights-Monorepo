@@ -12,12 +12,14 @@ The firmware follows a cooperative loop architecture:
 
 **setup()**: Initializes all subsystems in order
 - LED driver (sets strips to black)
+- Wakeup effect state machine
 - Receiver frame assembly
 - Network (Ethernet + UDP sockets)
 - Status heartbeat
 - Onboard LED indicator
 
 **loop()**: Polls subsystems continuously
+- Wakeup effect (blocks until complete)
 - Network polling for incoming packets
 - Frame display when complete frame ready
 - Status heartbeat transmission
@@ -67,6 +69,13 @@ Controls onboard LED (pin 13) for visual status indication:
 - Quick tick on frame display for first 600 frames
 - Provides visual feedback of system operation
 
+### wakeup (wakeup.cpp/h)
+Runs a visual startup sequence before accepting network input:
+- Lights each run sequentially in warm white at 50% brightness
+- Each run lit for 200ms with 50ms gap between runs
+- Blocks all network frame processing until complete
+- Provides visual confirmation that all LED runs are functional
+
 ### hal/ (Hardware Abstraction Layer)
 Platform abstraction for portability and testing. See `hal/readme.md` for details.
 
@@ -78,19 +87,21 @@ Build-time generated configuration from JSON layout files:
 
 ## Data Flow
 
-1. Sender transmits UDP packets to `PORT_BASE + run_index` for each run
-2. Network module receives packets and passes to receiver
-3. Receiver validates, assembles frames by frame_id
-4. When complete frame ready, main loop passes to led_driver
-5. LED driver converts RGB to GRB and triggers DMA output
-6. Status module sends periodic heartbeats with statistics
-7. LED status provides visual feedback on onboard LED
+1. On startup, wakeup effect lights each run sequentially (200ms each)
+2. After wakeup completes, network input is accepted
+3. Sender transmits UDP packets to `PORT_BASE + run_index` for each run
+4. Network module receives packets and passes to receiver
+5. Receiver validates, assembles frames by frame_id
+6. When complete frame ready, main loop passes to led_driver
+7. LED driver converts RGB to GRB and triggers DMA output
+8. Status module sends periodic heartbeats with statistics
+9. LED status provides visual feedback on onboard LED
 
 ## Dependencies
 
 Modules depend on each other in this order (top depends on bottom):
 - main.cpp
-- network, receiver, led_driver, status, led_status
+- network, receiver, led_driver, status, led_status, wakeup
 - hal (hardware abstraction layer)
 - config_autogen.h (build-time generated)
 
