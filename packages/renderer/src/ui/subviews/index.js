@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { rgbToHex, hexToRgb } from './utils.mjs';
 export { default as SpeedSlider } from './SpeedSlider.js';
 
@@ -100,6 +100,53 @@ function ButtonControl({ label, onChange }) {
   return <button onClick={() => onChange(true)}>{label}</button>;
 }
 
+function FilePathControl({ label, value, onChange }) {
+  const [gifFiles, setGifFiles] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchGifs = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('/gifs');
+      const files = await response.json();
+      setGifFiles(files);
+    } catch (err) {
+      console.error('Failed to fetch GIFs:', err);
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
+    fetchGifs();
+  }, []);
+
+  const handleRefresh = (event) => {
+    event.preventDefault();
+    fetchGifs();
+  };
+
+  // Extract just the filename from path for display
+  const getDisplayName = (filePath) => {
+    const parts = filePath.split('/');
+    return parts[parts.length - 1];
+  };
+
+  return (
+    <label>
+      {label}
+      <select value={value || ''} onChange={(e) => onChange(e.target.value)} disabled={isLoading}>
+        <option value="">-- Select GIF --</option>
+        {gifFiles.map((filePath) => (
+          <option key={filePath} value={filePath}>{getDisplayName(filePath)}</option>
+        ))}
+      </select>
+      <button onClick={handleRefresh} disabled={isLoading} style={{ marginLeft: '4px' }}>
+        {isLoading ? '...' : '↻'}
+      </button>
+    </label>
+  );
+}
+
 const widgetMap = {
   number: NumberControl,
   float: NumberControl,
@@ -109,6 +156,7 @@ const widgetMap = {
   rgb: ColorControl,
   colorStops: ColorStopsControl,
   button: ButtonControl,
+  filePath: FilePathControl,
 };
 
 export default function EffectControls({ schema, values = {}, onChange }) {

@@ -1,11 +1,12 @@
 import http from "http";
 import { WebSocketServer } from "ws";
 import { createReadStream } from "fs";
+import fs from "fs/promises";
 import path from "path";
 import url from "url";
 
 import { createLogger } from '@led-lights/shared/udp-logger';
-import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
+import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H, loadGifFromPath } from "./engine.mjs";
 import { savePreset, loadPreset, listPresets, deletePreset } from "./config-store.mjs";
 
 const logger = createLogger({
@@ -14,8 +15,22 @@ const logger = createLogger({
 });
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, "..");
 const UI_DIR = path.join(__dirname, "ui");
 const UI_DIST_DIR = path.join(UI_DIR, "dist");
+const GIFS_DIR = path.join(ROOT, "config", "gifs");
+
+// List all .gif files in config/gifs directory
+async function listGifs() {
+  try {
+    const entries = await fs.readdir(GIFS_DIR);
+    return entries
+      .filter(name => name.toLowerCase().endsWith('.gif'))
+      .map(name => `config/gifs/${name}`);
+  } catch {
+    return [];
+  }
+}
 
 function streamFile(p, mime, res){
   const s = createReadStream(p);
@@ -55,6 +70,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (u.pathname === "/layout/left") return sendJson(getLayoutLeft(), res);
   if (u.pathname === "/layout/right") return sendJson(getLayoutRight(), res);
+  if (u.pathname === "/gifs") return sendJson(await listGifs(), res);
   if (u.pathname === "/presets") return sendJson(await listPresets(), res);
   if (u.pathname.startsWith("/preset/save/")) {
     const name = u.pathname.slice("/preset/save/".length);
@@ -68,6 +84,13 @@ const server = http.createServer(async (req, res) => {
     const name = u.pathname.slice("/preset/load/".length);
     try {
       await loadPreset(name, params);
+
+      // Load GIF if the preset uses one
+      const gifPath = params.effects?.gif?.gifPath;
+      if (gifPath) {
+        await loadGifFromPath(gifPath);
+      }
+
       for (const client of wss.clients) {
         if (client.readyState === 1) client.send(JSON.stringify({ type: "params", params }));
       }
@@ -103,10 +126,16 @@ const server = http.createServer(async (req, res) => {
 const wss = new WebSocketServer({ server });
 wss.on("connection", ws => {
   ws.send(JSON.stringify({ type: "init", params, scene: { w: SCENE_W, h: SCENE_H } }));
-  ws.on("message", msg => {
+  ws.on("message", async msg => {
     try {
       const patch = JSON.parse(msg.toString());
       updateParams(patch);
+
+      // Load GIF if gifPath changed
+      if (patch.gifPath) {
+        await loadGifFromPath(patch.gifPath);
+      }
+
       for (const c of wss.clients) if (c.readyState === 1) c.send(JSON.stringify({ type: "params", params }));
     } catch {}
   });

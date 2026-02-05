@@ -6,6 +6,7 @@ import url from "url";
 import { effects } from "./effects/index.mjs";
 import { sliceSection } from "./effects/modifiers.mjs";
 import { renderFrames, SCENE_W, SCENE_H } from "./render-scene.mjs";
+import { parseGif, loadGifIntoCache, getCachedGif } from "./effects/library/gif.mjs";
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
@@ -49,6 +50,28 @@ async function loadLayout(name){
 
 export function getLayoutLeft() { return layoutLeft; }
 export function getLayoutRight() { return layoutRight; }
+
+// ------- GIF loading -------
+// Load a GIF file from path and cache its frames
+export async function loadGifFromPath(gifPath) {
+  if (!gifPath) return;
+
+  // Check if already cached
+  if (getCachedGif(gifPath)) return;
+
+  // Resolve relative paths from package root
+  const fullPath = path.isAbsolute(gifPath)
+    ? gifPath
+    : path.join(ROOT, gifPath);
+
+  try {
+    const buffer = await fs.readFile(fullPath);
+    const gifData = parseGif(buffer);
+    loadGifIntoCache(gifPath, gifData);
+  } catch (err) {
+    console.error(`Failed to load GIF: ${gifPath}`, err.message);
+  }
+}
 
 const postKeys = new Set(Object.keys(params.post));
 // Map parameter keys to their owning effect when unique

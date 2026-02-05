@@ -106,3 +106,18 @@ test('updateParams routes shared keys to active effect', () => {
     });
   }
 });
+
+test('updateParams routes gifPath to gif effect', () => {
+  const originalParams = structuredClone(params);
+  try {
+    params.effect = 'gif';
+    params.effects.gif.gifPath = '';
+
+    updateParams({ gifPath: 'config/gifs/test.gif' });
+    assert.equal(params.effects.gif.gifPath, 'config/gifs/test.gif');
+  } finally {
+    Object.keys(originalParams).forEach(key => {
+      params[key] = originalParams[key];
+    });
+  }
+});

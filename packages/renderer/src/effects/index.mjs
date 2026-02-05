@@ -3,6 +3,7 @@ import * as solid from './library/solid.mjs';
 import * as noise from './library/noise.mjs';
 import * as digitalRain from './library/digitalRain.mjs';
 import * as diagonalStripes from './library/diagonalStripes.mjs';
+import * as gif from './library/gif.mjs';
 
 export const effects = {
   [gradient.id]: gradient,
@@ -10,4 +11,5 @@ export const effects = {
   [noise.id]: noise,
   [digitalRain.id]: digitalRain,
   [diagonalStripes.id]: diagonalStripes,
+  [gif.id]: gif,
 };
