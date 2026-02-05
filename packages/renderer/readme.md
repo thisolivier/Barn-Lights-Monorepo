@@ -76,6 +76,23 @@ Consumers should read lines individually, parse the JSON, decode `rgb_b64` for
 each section, and map the resulting RGB byte arrays to hardware or downstream
 systems.
 
+## Calibration Mode
+
+Navigate to `/#/calibration` to access the calibration UI for validating and adjusting LED section positions in real-time.
+
+### Calibration Effects
+
+- **Line Scanner**: Displays a sweeping horizontal or vertical line to validate X/Y positions. Supports auto-sweep mode or manual position control.
+- **Section Highlighter**: Lights up sections one at a time with a dark pink to light green gradient, helping identify each section's position.
+
+### Section Position Editing
+
+1. Select a side (left/right) and section from the list
+2. Adjust x0, x1 (horizontal range) and y (vertical position) values
+3. Click Save to update the config file and see changes in real-time
+
+The calibration system uses WebSocket messages to update section positions in-memory, save to the config file, and broadcast changes to all connected clients.
+
 ## About the code
 
 ### Architecture
@@ -87,6 +104,8 @@ systems.
 
 Runtime parameters are grouped under `effects` for effect-specific settings
 and `post` for modifiers like brightness, tint and strobe which can be applied on top.
+
+Available effects: gradient, solid, noise, digitalRain, diagonalStripes, lineScanner, sectionHighlighter.
 A `renderMode` parameter controls how scenes map to the two walls: `duplicate` renders once for both, `extended` renders a double-width scene and splits it, and `mirror` flips the scene horizontally for the right wall. Both the engine and browser preview rely on `renderFrames` to handle these modes.
 
 ### Frame pipeline

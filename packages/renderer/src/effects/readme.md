@@ -2,7 +2,8 @@
 
 Effect modules and utilities for the renderer.
 
-- `library/` – individual effect implementations (e.g. gradient, solid, noise, digitalRain, diagonalStripes, gif).
+- `library/` – individual effect implementations (e.g. gradient, solid, noise, digitalRain, diagonalStripes, gif, sectionHighlighter).
+  - `sectionHighlighter` supports two geometry paths: direct params (`sectionX0`/`sectionX1`/`sectionY`/`samplingWidth`/`samplingHeight`) for browser preview, and server-side layout lookup via `side`+`sectionIndex`.
 - `index.mjs` – aggregates the library into an `effects` map keyed by id.
 - `modifiers.mjs` – shared modifiers and sampling helpers, including pitch/yaw transforms.
   Provides both clamped (`bilinearSampleRGB`) and wrapping (`bilinearSampleWrapRGB`) bilinear sampling.

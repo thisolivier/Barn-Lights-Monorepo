@@ -4,6 +4,8 @@ import * as noise from './library/noise.mjs';
 import * as digitalRain from './library/digitalRain.mjs';
 import * as diagonalStripes from './library/diagonalStripes.mjs';
 import * as gif from './library/gif.mjs';
+import * as lineScanner from './library/lineScanner.mjs';
+import * as sectionHighlighter from './library/sectionHighlighter.mjs';
 
 export const effects = {
   [gradient.id]: gradient,
@@ -12,4 +14,6 @@ export const effects = {
   [digitalRain.id]: digitalRain,
   [diagonalStripes.id]: diagonalStripes,
   [gif.id]: gif,
+  [lineScanner.id]: lineScanner,
+  [sectionHighlighter.id]: sectionHighlighter,
 };
