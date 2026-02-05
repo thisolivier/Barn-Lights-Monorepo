@@ -63,6 +63,7 @@ export function updateSectionPosition(side, sectionId, updates) {
       if ('x0' in updates) section.x0 = updates.x0;
       if ('x1' in updates) section.x1 = updates.x1;
       if ('y' in updates) section.y = updates.y;
+      if ('led_count' in updates) section.led_count = updates.led_count;
       // Update section highlighter with new layout data
       setSectionHighlighterLayouts(layoutLeft, layoutRight);
       return layout;

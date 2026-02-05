@@ -144,8 +144,8 @@ wss.on("connection", ws => {
 
       // Handle section position updates
       if (data.type === 'updateSection') {
-        const { side, sectionId, x0, x1, y } = data;
-        const updatedLayout = updateSectionPosition(side, sectionId, { x0, x1, y });
+        const { side, sectionId, x0, x1, y, led_count } = data;
+        const updatedLayout = updateSectionPosition(side, sectionId, { x0, x1, y, led_count });
 
         if (updatedLayout) {
           await saveLayout(side);

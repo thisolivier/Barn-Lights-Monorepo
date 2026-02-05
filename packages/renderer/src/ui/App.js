@@ -84,8 +84,20 @@ export default function App({
     }
   }, [onParams, handleLayoutUpdate]);
 
+  const isCalibration = currentPage === 'calibration';
+  const headerTitle = isCalibration ? 'BarnLights Playbox: Calibration Mode' : 'BarnLights Playbox';
+  const headerButtonLabel = isCalibration ? 'Open Main Effects' : 'Open Calibration';
+  const headerButtonTarget = isCalibration ? '' : '#/calibration';
+
+  const header = React.createElement('div', { className: 'app-header' },
+    React.createElement('h1', null, headerTitle),
+    React.createElement('button', {
+      onClick: () => { window.location.hash = headerButtonTarget; }
+    }, headerButtonLabel)
+  );
+
   const renderContent = () => {
-    if (currentPage === 'calibration') {
+    if (isCalibration) {
       return React.createElement(CalibrationPage, {
         layouts,
         setLayouts,
@@ -126,6 +138,7 @@ export default function App({
         onError: onStatus,
         setSend: setSendFunction
       },
+      header,
       renderContent()
     )
   );
