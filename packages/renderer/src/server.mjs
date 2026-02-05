@@ -70,6 +70,12 @@ const server = http.createServer(async (req, res) => {
   }
   if (u.pathname === "/layout/left") return sendJson(getLayoutLeft(), res);
   if (u.pathname === "/layout/right") return sendJson(getLayoutRight(), res);
+  if (u.pathname.startsWith("/gif/")) {
+    const relativePath = decodeURIComponent(u.pathname.slice("/gif/".length));
+    const safePath = path.resolve(ROOT, relativePath);
+    if (!safePath.startsWith(ROOT)) { res.writeHead(403).end("Forbidden"); return; }
+    return streamFile(safePath, "image/gif", res);
+  }
   if (u.pathname === "/gifs") return sendJson(await listGifs(), res);
   if (u.pathname === "/presets") return sendJson(await listPresets(), res);
   if (u.pathname.startsWith("/preset/save/")) {

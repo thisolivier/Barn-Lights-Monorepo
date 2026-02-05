@@ -17,6 +17,9 @@ export const paramSchema = {
 // Frame cache: gifPath -> { frames: [{data, delay}], width, height }
 const gifCache = new Map();
 
+// Tracks in-flight browser fetches to avoid duplicate requests
+const pendingLoads = new Set();
+
 // Get cached GIF data
 export function getCachedGif(gifPath) {
   return gifCache.get(gifPath);
@@ -310,6 +313,15 @@ export function render(sceneF32, W, H, t, params) {
 
   const gifData = getCachedGif(gifPath);
   if (!gifData || !gifData.frames || gifData.frames.length === 0) {
+    // Browser: trigger async fetch so next frames render the GIF
+    if (!pendingLoads.has(gifPath) && typeof globalThis.fetch === 'function') {
+      pendingLoads.add(gifPath);
+      fetch(`/gif/${encodeURIComponent(gifPath)}`)
+        .then(response => response.arrayBuffer())
+        .then(buffer => { loadGifIntoCache(gifPath, parseGif(buffer)); })
+        .catch(() => {})
+        .finally(() => pendingLoads.delete(gifPath));
+    }
     // GIF not loaded yet - fill with purple to indicate loading
     for (let i = 0; i < sceneF32.length; i += 3) {
       sceneF32[i] = 0.3;

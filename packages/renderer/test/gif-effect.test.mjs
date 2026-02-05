@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'assert/strict';
-import { readFile } from 'fs/promises';
+import { readFile, readdir } from 'fs/promises';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { parseGif, loadGifIntoCache, getCachedGif, clearGifCache, render, defaultParams } from '../src/effects/library/gif.mjs';
@@ -8,7 +8,11 @@ import { parseGif, loadGifIntoCache, getCachedGif, clearGifCache, render, defaul
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
 test('parseGif parses a valid GIF file', async () => {
-  const gifPath = path.join(ROOT, 'giphy.gif');
+  const gifsDir = path.join(ROOT, 'config', 'gifs');
+  const entries = await readdir(gifsDir);
+  const firstGif = entries.find(name => name.toLowerCase().endsWith('.gif'));
+  assert.ok(firstGif, 'Need at least one GIF in config/gifs/ for this test');
+  const gifPath = path.join(gifsDir, firstGif);
   const buffer = await readFile(gifPath);
   const result = parseGif(buffer);
 
@@ -101,4 +105,94 @@ test('render uses cached GIF frames', () => {
 test('defaultParams has expected structure', () => {
   assert.equal(defaultParams.gifPath, '');
   assert.equal(defaultParams.speed, 1.0);
+});
+
+test('full pipeline: readFile -> parseGif -> cache -> render produces non-purple pixels', async () => {
+  const gifsDir = path.join(ROOT, 'config', 'gifs');
+  const entries = await readdir(gifsDir);
+  const firstGif = entries.find(name => name.toLowerCase().endsWith('.gif'));
+  assert.ok(firstGif, 'Need at least one GIF in config/gifs/ for this test');
+  const gifPath = path.join(gifsDir, firstGif);
+  const buffer = await readFile(gifPath);
+  const gifData = parseGif(buffer);
+
+  assert.ok(gifData.frames.length > 0, 'GIF should have at least one frame');
+
+  const cacheKey = 'test/giphy-pipeline.gif';
+  loadGifIntoCache(cacheKey, gifData);
+
+  const sceneWidth = 16;
+  const sceneHeight = 8;
+  const sceneF32 = new Float32Array(sceneWidth * sceneHeight * 3);
+  render(sceneF32, sceneWidth, sceneHeight, 0, { gifPath: cacheKey });
+
+  // Verify pixels are NOT all purple (0.3, 0.0, 0.3)
+  let allPurple = true;
+  for (let i = 0; i < sceneF32.length; i += 3) {
+    const isPurple = Math.abs(sceneF32[i] - 0.3) < 0.001
+      && Math.abs(sceneF32[i + 1] - 0.0) < 0.001
+      && Math.abs(sceneF32[i + 2] - 0.3) < 0.001;
+    if (!isPurple) { allPurple = false; break; }
+  }
+  assert.ok(!allPurple, 'Rendered pixels should not all be purple');
+
+  // Verify pixel variation (not a uniform flat color)
+  const uniqueColors = new Set();
+  for (let i = 0; i < sceneF32.length; i += 3) {
+    const key = `${sceneF32[i].toFixed(3)},${sceneF32[i + 1].toFixed(3)},${sceneF32[i + 2].toFixed(3)}`;
+    uniqueColors.add(key);
+  }
+  assert.ok(uniqueColors.size > 1, 'Rendered scene should contain varied pixel colors');
+
+  clearGifCache(cacheKey);
+});
+
+test('full pipeline with user GIF from config/gifs/', async () => {
+  const gifsDir = path.join(ROOT, 'config', 'gifs');
+  let gifFiles;
+  try {
+    const entries = await readdir(gifsDir);
+    gifFiles = entries.filter(name => name.toLowerCase().endsWith('.gif'));
+  } catch {
+    gifFiles = [];
+  }
+
+  if (gifFiles.length === 0) {
+    return; // Skip gracefully if no user GIFs present
+  }
+
+  const gifFileName = gifFiles[0];
+  const gifFilePath = path.join(gifsDir, gifFileName);
+  const buffer = await readFile(gifFilePath);
+  const gifData = parseGif(buffer);
+
+  assert.ok(gifData.frames.length > 0, `${gifFileName} should have at least one frame`);
+
+  const cacheKey = `test/user-gif-${gifFileName}`;
+  loadGifIntoCache(cacheKey, gifData);
+
+  const sceneWidth = 16;
+  const sceneHeight = 8;
+  const sceneF32 = new Float32Array(sceneWidth * sceneHeight * 3);
+  render(sceneF32, sceneWidth, sceneHeight, 0, { gifPath: cacheKey });
+
+  // Verify pixels are NOT all purple
+  let allPurple = true;
+  for (let i = 0; i < sceneF32.length; i += 3) {
+    const isPurple = Math.abs(sceneF32[i] - 0.3) < 0.001
+      && Math.abs(sceneF32[i + 1] - 0.0) < 0.001
+      && Math.abs(sceneF32[i + 2] - 0.3) < 0.001;
+    if (!isPurple) { allPurple = false; break; }
+  }
+  assert.ok(!allPurple, 'Rendered user GIF should not be all purple');
+
+  // Verify pixel variation
+  const uniqueColors = new Set();
+  for (let i = 0; i < sceneF32.length; i += 3) {
+    const key = `${sceneF32[i].toFixed(3)},${sceneF32[i + 1].toFixed(3)},${sceneF32[i + 2].toFixed(3)}`;
+    uniqueColors.add(key);
+  }
+  assert.ok(uniqueColors.size > 1, 'User GIF should contain varied pixel colors');
+
+  clearGifCache(cacheKey);
 });
