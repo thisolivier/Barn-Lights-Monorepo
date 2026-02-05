@@ -3,11 +3,22 @@ export function rgbToHex(rgb){
   return '#' + [r,g,b].map(x => x.toString(16).padStart(2,'0')).join('');
 }
 
-export function hexToRgb(hex){
-  const h = hex.replace('#','');
+export function hexToRgb(color){
+  if (!color) return [1, 1, 1];
+
+  const rgbaMatch = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+  if (rgbaMatch) {
+    return [
+      parseInt(rgbaMatch[1], 10) / 255,
+      parseInt(rgbaMatch[2], 10) / 255,
+      parseInt(rgbaMatch[3], 10) / 255,
+    ];
+  }
+
+  const h = color.replace('#', '');
   return [
-    parseInt(h.slice(0,2),16)/255,
-    parseInt(h.slice(2,4),16)/255,
-    parseInt(h.slice(4,6),16)/255,
+    parseInt(h.slice(0, 2), 16) / 255,
+    parseInt(h.slice(2, 4), 16) / 255,
+    parseInt(h.slice(4, 6), 16) / 255,
   ];
 }

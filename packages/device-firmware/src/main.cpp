@@ -5,6 +5,7 @@
 #include "receiver.h"
 #include "status.h"
 #include "led_status.h"
+#include "wakeup.h"
 #include <cstdio>
 
 extern "C" void setup() {
@@ -13,6 +14,9 @@ extern "C" void setup() {
 
     // Initialize LED driver first (sets LEDs black)
     driver_init();
+
+    // Initialize wakeup effect (runs during startup)
+    wakeup_init();
 
     // Initialize receiver frame assembly
     receiver_init();
@@ -37,6 +41,12 @@ extern "C" void setup() {
 }
 
 extern "C" void loop() {
+    // Run wakeup effect until complete
+    if (!wakeup_is_complete()) {
+        wakeup_poll();
+        return;
+    }
+
     // Poll network for incoming UDP packets
     network_poll();
 
