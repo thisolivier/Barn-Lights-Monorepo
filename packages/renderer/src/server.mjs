@@ -5,7 +5,7 @@ import path from "path";
 import url from "url";
 
 import { createLogger } from '@led-lights/shared/udp-logger';
-import { params, updateParams, getLayoutLeft, getLayoutRight, SCENE_W, SCENE_H } from "./engine.mjs";
+import { params, updateParams, getLayoutLeft, getLayoutRight, updateSectionPosition, saveLayout, SCENE_W, SCENE_H } from "./engine.mjs";
 import { savePreset, loadPreset, listPresets, deletePreset } from "./config-store.mjs";
 
 const logger = createLogger({
@@ -55,6 +55,41 @@ const server = http.createServer(async (req, res) => {
   }
   if (u.pathname === "/layout/left") return sendJson(getLayoutLeft(), res);
   if (u.pathname === "/layout/right") return sendJson(getLayoutRight(), res);
+  if (u.pathname === "/api/sections") {
+    const leftLayout = getLayoutLeft();
+    const rightLayout = getLayoutRight();
+    const sections = { left: [], right: [] };
+
+    if (leftLayout?.runs) {
+      for (const run of leftLayout.runs) {
+        for (const section of run.sections) {
+          sections.left.push({
+            id: section.id,
+            ledCount: section.led_count,
+            x0: section.x0,
+            x1: section.x1,
+            y: section.y,
+            runIndex: run.run_index
+          });
+        }
+      }
+    }
+    if (rightLayout?.runs) {
+      for (const run of rightLayout.runs) {
+        for (const section of run.sections) {
+          sections.right.push({
+            id: section.id,
+            ledCount: section.led_count,
+            x0: section.x0,
+            x1: section.x1,
+            y: section.y,
+            runIndex: run.run_index
+          });
+        }
+      }
+    }
+    return sendJson(sections, res);
+  }
   if (u.pathname === "/presets") return sendJson(await listPresets(), res);
   if (u.pathname.startsWith("/preset/save/")) {
     const name = u.pathname.slice("/preset/save/".length);
@@ -103,12 +138,42 @@ const server = http.createServer(async (req, res) => {
 const wss = new WebSocketServer({ server });
 wss.on("connection", ws => {
   ws.send(JSON.stringify({ type: "init", params, scene: { w: SCENE_W, h: SCENE_H } }));
-  ws.on("message", msg => {
+  ws.on("message", async (msg) => {
     try {
-      const patch = JSON.parse(msg.toString());
-      updateParams(patch);
-      for (const c of wss.clients) if (c.readyState === 1) c.send(JSON.stringify({ type: "params", params }));
-    } catch {}
+      const data = JSON.parse(msg.toString());
+
+      // Handle section position updates
+      if (data.type === 'updateSection') {
+        const { side, sectionId, x0, x1, y, led_count } = data;
+        const updatedLayout = updateSectionPosition(side, sectionId, { x0, x1, y, led_count });
+
+        if (updatedLayout) {
+          await saveLayout(side);
+
+          // Broadcast layout update to all clients
+          for (const client of wss.clients) {
+            if (client.readyState === 1) {
+              client.send(JSON.stringify({
+                type: 'layoutUpdate',
+                side,
+                layout: updatedLayout
+              }));
+            }
+          }
+        }
+        return;
+      }
+
+      // Handle regular param updates
+      updateParams(data);
+      for (const client of wss.clients) {
+        if (client.readyState === 1) {
+          client.send(JSON.stringify({ type: "params", params }));
+        }
+      }
+    } catch (error) {
+      logger.error('WebSocket message error', { error: error.message });
+    }
   });
 });
 

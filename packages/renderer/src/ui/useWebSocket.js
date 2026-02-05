@@ -60,6 +60,7 @@ export function useWebSocket(url, { enabled = true, onInit, onParams, onError } 
         const message = JSON.parse(event.data);
         if (message.type === 'init' && initCallbackRef.current) initCallbackRef.current(message);
         if (message.type === 'params' && paramsCallbackRef.current) paramsCallbackRef.current(message);
+        if (message.type === 'layoutUpdate' && paramsCallbackRef.current) paramsCallbackRef.current(message);
       };
     } catch (err) {
       console.error('Failed to create WebSocket', err);
