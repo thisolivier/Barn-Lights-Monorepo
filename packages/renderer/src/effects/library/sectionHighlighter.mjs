@@ -3,6 +3,7 @@
 
 export const id = 'sectionHighlighter';
 export const displayName = 'Section Highlighter';
+export const calibrationOnly = true;
 
 // Dark pink #8B0A50 → Light green #90EE90
 const GRADIENT_START = [0.545, 0.039, 0.314]; // Dark pink

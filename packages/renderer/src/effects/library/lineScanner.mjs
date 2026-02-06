@@ -1,6 +1,7 @@
 // Line Scanner Effect - Crosshair with independent X/Y position control
 export const id = 'lineScanner';
 export const displayName = 'Line Scanner';
+export const calibrationOnly = true;
 
 export const defaultParams = {
   positionX: 0.5,

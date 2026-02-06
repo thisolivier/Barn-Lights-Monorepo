@@ -242,7 +242,7 @@ export default function ControlPanel() {
           <label>
             Effect
             <select value={activeEffectId} onChange={(e) => dispatch({ effect: e.target.value })}>
-              {Object.values(effects).map((eff) => (
+              {Object.values(effects).filter((eff) => !eff.calibrationOnly).map((eff) => (
                 <option key={eff.id} value={eff.id}>{eff.displayName}</option>
               ))}
             </select>
