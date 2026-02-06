@@ -105,6 +105,8 @@ test('render uses cached GIF frames', () => {
 test('defaultParams has expected structure', () => {
   assert.equal(defaultParams.gifPath, '');
   assert.equal(defaultParams.speed, 1.0);
+  assert.equal(defaultParams.scaleWidth, 100);
+  assert.equal(defaultParams.scaleHeight, 100);
 });
 
 test('full pipeline: readFile -> parseGif -> cache -> render produces non-purple pixels', async () => {
@@ -193,6 +195,109 @@ test('full pipeline with user GIF from config/gifs/', async () => {
     uniqueColors.add(key);
   }
   assert.ok(uniqueColors.size > 1, 'User GIF should contain varied pixel colors');
+
+  clearGifCache(cacheKey);
+});
+
+test('50% tiling produces 2x2 tile repetition', () => {
+  // Create a 2x2 GIF: red, green, blue, white
+  const gifWidth = 2;
+  const gifHeight = 2;
+  const frameData = new Uint8Array(gifWidth * gifHeight * 4);
+  // (0,0) red
+  frameData[0] = 255; frameData[1] = 0;   frameData[2] = 0;   frameData[3] = 255;
+  // (1,0) green
+  frameData[4] = 0;   frameData[5] = 255; frameData[6] = 0;   frameData[7] = 255;
+  // (0,1) blue
+  frameData[8] = 0;   frameData[9] = 0;   frameData[10] = 255; frameData[11] = 255;
+  // (1,1) white
+  frameData[12] = 255; frameData[13] = 255; frameData[14] = 255; frameData[15] = 255;
+
+  const cacheKey = 'test/tile-50.gif';
+  loadGifIntoCache(cacheKey, {
+    frames: [{ data: frameData, delay: 100 }],
+    width: gifWidth,
+    height: gifHeight,
+  });
+
+  // Render to 4x4 scene at 50%/50% — each tile is 2x2 pixels, so 2x2 tiles
+  const sceneWidth = 4;
+  const sceneHeight = 4;
+  const sceneF32 = new Float32Array(sceneWidth * sceneHeight * 3);
+  render(sceneF32, sceneWidth, sceneHeight, 0, {
+    gifPath: cacheKey,
+    scaleWidth: 50,
+    scaleHeight: 50,
+  });
+
+  function getPixel(pixelX, pixelY) {
+    const offset = (pixelY * sceneWidth + pixelX) * 3;
+    return [sceneF32[offset], sceneF32[offset + 1], sceneF32[offset + 2]];
+  }
+
+  // Top-left tile (0,0)-(1,1) should match the 2x2 GIF pattern
+  assert.deepEqual(getPixel(0, 0), [1, 0, 0], 'tile(0,0) top-left = red');
+  assert.deepEqual(getPixel(1, 0), [0, 1, 0], 'tile(0,0) top-right = green');
+  assert.deepEqual(getPixel(0, 1), [0, 0, 1], 'tile(0,0) bottom-left = blue');
+  assert.deepEqual(getPixel(1, 1), [1, 1, 1], 'tile(0,0) bottom-right = white');
+
+  // Top-right tile (2,0)-(3,1) should repeat the same pattern
+  assert.deepEqual(getPixel(2, 0), [1, 0, 0], 'tile(1,0) top-left = red');
+  assert.deepEqual(getPixel(3, 0), [0, 1, 0], 'tile(1,0) top-right = green');
+  assert.deepEqual(getPixel(2, 1), [0, 0, 1], 'tile(1,0) bottom-left = blue');
+  assert.deepEqual(getPixel(3, 1), [1, 1, 1], 'tile(1,0) bottom-right = white');
+
+  // Bottom-left tile (0,2)-(1,3) should also repeat
+  assert.deepEqual(getPixel(0, 2), [1, 0, 0], 'tile(0,1) top-left = red');
+  assert.deepEqual(getPixel(1, 2), [0, 1, 0], 'tile(0,1) top-right = green');
+  assert.deepEqual(getPixel(0, 3), [0, 0, 1], 'tile(0,1) bottom-left = blue');
+  assert.deepEqual(getPixel(1, 3), [1, 1, 1], 'tile(0,1) bottom-right = white');
+
+  clearGifCache(cacheKey);
+});
+
+test('100% scale matches output without scale params (backward compat)', () => {
+  // Create a 3x2 GIF with a gradient pattern
+  const gifWidth = 3;
+  const gifHeight = 2;
+  const frameData = new Uint8Array(gifWidth * gifHeight * 4);
+  for (let row = 0; row < gifHeight; row++) {
+    for (let col = 0; col < gifWidth; col++) {
+      const offset = (row * gifWidth + col) * 4;
+      frameData[offset] = col * 80;
+      frameData[offset + 1] = row * 120;
+      frameData[offset + 2] = 50;
+      frameData[offset + 3] = 255;
+    }
+  }
+
+  const cacheKey = 'test/compat-100.gif';
+  loadGifIntoCache(cacheKey, {
+    frames: [{ data: frameData, delay: 100 }],
+    width: gifWidth,
+    height: gifHeight,
+  });
+
+  const sceneWidth = 6;
+  const sceneHeight = 4;
+
+  // Render without explicit scale params (defaults to 100%)
+  const sceneDefault = new Float32Array(sceneWidth * sceneHeight * 3);
+  render(sceneDefault, sceneWidth, sceneHeight, 0, { gifPath: cacheKey });
+
+  // Render with explicit 100%/100%
+  const sceneExplicit = new Float32Array(sceneWidth * sceneHeight * 3);
+  render(sceneExplicit, sceneWidth, sceneHeight, 0, {
+    gifPath: cacheKey,
+    scaleWidth: 100,
+    scaleHeight: 100,
+  });
+
+  // Both should produce identical output
+  for (let i = 0; i < sceneDefault.length; i++) {
+    assert.equal(sceneDefault[i], sceneExplicit[i],
+      `Pixel index ${i} should match between default and explicit 100%`);
+  }
 
   clearGifCache(cacheKey);
 });

@@ -7,11 +7,15 @@ export const displayName = 'GIF';
 export const defaultParams = {
   gifPath: '',
   speed: 1.0,
+  scaleWidth: 100,
+  scaleHeight: 100,
 };
 
 export const paramSchema = {
   gifPath: { type: 'filePath', label: 'GIF File' },
   speed: { type: 'number', label: 'Speed', min: 0.1, max: 5, step: 0.1, default: 1.0 },
+  scaleWidth: { type: 'number', label: 'Tile Width %', min: 1, max: 100, step: 1, default: 100 },
+  scaleHeight: { type: 'number', label: 'Tile Height %', min: 1, max: 100, step: 1, default: 100 },
 };
 
 // Frame cache: gifPath -> { frames: [{data, delay}], width, height }
@@ -299,7 +303,7 @@ function deinterlace(indexStream, width, height) {
 
 // Render function called by the engine
 export function render(sceneF32, W, H, t, params) {
-  const { gifPath = '', speed = 1.0 } = params;
+  const { gifPath = '', speed = 1.0, scaleWidth = 100, scaleHeight = 100 } = params;
 
   if (!gifPath) {
     // No GIF selected - fill with dark gray
@@ -354,15 +358,17 @@ export function render(sceneF32, W, H, t, params) {
     }
   }
 
-  // Scale and render GIF to scene
-  const scaleX = gifWidth / W;
-  const scaleY = gifHeight / H;
+  // Tile dimensions: each tile occupies scaleWidth%/scaleHeight% of the view
+  const tileWidth = Math.max(1, Math.round(W * scaleWidth / 100));
+  const tileHeight = Math.max(1, Math.round(H * scaleHeight / 100));
 
   for (let y = 0; y < H; y++) {
+    const tileY = y % tileHeight;
+    const gifY = Math.floor(tileY * gifHeight / tileHeight);
+
     for (let x = 0; x < W; x++) {
-      // Sample from GIF with nearest-neighbor scaling
-      const gifX = Math.floor(x * scaleX);
-      const gifY = Math.floor(y * scaleY);
+      const tileX = x % tileWidth;
+      const gifX = Math.floor(tileX * gifWidth / tileWidth);
       const gifOffset = (gifY * gifWidth + gifX) * 4;
 
       const sceneOffset = (y * W + x) * 3;

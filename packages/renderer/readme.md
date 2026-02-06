@@ -105,7 +105,7 @@ The calibration system uses WebSocket messages to update section positions in-me
 Runtime parameters are grouped under `effects` for effect-specific settings
 and `post` for modifiers like brightness, tint and strobe which can be applied on top.
 
-Available effects: gradient, solid, noise, digitalRain, diagonalStripes, lineScanner, sectionHighlighter.
+Available effects: gradient, solid, noise, digitalRain, diagonalStripes, gif, lineScanner, sectionHighlighter.
 A `renderMode` parameter controls how scenes map to the two walls: `duplicate` renders once for both, `extended` renders a double-width scene and splits it, and `mirror` flips the scene horizontally for the right wall. Both the engine and browser preview rely on `renderFrames` to handle these modes.
 
 ### Frame pipeline
